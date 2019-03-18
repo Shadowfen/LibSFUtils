@@ -1,0 +1,10 @@
+## APIVersion: 100025 100026
+## Title: LibSFUtils
+## Author: Shadowfen
+## AddOnVersion: 14
+## Version: 14
+## Description: Library containing a variety of utilities used in Shadowfen's addons.
+## DependsOn: LibStub
+
+; Library
+LibSFUtils.lua
