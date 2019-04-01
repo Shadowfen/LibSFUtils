@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "LibSFUtils", 14
+local MAJOR, MINOR = "LibSFUtils", 15
 local sfutil, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 if(not sfutil) then return end --the same or newer version of this lib is already loaded into memory
 
@@ -226,6 +226,23 @@ function sfutil.defaultMissing(svtable, defaulttable)
 end
 
 ---------------------
+-- Recursively copy contents of a table into a new table
+function sfutil.deepCopy(orig)
+	local orig_type = type(orig)
+	local copy
+	if orig_type == 'table' then
+		copy = {}
+		for orig_key, orig_value in next, orig, nil do
+			copy[sfutil.deepCopy(orig_key)] = sfutil.deepCopy(orig_value)
+		end
+		setmetatable(copy, sfutil.deepCopy(getmetatable(orig)))
+	else -- number, string, boolean, etc
+		copy = orig
+	end
+	return copy
+end
+
+---------------------
 -- turn a boolean value into a string
 -- suitable for display
 function sfutil.bool2str(bool)
@@ -332,9 +349,8 @@ function sfutil.currentSavedVars(aw, toon, newAcctWideVal)
 	end
 	if( toon.accountWide ) then 
 		return aw
-	else
-		return toon
 	end
+    return toon
 end
 
 ---------------------
@@ -432,6 +448,42 @@ function sfutil.addonChatter:slashHelp(title, cmdstable)
 end
 
 
+
+-- -------------------------------------------------------
+
+-- load strings for the client language (or default if the
+-- client language is not supported)
+--
+function sfutil.LoadLanguage(lang_strings, defaultLang)
+    if lang_strings == nil or type(lang_strings) ~= "table"then 
+        -- invalid parameter
+        d("LoadLanguage: Invalid lang_strings parameter")
+        return 
+    end
+    sfutil.nilDefault(defaultLang, "en")
+    
+    -- get current language
+    local lang = GetCVar("language.2")
+
+    --check for supported languages
+    local chosen = lang
+    if lang_strings[lang] == nil then
+        chosen = defaultLang
+    end
+    
+    if( lang_strings[chosen] == nil or type(lang_strings[chosen]) ~= "table" ) then
+        -- chosen language is not in lang_strings table
+        d("LoadLanguage: Chosen language is not in lang_strings table")
+        return
+    end
+    
+    -- load strings for chosen language
+    local localstr = lang_strings[chosen]
+    for stringId, stringValue in pairs(localstr) do
+        ZO_CreateStringId(stringId, stringValue)
+        SafeAddVersion(stringId, 1)
+    end
+end
 
 -- -----------------------------------------------------------------------
 -- experimental functions - not ready for prime-time

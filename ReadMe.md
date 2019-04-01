@@ -148,3 +148,11 @@ function sfutil.addonChatter:slashHelp(title, cmdstable)
     Display in chat a table of slash commands with descriptions
     (using the addonChatter you have previously created)
 
+Localization
+
+function sfutil.LoadLanguage(localization_strings, defaultLang)
+    Add strings to the string table for the client language (or
+    the default language if the client language did not have strings
+    defined for it). The localization_strings parameter is a table of tables
+    of localization strings, and defaultLang defaults to "en" if not
+    provided.

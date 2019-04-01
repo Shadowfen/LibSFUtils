@@ -1,3 +1,34 @@
+[COLOR="DeepSkyBlue"]15[/COLOR]
+[LIST]
+[*] Added new Localization function LoadLanguage().
+
+function sfutil.LoadLanguage(localization_strings, defaultLang)
+    Add strings to the string table for the client language (or
+    the default language if the client language did not have strings
+    defined for it). The localization_strings parameter is a table of tables
+    of localization strings, and defaultLang defaults to "en" if not
+    provided.
+    
+    An example of a localization_strings table might be:
+    
+    MyAddon.localization_strings = {
+    ["en"] = {
+            MYADDON_RANDOM_TEXT = "This is a test",
+        },
+    ["de"] = {
+            MYADDON_RANDOM_TEXT = "Dies ist ein Test",
+        },
+    ["fr"] = {
+            MYADDON_RANDOM_TEXT = "C'est un test",
+        },
+    }
+    
+    Then the sfutil.LoadLanguage(MyAddon.localization_strings, "en") would load
+    the appropriate strings table for the client language, or the "en" strings
+    if there isn't a table for the language (say it was "jp").
+[*] Added a deep copy function for a table - deepCopy(orig) returns new table.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]14[/COLOR]
 [LIST]
 [*] API Bump
