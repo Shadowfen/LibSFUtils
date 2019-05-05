@@ -1,5 +1,7 @@
 [COLOR="DeepSkyBlue"]15[/COLOR]
 [LIST]
+[*] Removed dependency on LibStub. This library can no longer be accessed through LibStub.
+[*] Added new ##IsLibrary to manifest.
 [*] Added new Localization function LoadLanguage().
 
 function sfutil.LoadLanguage(localization_strings, defaultLang)

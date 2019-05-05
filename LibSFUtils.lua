@@ -1,9 +1,6 @@
-local MAJOR, MINOR = "LibSFUtils", 15
-local sfutil, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
-if(not sfutil) then return end --the same or newer version of this lib is already loaded into memory
+LibSFUtils = {}
 
--- prep for no longer using LibStub. provides hybrid support during transition
-LibSFUtils = sfutil
+sfutil = LibSFUtils
 
 ---------------------
 -- convenience color tables
@@ -451,6 +448,19 @@ end
 
 -- -------------------------------------------------------
 
+-- This enhanced version of ESO's SafeAddString() will create the
+-- string if it does not already exist (new behaviour) and overwrite
+-- the string if it does exist and is not an older version (original
+-- behaviour).
+function sfutil.SafeAddString(stringId, stringValue, stringVersion)
+    if not _G[stringId] then 
+        ZO_CreateStringId(stringId, stringValue)
+        SafeAddVersion(stringId, stringVersion)
+    else
+        SafeAddString(stringId, stringValue, stringVersion)
+    end
+end
+
 -- load strings for the client language (or default if the
 -- client language is not supported)
 --
@@ -460,7 +470,7 @@ function sfutil.LoadLanguage(lang_strings, defaultLang)
         d("LoadLanguage: Invalid lang_strings parameter")
         return 
     end
-    sfutil.nilDefault(defaultLang, "en")
+    defaultLang = sfutil.nilDefault(defaultLang, "en")
     
     -- get current language
     local lang = GetCVar("language.2")
@@ -478,10 +488,12 @@ function sfutil.LoadLanguage(lang_strings, defaultLang)
     end
     
     -- load strings for chosen language
+    --d("chosen = "..chosen.."  lang = "..lang)
     local localstr = lang_strings[chosen]
     for stringId, stringValue in pairs(localstr) do
-        ZO_CreateStringId(stringId, stringValue)
-        SafeAddVersion(stringId, 1)
+        sfutil.SafeAddString(stringId, stringValue, 1)
+        --ZO_CreateStringId(stringId, stringValue)
+        --SafeAddVersion(stringId, 1)
     end
 end
 
