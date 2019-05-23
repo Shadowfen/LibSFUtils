@@ -1,3 +1,14 @@
+[COLOR="DeepSkyBlue"]17[/COLOR]
+[LIST]
+[*] More adjustments to the LibSFUtil enhanced version of SafeAddString() to support the LoadLanguage() function.
+[/LIST]
+
+[COLOR="DeepSkyBlue"]16[/COLOR]
+[LIST]
+[*] Modified and tested the LibSFUtil enhanced version of SafeAddString() to support the LoadLanguage() function.
+[*] Fixed error in loading of default language strings in LoadLanguage().
+[/LIST]
+
 [COLOR="DeepSkyBlue"]15[/COLOR]
 [LIST]
 [*] Removed dependency on LibStub. This library can no longer be accessed through LibStub.
