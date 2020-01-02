@@ -1,3 +1,24 @@
+[COLOR="DeepSkyBlue"]21[/COLOR]
+[LIST]
+[*] Added a LibSFUtils.LibVersion variable which contains the current version number of the library. This can be used by addons that depend on this library to ensure that a minimum version of the library is loaded and accessible.
+[/LIST]
+
+[COLOR="DeepSkyBlue"]20[/COLOR]
+[LIST]
+[*] Added functions supporting an array of sounds since I now have more than one addon doing it.
+[*] Update defaultMissing() to properly check for a nil value and return the default if found.
+[/LIST]
+
+[COLOR="DeepSkyBlue"]19[/COLOR]
+[LIST]
+[*] API bump
+[/LIST]
+
+[COLOR="DeepSkyBlue"]18[/COLOR]
+[LIST]
+[*] API bump
+[/LIST]
+
 [COLOR="DeepSkyBlue"]17[/COLOR]
 [LIST]
 [*] More adjustments to the LibSFUtil enhanced version of SafeAddString() to support the LoadLanguage() function.
