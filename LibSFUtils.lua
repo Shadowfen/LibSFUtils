@@ -6,6 +6,15 @@ sfutil = LibSFUtils
 
 ---------------------
 -- convenience color tables
+-- These tables contain definitions for commonly used colors along with
+-- names to easily indicate the color. 
+--
+-- Using these can somewhat reduce your addon's computational load as 
+-- these are calculated once, when the library is loaded instead of 
+-- whenever you go from hex to zo_colordef/rgb or from zo_colordef/rgb 
+-- to hex again. It might be miniscule, but when you are doing the 
+-- zo_colordef creations and conversions with a lot of colors many many 
+-- times, it all adds up.
 sfutil.colors = {
     gold        = {hex ="FFD700", rgb = {255/255, 215/255, 0}, },
     red         = {hex ="FF0000", rgb = {255/255, 0, 0}, },
