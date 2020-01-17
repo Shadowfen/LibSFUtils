@@ -1,5 +1,5 @@
 LibSFUtils = {
-    LibVersion = 21,    -- change this with every release!
+    LibVersion = 22,    -- change this with every release!
 }
 
 sfutil = LibSFUtils
@@ -638,6 +638,267 @@ function sfutil.PlaySound(index)
         end
     end
 end    
+
+-- -----------------------------------------------------------------------
+-- Utility for parsing delimited strings
+
+-- Split a string into sections using a pattern as a delimiter
+-- When delimiter starts or ends the string, an empty string is considered
+-- to be before/after the delimiter. When two or more delimiters are together,
+-- there is considered to be empty strings between them.
+--   str = string
+--   pat = delimiter pattern
+--
+-- Returns table of strings that were separated by delimiters
+-- (The delimiters are NOT included in the table.)
+function sfutil.gsplit(str, pat)
+   local t1 = {}  
+   if not str then return {} end
+   
+   if not pat or pat == '' then 
+       -- special case - no delimiter
+       return {str}
+   end
+   
+   local fpat = "(.-)" .. pat
+   local last_end = 1
+   local s1, e1, cap = str:find(fpat, 1)
+   
+   if not s1 then 
+       -- special case - string does not contain delimiter
+       table.insert(t1,str); 
+       return t1
+   end
+   
+   while s1 do
+        if not cap then
+           -- delimiter was the beginning of the string
+           -- so first capture is empty string
+           cap = ""
+        end
+        -- save the front captured piece of the string
+        table.insert(t1,cap)
+        last_end = e1+1
+        s1, e1, cap = str:find(fpat, last_end)
+   end
+   -- we have run out of delimiters to find
+   if last_end-1 <= #str then
+        -- still have the last piece of string without delimiters
+        cap = str:sub(last_end)
+        table.insert(t1, cap)
+    end
+   return t1
+end
+
+-- -----------------------------------------------------------------------
+-- Utilities for parsing colors in chat messages
+
+-- Get the positions of all of the color markers (|c and |r) in a string
+-- Return a table where each entry has the index into the string (start)
+-- and the type of marker (code = "c" or "r", lower case)
+-- Havok allows "|" escape character for "|" (user input) so we must handle doubled pipes for chat.
+--
+-- Returns the markertable for the markers that are in the string
+--   (can be empty but never nil)
+-- where table entry is { start, estr, code } and 
+--   start is the beginning of the string section for this entry
+--   estr is the end of the string section for this entry (section includes the trailing color code for |c).
+--   code is either "c" or "r" (lower case)
+function sfutil.getAllColorDelim(str)
+    if not str then return {} end
+    
+    -- get positions of all of the desired delimiters
+    local t1 = {}  
+   
+    local s1, e1, c = str:find("|+([CcRr])", 1)
+    local strlen = #str
+    while s1 do
+        if s1 == strlen then break end
+        
+        local code = string.lower(c)
+        if code == "c" then
+            e1 = e1 + 6     -- include color code
+        end
+        table.insert(t1,{start=s1,estr=e1,code=code} )
+        -- look for next
+        s1, e1, c = str:find("|+([CcRr])", e1)
+    end
+    -- we have run out of delimiters to find
+    return t1
+end
+
+-- Evaluate and correct the color markers in the string so that
+-- empty colors are marked for removal, "|c" markers are 
+-- always balanced by "|r" markers, and we don't have extra "|r"
+-- markers
+--
+-- Uses the source string and a marker table as produced by 
+-- getAllColorDelim(). The marker table is modified by this function.
+--
+-- Returns the modified markertable for the markers that are in (or should be in) the string
+-- where table entry is { start, estr, code, action } and 
+--   action is nil (keep), "+" (add), or "-" (remove);
+--   estr is the end of the string section for this entry.
+function sfutil.regularizeColors(markertable, str)
+    if not str then return {} end
+    if not markertable or #markertable == 0 then return {} end
+   -- clean positions
+    local prev_v, sv_start
+    local needR = false
+    for k, v in ipairs(markertable) do
+        sv_start = v.start
+        if v.code == "r" then
+            if needR == false then
+                -- don't need this |r so mark for removal
+                v.action = "-"
+            else
+                needR = false
+            end
+        elseif v.code == "c" then
+            if needR == true then
+                -- we are already in a color so we need to add a |r to close it
+                v = {start=sv_start,estr=sv_start,code="r",action="+"}
+                table.insert(markertable,k,v)
+                needR = false
+                -- the color we were processing has been bumped to next, so we will process it again.
+            else
+                needR = true
+            end
+        end
+        
+        -- filter out empty colors. At this point if prev_v.code == "c" then v.code == "r".
+        if prev_v and prev_v.code == "c" and prev_v.estr + 1 == sv_start then
+            -- mark both this "|r" and the previous "|c" for removal
+            prev_v.action="-"
+            v.action="-"
+        end
+        prev_v = v
+    end
+    -- we've reached the end of the markertable
+    if needR == true then
+        -- we still need a |r, so append one
+        table.insert(markertable,{start=#str+1,estr=#str+1,action="+",code="r"})
+    end
+    return markertable
+end
+
+-- Strip all of the color markers out of the string.
+-- Uses the source string and a marker table as produced by 
+-- getAllColorDelim().
+--
+-- Returns a string which is the source string with all of the color
+-- markers removed.
+--
+-- Havok allows "|" escape character for "|" (user input) so we must handle doubled pipes.
+function sfutil.stripColors(markertable,str)
+    if not str then return nil end
+    if not markertable or #markertable == 0 then return str end
+    
+    local t2 = {}
+    local lastv = 0
+    for k,v in ipairs(markertable) do
+        local code = v.code
+        local action = v.action
+        if not action then
+            -- it's a section we're keeping
+            -- string fragment
+            if code == "c" then
+                if v.start > lastv+1 then
+                    table.insert(t2,str:sub(lastv+1,v.start-1))
+                end
+                ss, es = string.find(str,"|+[Cc]%x%x%x%x%x%x",v.start)
+                lastv = es
+            elseif code == "r" then
+                -- end color
+                if v.start > lastv+1 then
+                    table.insert(t2,str:sub(lastv+1,v.start-1))
+                end
+                ss, es = string.find(str,"|+[Rr]",v.start)
+                lastv = es
+            else
+                -- uninteresting
+            end
+        elseif action == "+" then
+            -- new string fragment (|r)
+            if v.start > lastv+1 then
+                table.insert(t2,str:sub(lastv+1,v.start-1))
+            end
+            lastv = v.start + 1
+        else    -- action == "-"
+            if code == "c" then
+                ss, es = string.find(str,"|+[Cc]%x%x%x%x%x%x",v.start)
+                lastv = es
+            elseif code == "r" and v.start ~= -1 then
+                ss, es = string.find(str,"|+[Rr]",v.start)
+                lastv = es
+            end
+        end
+    end
+    if lastv <= #str then
+        lastv = lastv +1
+        table.insert(t2,str:sub(lastv))
+    end
+    return table.concat(t2)
+end
+
+-- Splits the string into sections corresponding the color markers themselves
+-- and the text around the markers. Doing a table.concat() will join the contents
+-- of the returned table into a properly color-marked string.
+-- Returns the table of sections
+function sfutil.colorsplit(markertable, str)
+    if not str then return {} end
+    if not markertable or #markertable == 0 then
+        -- no delimiters in string
+        return { str }
+    end
+    
+    -- break string into sections with color markers separated out
+    local t2 = {}
+    local lastv = 0
+    local ss, es, cs
+    for k,v in ipairs(markertable) do
+        local code = v.code
+        local action = v.action
+        if not action then
+            -- it's a section we're keeping
+            if v.start > lastv+1 then
+                table.insert(t2,str:sub(lastv+1,v.start-1))
+            end
+            -- string fragment
+            if code == "c" then
+                -- expect color
+                ss, es, cs = string.find(str,"|+[Cc](%x%x%x%x%x%x)",v.start)
+                table.insert(t2, string.format("|c%s",cs))
+                lastv = es
+            elseif code == "r" then
+                -- end color
+                ss, es = string.find(str,"|+[Rr]",v.start)
+                table.insert(t2,"|r")
+                lastv = es
+            end
+        elseif action == "+" then
+            -- new string fragment (|r)
+            if v.start > lastv+1 then
+                table.insert(t2,str:sub(lastv+1,v.start-1))
+            end
+            table.insert(t2,"|r")
+            lastv = v.start + 1
+        else    -- action == "-"
+            if code == "c" then
+                ss, es = string.find(str,"|+[Cc]%x%x%x%x%x%x",v.start)
+                lastv = es
+            elseif code == "r" and v.start ~= -1 then
+                ss, es = string.find(str,"|+[Rr]",v.start)
+                lastv = es
+            end
+        end
+    end
+    if lastv <= #str then
+        lastv = lastv +1
+        table.insert(t2,str:sub(lastv))
+    end
+    return t2
+end
 
 -- -----------------------------------------------------------------------
 -- experimental functions - not ready for prime-time
