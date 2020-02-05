@@ -201,4 +201,49 @@ function sfutil.LoadLanguage(localization_strings, defaultLang)
     language lua file (strings.lua), and $(language).lua in your addon manifest. This way you can only
     load the strings for two languages (at most) instead of all of them you have available.
 
+Version Checker
+    Used to check if the dependent libraries that are loaded have at least a minimum version. (These functions depend on the libraries using the 
+            ## AddOnVersion: 23
+        marker in the library's manifest (.txt file).
 
+    These functions are designed to work with the LibDebugLogger, however you can provide your own version of a logger by providing a object table that at least provides the functions <mylogger>:Error(<format>,...), <mylogger>:Warn(<format>,...) and <mylogger>:Info(<format>,...).
+    When working with the LibDebugLogger, it will send error messages to the logger when a library is found with an older version than required, a warning message if a required library is missing, and an info message if no version information is available for the library.
+    
+local VC = LibSFUtils.VersionChecker
+function VC:New(addonName) (or VC(addonName)
+    Create a new instance of a version checker.
+function VC:Enable(logger)
+    Enable the VersionChecker instance and set the logger that the instance is to use.
+    For instance, you would call myVC:Enable(LibDebugLogger("myAddon")).
+function VC:Disable()
+    Disable the VersionChecker instance so that none of the other VC functions do anything.
+function VC:NewCheckVersion(libname, expectedVersion)
+    Check if the library is 1) loaded, and 2) has a version that is equal to or greater than the version you expect to have.
+function VC:NoVersion(libname)
+    Specify that you know that no version information is available for the library - (only an info message).
+function LibSFUtils.GetAddonIndex(libname)
+    This utility function will return the ZOS addon index for the library named libname (if it is loaded). If it is not loaded, it will return -1.
+function LibSFUtils.GetAddonVersion(name)
+    This utility function will return the addon version (as specified in the manifest ##AddOnVersion: line) for the library named libname (if it is loaded). If it is not loaded, it will return -1. If it is loaded but does not have a ##AddOnVersion: then it will return 0.
+
+Example of use:
+    function myaddon.checkLibraryVersions()
+        local vc = SF.VersionChecker("myaddon")
+        local logger = LibDebugLogger.Create("rChat")
+        vc:Enable(logger)
+        vc:CheckVersion("LibAddonMenu-2.0", 30)
+        vc:CheckVersion("LibMediaProvider-1.0", 12)
+        vc:CheckVersion("libChat2", 12)
+        vc:CheckVersion("LibSFUtils", 23)
+        vc:CheckVersion("LibDebugLogger",128)
+    end
+    
+    local function OnAddonLoaded(_, addonName)
+
+        --Protect
+        if addonName ~= myaddon.name then return end
+        
+        myaddon.checkLibraryVersions()
+        -- do important stuff
+    end
+    
