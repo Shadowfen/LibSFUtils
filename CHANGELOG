@@ -1,7 +1,7 @@
 [COLOR="DeepSkyBlue"]23[/COLOR]
 [LIST]
-[*] Split related functions into separate source files for convenience. There are no changes to the API or functionality - only in making the code easier to inspect and change.
-[*] Added new functions for checking the versions of loaded libraries. These functions will work in conjunction with LibDebugLogger (or some other logger) to print messages to the specified logger if a library is either not loaded or does not meet the minimum version requirement for the library to be used with an addon.
+[*] Added new functions for checking the versions of loaded libraries. These functions will work in conjunction with LibDebugLogger (or some other logger) to print messages to the specified logger if a library is either not loaded or does not meet the minimum version requirement for the library to be used with an addon. See ReadMe for more details.
+[*] Split related functions into separate source files for convenience. There are no changes to the API or functionality in doing so - only in making the code easier to inspect and change.
 [/LIST]
 
 [COLOR="DeepSkyBlue"]22[/COLOR]
