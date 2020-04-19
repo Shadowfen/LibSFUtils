@@ -25,6 +25,8 @@ sfutil.colors = {
 	ltskyblue   = {hex ="87cefa", rgb = {135/255, 206/255, 250/255}, },
 	lemon		= {hex ="FFFACD", rgb = {255/255, 250/255, 205/255}, },
 	mocassin	= {hex ="FFE4B5", rgb = {255/255, 228/255, 181/255}, },
+    aquamarine  = {hex ="7fffd4", rgb = {127/255, 255/255, 212/255}, },
+    lightsalmon = {hex ="FFA07A", rgb = {255/255, 160/255, 122/255}, },
 
     junk        = {hex = "7f7f7f", rgb = {127/255, 127/255, 127/255}, },
     normal      = {hex = "FFFFFF", rgb = {255/255, 255/255, 255/255}, },

@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]24 unreleased[/COLOR]
+[LIST]
+[*] Added a couple of new convenience colors.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]23[/COLOR]
 [LIST]
 [*] Added new functions for checking the versions of loaded libraries. These functions will work in conjunction with LibDebugLogger (or some other logger) to print messages to the specified logger if a library is either not loaded or does not meet the minimum version requirement for the library to be used with an addon. See ReadMe for more details.
