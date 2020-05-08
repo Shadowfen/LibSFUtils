@@ -627,6 +627,38 @@ function sfutil.regularizeColors(markertable, str)
     return markertable
 end
 
+function sfutil.applyColor(str, colorhex)
+    if not str then return nil end
+    if not colorhex then return str end
+    
+    local parsetbl = sfutil.getAllColorDelim(str)
+    sfutil.regularizeColors(parsetbl, str)
+    local newtbl = {}
+    local incolor = false
+    for k,v in ipairs(parsetbl) do
+        if string.find(str,"|+[Cc]",v) then
+            -- starting embedded color
+            if incolor == true then
+                newtbl[#newtbl] = "|r"
+                incolor = false
+            end
+            newtbl[#newtbl] = v
+        elseif string.find(str,"|+[Rr]",v) then
+            -- exitting embedded color
+            newtbl[#newtbl] = v
+            newtbl[#newtbl] = string.format("|c%s",colorhex)
+            incolor = true
+        else
+            if incolor == false then
+                newtbl[#newtbl] = string.format("|c%s",colorhex)
+                incolor = true
+            end
+            newtbl[#newtbl] = v
+        end
+    end
+    return table.concat(new)
+end
+
 -- Strip all of the color markers out of the string.
 -- Uses the source string and a marker table as produced by 
 -- getAllColorDelim().
