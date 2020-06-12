@@ -76,6 +76,9 @@ sfutil.rgb = {
     legendary = sfutil.colors.legendary.rgb,
 }
 
+
+local ZOS_addSystemMsg = CHAT_SYSTEM.AddMessage
+
 ---------------------
 --[[
     Concatenate varargs to a string
@@ -311,7 +314,7 @@ end
 function sfutil.systemMsg(prefix, text, hexcolor)
 	hexcolor = sfutil.nilDefault(hexcolor, sfutil.hex.normal)
 	msg = prefix..sfutil.ColorText(text, hexcolor)
-	CHAT_SYSTEM:AddMessage(msg)
+	ZOS_addSystemMsg(msg)
 end
 
 
@@ -339,14 +342,14 @@ end
 -- print normal messages to chat
 function sfutil.addonChatter:systemMessage(...)
 	local msg = self.prefix..sfutil.ColorText(sfutil.dstr(" ",...), self.normalcolor)
-	CHAT_SYSTEM:AddMessage(msg)
+	ZOS_addSystemMsg(msg)
 end
 
 -- print debug messages to chat
 function sfutil.addonChatter:debugMsg(...)
     if( self.isdbgon == true ) then
         local msg = sfutil.ColorText(sfutil.dstr(" ",...), self.debugcolor)
-        CHAT_SYSTEM:AddMessage(self.prefix..msg)
+        ZOS_addSystemMsg(self.prefix..msg)
     end
 end
 
@@ -354,7 +357,7 @@ function sfutil.addonChatter:enableDebug()
 	self.isdbgon = true
     self.d = function(...)
 			local msg = sfutil.ColorText(sfutil.dstr(" ",...), self.debugcolor)
-			CHAT_SYSTEM:AddMessage(self.prefix..msg)
+			ZOS_addSystemMsg(self.prefix..msg)
         end
 end
 
@@ -384,7 +387,7 @@ function sfutil.addonChatter:slashHelp(title, cmdstable)
 		end
         desc = sfutil.ColorText(" = "..sfutil.str(desc), self.normalcolor)
         local msg = sfutil.dstr( " ", self.prefix, cmd, desc )
-        CHAT_SYSTEM:AddMessage(msg);
+        ZOS_addSystemMsg(msg);
 	end
 	
     self:systemMessage(title)
