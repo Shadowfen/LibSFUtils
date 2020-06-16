@@ -77,7 +77,9 @@ sfutil.rgb = {
 }
 
 
-local ZOS_addSystemMsg = CHAT_SYSTEM.AddMessage
+local function ZOS_addSystemMsg(msg)
+	CHAT_SYSTEM:AddMessage(msg)
+end
 
 ---------------------
 --[[

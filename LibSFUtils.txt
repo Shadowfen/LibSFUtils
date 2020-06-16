@@ -2,8 +2,8 @@
 ## Title: LibSFUtils
 ## Author: Shadowfen
 ## IsLibrary: true
-## AddOnVersion: 25
-## Version: 25
+## AddOnVersion: 26
+## Version: 26
 ## Description: Library containing a variety of utilities used in Shadowfen's addons.
 
 ; Library
