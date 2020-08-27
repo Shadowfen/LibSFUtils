@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]27[/COLOR]
+[LIST]
+[*] API bump.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]26[/COLOR]
 [LIST]
 [*] Fixed a chat message issue caused by the previous minor code cleanup. Oops.

@@ -103,6 +103,26 @@ function sfutil.str(...)
    return table.concat(arg)
 end
 
+function sfutil.lstr(...)
+   local nargs = select('#',...)
+   local arg = {}
+
+   for i = 1,nargs do
+      local v = select(i,...)
+      local t = type(v)
+      if(v == nil) then
+         arg[#arg+1] = "(nil)"
+	  elseif t == "number" then
+		 arg[#arg+1] = GetString(v)
+      elseif(t == "table") then
+         arg[#arg+1] = sfutil.str(v)
+      else
+         arg[#arg+1] = tostring(v)
+      end
+   end
+   return table.concat(arg)
+end
+
 ---------------------
 --[[
     Concatenate varargs to a delimited string
