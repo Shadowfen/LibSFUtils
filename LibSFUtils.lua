@@ -1,6 +1,6 @@
 -- LibSFUtils is already defined in prior loaded file
 
-sfutil = LibSFUtils
+local sfutil = LibSFUtils or {}
 
 ---------------------
 -- convenience color tables
@@ -14,26 +14,27 @@ sfutil = LibSFUtils
 -- zo_colordef creations and conversions with a lot of colors many many 
 -- times, it all adds up.
 sfutil.colors = {
-    gold        = {hex ="FFD700", rgb = {255/255, 215/255, 0}, },
-    red         = {hex ="FF0000", rgb = {255/255, 0, 0}, },
+    gold        = {hex ="FFD700", rgb = {1, 215/255, 0}, },
+    red         = {hex ="FF0000", rgb = {1, 0, 0}, },
     teal        = {hex ="00EFBB", rgb = {0, 239/255, 187/255}, },
     lime        = {hex ="00E600", rgb = {0, 230/255, 0}, },
     goldenrod   = {hex ="EECA00", rgb = {238/255, 202/255, 0}, },
-    blue        = {hex ="0000FF", rgb = {0, 0, 255/255}, },
-    purple      = {hex ="b000ff", rgb = {176/255,0,255/255}, },
-    bronze      = {hex ="ff9900", rgb = {255/255, 153/255, 0}, },
+    blue        = {hex ="0000FF", rgb = {0, 0, 1}, },
+    purple      = {hex ="b000ff", rgb = {176/255, 0, 1}, },
+    bronze      = {hex ="ff9900", rgb = {1, 153/255, 0}, },
 	ltskyblue   = {hex ="87cefa", rgb = {135/255, 206/255, 250/255}, },
-	lemon		= {hex ="FFFACD", rgb = {255/255, 250/255, 205/255}, },
-	mocassin	= {hex ="FFE4B5", rgb = {255/255, 228/255, 181/255}, },
-    aquamarine  = {hex ="7fffd4", rgb = {127/255, 255/255, 212/255}, },
-    lightsalmon = {hex ="FFA07A", rgb = {255/255, 160/255, 122/255}, },
+	lemon		= {hex ="FFFACD", rgb = {1, 250/255, 205/255}, },
+	mocassin	= {hex ="FFE4B5", rgb = {1, 228/255, 181/255}, },
+    aquamarine  = {hex ="7fffd4", rgb = {127/255, 1, 212/255}, },
+    lightsalmon = {hex ="FFA07A", rgb = {1, 160/255, 122/255}, },
 
     junk        = {hex = "7f7f7f", rgb = {127/255, 127/255, 127/255}, },
-    normal      = {hex = "FFFFFF", rgb = {255/255, 255/255, 255/255}, },
+    normal      = {hex = "FFFFFF", rgb = {1, 1, 1}, },
     fine        = {hex = "2dc50e", rgb = {45/255, 197/255, 14/255}, },
-    superior    = {hex = "3a92ff", rgb = {58/255, 146/255,255/255}, },
+    superior    = {hex = "3a92ff", rgb = {58/255, 146/255, 1}, },
     epic        = {hex = "a02ef7", rgb = {160/255, 46/255, 247/255}, },
     legendary   = {hex = "EECA00", rgb = {238/255, 202/255, 0}, },
+    mythic      = {hex = "ffaa00", rgb = {1, 170/255, 0}, },
 }
 sfutil.hex = { 
     gold = sfutil.colors.gold.hex, 
@@ -44,9 +45,9 @@ sfutil.hex = {
     blue = sfutil.colors.blue.hex,
     purple = sfutil.colors.purple.hex,
     bronze = sfutil.colors.bronze.hex,
-	ltskyblue = sfutil.colors.ltskyblue.hex,
-	lemon = sfutil.colors.lemon.hex,
-	mocassin = sfutil.colors.mocassin.hex,
+	  ltskyblue = sfutil.colors.ltskyblue.hex,
+	  lemon = sfutil.colors.lemon.hex,
+	  mocassin = sfutil.colors.mocassin.hex,
 
     junk = sfutil.colors.junk.hex,
     normal = sfutil.colors.normal.hex,
@@ -54,6 +55,7 @@ sfutil.hex = {
     superior = sfutil.colors.superior.hex,
     epic = sfutil.colors.epic.hex,
     legendary = sfutil.colors.legendary.hex,
+    mythic = sfutil.colors.mythic.hex,
 }
 sfutil.rgb = { 
     gold = sfutil.colors.gold.rgb, 
@@ -64,9 +66,9 @@ sfutil.rgb = {
     blue = sfutil.colors.blue.rgb,
     purple = sfutil.colors.purple.rgb,
     bronze = sfutil.colors.bronze.rgb,
-	ltskyblue = sfutil.colors.ltskyblue.rgb,
-	lemon = sfutil.colors.lemon.rgb,
-	mocassin = sfutil.colors.mocassin.rgb,
+	  ltskyblue = sfutil.colors.ltskyblue.rgb,
+	  lemon = sfutil.colors.lemon.rgb,
+	  mocassin = sfutil.colors.mocassin.rgb,
 
     junk = sfutil.colors.junk.rgb,
     normal = sfutil.colors.normal.rgb,
@@ -74,11 +76,28 @@ sfutil.rgb = {
     superior = sfutil.colors.superior.rgb,
     epic = sfutil.colors.epic.rgb,
     legendary = sfutil.colors.legendary.rgb,
+    mythic = sfutil.colors.mythic.rgb,
 }
 
 
 local function ZOS_addSystemMsg(msg)
-	CHAT_SYSTEM:AddMessage(msg)
+	CHAT_ROUTER:AddSystemMessage(msg)
+end
+
+
+---------------------
+--[[
+    Color conversion functions
+]]
+function sfutil.colorRGBToHex(r, g, b)
+  return string.format("%.2x%.2x%.2x", zo_floor(r * 255), zo_floor(g * 255), zo_floor(b * 255))
+end
+
+function sfutil.colorHexToRGBA(colourString)
+  local r=tonumber(string.sub(colourString, 1, 2), 16) or 255
+  local g=tonumber(string.sub(colourString, 3, 4), 16) or 255
+  local b=tonumber(string.sub(colourString, 5, 6), 16) or 255
+  return r/255, g/255, b/255, 1
 end
 
 ---------------------

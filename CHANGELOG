@@ -1,3 +1,9 @@
+[COLOR="DeepSkyBlue"]28[/COLOR]
+[LIST]
+[*] API bump (Markarth).
+[*] Added some minor color conversion functions hex->RGBA & RGB->hex.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]27[/COLOR]
 [LIST]
 [*] API bump.
