@@ -2,9 +2,10 @@
 ## Title: LibSFUtils
 ## Author: Shadowfen
 ## IsLibrary: true
-## AddOnVersion: 28
-## Version: 28
+## AddOnVersion: 29
+## Version: 29
 ## Description: Library containing a variety of utilities used in Shadowfen's addons.
+## OptionalDependsOn: LibDebugLogger
 
 ; Library
 LibSFUtils_Global.lua

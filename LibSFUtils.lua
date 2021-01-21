@@ -100,6 +100,55 @@ function sfutil.colorHexToRGBA(colourString)
   return r/255, g/255, b/255, 1
 end
 
+-- Turn a ([0,1])^3 RGB colour to "|cABCDEF" form. We could use
+-- ZO_ColorDef, but we use so many colors, we won't do it.
+-- Note: This is NOT the same as the LibSFUtils.colorRGBToHex() function!
+function sfutil.ConvertRGBToHex(r, g, b)
+    return string.format("|c%.2x%.2x%.2x", zo_floor(r * 255), zo_floor(g * 255), zo_floor(b * 255))
+end
+
+-- Convert a colour from hexadecimal form to [0,1] RGB form.
+-- Note: This is NOT the same as the LibSFUtils.colorHexToRGBA() function
+--   as it can convert from a variety of hex string formats for colors:
+--      |crrggbb, aarrggbb, and rrggbb
+function sfutil.ConvertHexToRGBA(colourString)
+    local r, g, b, a
+    if string.sub(colourString,1,1) == "|" then
+        -- format "|crrggbb"
+        r=tonumber(string.sub(colourString, 3, 4), 16) or 255
+        g=tonumber(string.sub(colourString, 5, 6), 16) or 255
+        b=tonumber(string.sub(colourString, 7, 8), 16) or 255
+        a = 255
+    elseif #colourString == 8 then
+        -- format "aarrggbb"
+        a=tonumber(string.sub(colourString, 1, 2), 16) or 255
+        r=tonumber(string.sub(colourString, 3, 4), 16) or 255
+        g=tonumber(string.sub(colourString, 5, 6), 16) or 255
+        b=tonumber(string.sub(colourString, 7, 8), 16) or 255
+    elseif #colourString == 6 then
+        -- format "rrggbb"
+        r=tonumber(string.sub(colourString, 1, 2), 16) or 255
+        g=tonumber(string.sub(colourString, 3, 4), 16) or 255
+        b=tonumber(string.sub(colourString, 5, 6), 16) or 255
+        a = 255
+    else
+        -- unidentified format
+        r = 255
+        g = 255
+        b = 255
+        a = 255
+    end
+    return r/255, g/255, b/255, a/255
+end
+
+-- Convert a colour from "|cABCDEF" form to [0,1] RGB form and return them in a table.
+function sfutil.ConvertHexToRGBAPacked(colourString)
+    local r, g, b, a = sfutil.ConvertHexToRGBA(colourString)
+    return {r = r, g = g, b = b, a = a}
+end
+
+
+
 ---------------------
 --[[
     Concatenate varargs to a string

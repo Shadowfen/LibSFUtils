@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]29[/COLOR]
+[LIST]
+[*] Added some more color conversion functions hex->RGBA & RGB->hex. While the original [COLOR="MediumSeaGreen"]LibSFUtils.colorHexToRGBA(colourString)[/COLOR] is still available, the new [COLOR="MediumSeaGreen"]LibSFUtils.ConvertHexToRGBA(colourString)[/COLOR] is recommended because it can convert from rrggbb hex strings, |crrggbb hex color strings, and aarrggbb hex strings into r, g, b, a where as the original colorHexToRGBA() could only convert from rrggbb strings.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]28[/COLOR]
 [LIST]
 [*] API bump (Markarth).
