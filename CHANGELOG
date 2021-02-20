@@ -1,3 +1,16 @@
+[COLOR="DeepSkyBlue"]30[/COLOR]
+[LIST]
+[*] API bump (Flames of Ambition).
+[*] Added some convenience guild functions.
+[COLOR="MediumSeaGreen"]LibSFUtils.SafeGetGuildName(index)[/COLOR]
+   Given an index between 1 and 5, get a guild name for that index and return both the guild name and the guild id for that index. Guild name is guaranteed to be non-nil, but if there was an error then the guild id returns IS nil.
+[COLOR="MediumSeaGreen"]LibSFUtils.GetActiveGuildNames()[/COLOR]
+   Get a list of names of active guilds in order by guild index (1-5)
+[COLOR="MediumSeaGreen"]LibSFUtils.GetActiveGuildIds()[/COLOR]
+   Get a list of ids of active guilds in order by guild index (1-5)
+The GetActiveGuildNames() and GetActiveGuildIds() can be used as a pair to set the choices and choicesValues fields respectively of a dropdown menu so that you see guild names but actually deal with guild ids.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]29[/COLOR]
 [LIST]
 [*] Added some more color conversion functions hex->RGBA & RGB->hex. While the original [COLOR="MediumSeaGreen"]LibSFUtils.colorHexToRGBA(colourString)[/COLOR] is still available, the new [COLOR="MediumSeaGreen"]LibSFUtils.ConvertHexToRGBA(colourString)[/COLOR] is recommended because it can convert from rrggbb hex strings, |crrggbb hex color strings, and aarrggbb hex strings into r, g, b, a where as the original colorHexToRGBA() could only convert from rrggbb strings.
