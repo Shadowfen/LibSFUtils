@@ -338,6 +338,8 @@ end
 
 ---------------------
 -- Recursively copy contents of a table into a new table
+-- for table/object it returns a copy of the table/object
+-- for anything else, it returns the value of the orig
 function sfutil.deepCopy(orig)
 	local orig_type = type(orig)
 	local copy

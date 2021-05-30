@@ -12,6 +12,7 @@ function sfutil.getDLCs()
     for categoryIndex = 1, GetNumCollectibleCategories() do
         local categoryName, numSubCategories, numCollectibles, unlockedCollectibles = 
 				GetCollectibleCategoryInfo(categoryIndex)
+		--d("categoryIndex="..categoryIndex.."  category Name="..categoryName)
 		if(categoryName == "Stories") then
 			d("Name: "..categoryName.."  Index: "..categoryIndex)
 			d("Num subcategories: "..numSubCategories)
@@ -27,6 +28,7 @@ function sfutil.getDLCs()
 				--
 				local formattedSubcategoryName = 
 					zo_strformat(SI_COLLECTIBLE_NAME_FORMATTER, subCategoryName)
+				d("formattedSubcategoryName->"..formattedSubcategoryName)
 				for coll=1, subNumCollectibles do
 					local id = GetCollectibleId(categoryIndex, 
 						subcategoryIndex, coll)
