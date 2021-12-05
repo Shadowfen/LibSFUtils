@@ -1,3 +1,35 @@
+[COLOR="DeepSkyBlue"]38[/COLOR]
+[LIST]
+[*] Splitting out existing colorizing functions to SFUtils_Color. Addition of new SF_Color object (interoperable with ZO_ColorDef).
+[*] Version number 37 skipped because, oops?
+[/LIST]
+
+[COLOR="DeepSkyBlue"]36[/COLOR]
+[LIST]
+[*] API bump.
+[/LIST]
+
+[COLOR="DeepSkyBlue"]35[/COLOR]
+[LIST]
+[*] Add in some simple MsgWindow enhancement functions (creates dependency on LibMsgWindow when used).
+[*] Fix some errors in the addon info functions
+[/LIST]
+
+[COLOR="DeepSkyBlue"]34[/COLOR]
+[LIST]
+[*] Fixed error reported by Damolann.
+[/LIST]
+
+[COLOR="DeepSkyBlue"]33[/COLOR]
+[LIST]
+[*] API bump (Flames of Ambition).
+[/LIST]
+
+[COLOR="DeepSkyBlue"]32[/COLOR]
+[LIST]
+[*] Split the Sounds-related functions into a separate source file for ease of maintenance. They are still part of the LibSFUtils library so no changes from a use standpoint.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]31[/COLOR]
 [LIST]
 [*] API bump (Blackwood).

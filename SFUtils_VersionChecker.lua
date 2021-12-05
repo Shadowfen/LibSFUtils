@@ -3,6 +3,9 @@
 LibSFUtils = LibSFUtils or {}
 
 
+--[[
+An implementation of a logger which does nothing.
+--]]
 local nilLibDebug = {
     Error = function(self,...)  end,
     Warn = function(self,...)  end,
@@ -15,6 +18,10 @@ setmetatable(nilLibDebug, { __call = function(self, name)
         end
     })
 
+--[[
+An implementation of a logger which uses the lua print function
+to output the messages.
+--]]
 local printLibDebug = {
     Error = function(self,...)  print("ERROR: "..string.format(...)) end,
     Warn = function(self,...)  print("WARN: "..string.format(...)) end,
@@ -50,6 +57,14 @@ function VC:New(addonName)
     return o
 end
 
+--[[
+Add a logger to the VersionChecker instance and enable logging.
+(If a logger is not specified, then default to the printLibDebug logger.)
+
+Note: The LibDebugLogger is a drop-in replacement for the other loggers we define here.
+    We simply require an object that implements Error, Warn, Info, and Debug object methods
+	for us to use as a logger.
+--]]
 function VC:Enable(plogger)
     self.enabled = true
     if not plogger then
@@ -61,10 +76,20 @@ function VC:Enable(plogger)
     end
 end
 
+--[[
+Disable logging in the VersionChecker instance
+--]]
 function VC:Disable()
     self.enabled = false
 end
 
+--[[
+*local function
+Load in information about all loaded addons to a table indexed by addon Name.
+The table also has a "count" entry containing the number of all of the addons in the table.
+
+The table is Global to the game; so once it is loaded it is available for any addon to use.
+--]]
 LibSFUtils.addonlist = { count=0 }
 local function loadAddonList()
     local addonlist = LibSFUtils.addonlist
@@ -80,6 +105,57 @@ local function loadAddonList()
     end
 end
 
+--[[
+Force load in information about all loaded addons to a table indexed by addon Name.
+Previous information that might have been in the addon table will be discarded.
+
+The table also has a "count" entry containing the number of all of the addons in the table.
+
+The table is Global to the game; so once it is loaded it is available for any addon to use.
+
+Note: This is a LibSFUtils function - not a VersionChecker one.
+--]]
+function LibSFUtils.ForceUpdateAddons()
+    local addonlist = { count=0 }
+    local AddOnManager = GetAddOnManager()
+    for i = 1, AddOnManager:GetNumAddOns() do
+        local name, title, author, description, enabled, state, isOutOfDate, isLibrary = AddOnManager:GetAddOnInfo(i)
+        addonlist[name] = { index=i, enabled=enabled, state=state, isOutOfDate=isOutOfDate, isLibrary=isLibrary }
+        addonlist.count=addonlist.count+1
+        local version = AddOnManager.GetAddOnVersion and AddOnManager:GetAddOnVersion(i) or 0
+        addonlist[name].version = version
+    end
+	LibSFUtils.addonlist = addonlist
+end
+
+--[[
+Get all the information about an addon from the name.
+Returns the following fields: name, title, author, description, 
+    enabled, state, isOutOfDate, isLibrary
+or 
+    nil if addon is not found. 
+This does another api call since not all the information is cached.
+--]]
+function LibSFUtils.GetAddonInfo(libname)
+    if LibSFUtils.addonlist.count == 0 then
+        loadAddonList()
+    end
+    local AddOnManager = GetAddOnManager()
+    if LibSFUtils.addonlist[libname] then
+		local indx = LibSFUtils.addonlist[libname].index
+		if indx then
+			return LibSFUtils.addonlist[libname]
+			--return AddOnManager:GetAddOnInfo(indx)
+		else
+			return
+		end
+	end
+    return
+end
+
+--[[
+Get the index of an addon from the name.
+--]]
 function LibSFUtils.GetAddonIndex(libname)
     if LibSFUtils.addonlist.count == 0 then
         loadAddonList()
@@ -90,6 +166,9 @@ function LibSFUtils.GetAddonIndex(libname)
     return -1
 end
 
+--[[
+Get the version of an addon from the name.
+--]]
 function LibSFUtils.GetAddonVersion(name)
     if LibSFUtils.addonlist.count == 0 then
         loadAddonList()
@@ -100,6 +179,14 @@ function LibSFUtils.GetAddonVersion(name)
     return -1
 end
 
+--[[
+Check the internal addon table for the addon named and compare the
+loaded version to the expected one.
+This requires a logger being specified for the VersionChecker instance.
+It also depends on LibSFUtils functions.
+
+Note: This is a VersionChecker function.
+--]]
 function VC:CheckVersion(libname, expectedVersion)
     if not self.enabled then return end
     if not libname then return end
@@ -120,6 +207,9 @@ function VC:CheckVersion(libname, expectedVersion)
     end
 end
 
+--[[
+Write a message to the logger that the named addon does not provide version information.
+--]]
 function VC:NoVersion(libname)
     if not self.enabled then return end
     self.logger:Info("Library \"%s\" does not provide version information", libname)

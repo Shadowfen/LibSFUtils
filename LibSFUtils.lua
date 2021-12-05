@@ -1,41 +1,70 @@
 -- LibSFUtils is already defined in prior loaded file
-
 local sfutil = LibSFUtils or {}
 
----------------------
--- convenience color tables
--- These tables contain definitions for commonly used colors along with
--- names to easily indicate the color. 
---
--- Using these can somewhat reduce your addon's computational load as 
--- these are calculated once, when the library is loaded instead of 
--- whenever you go from hex to zo_colordef/rgb or from zo_colordef/rgb 
--- to hex again. It might be miniscule, but when you are doing the 
--- zo_colordef creations and conversions with a lot of colors many many 
--- times, it all adds up.
-sfutil.colors = {
-    gold        = {hex ="FFD700", rgb = {1, 215/255, 0}, },
-    red         = {hex ="FF0000", rgb = {1, 0, 0}, },
-    teal        = {hex ="00EFBB", rgb = {0, 239/255, 187/255}, },
-    lime        = {hex ="00E600", rgb = {0, 230/255, 0}, },
-    goldenrod   = {hex ="EECA00", rgb = {238/255, 202/255, 0}, },
-    blue        = {hex ="0000FF", rgb = {0, 0, 1}, },
-    purple      = {hex ="b000ff", rgb = {176/255, 0, 1}, },
-    bronze      = {hex ="ff9900", rgb = {1, 153/255, 0}, },
-	ltskyblue   = {hex ="87cefa", rgb = {135/255, 206/255, 250/255}, },
-	lemon		= {hex ="FFFACD", rgb = {1, 250/255, 205/255}, },
-	mocassin	= {hex ="FFE4B5", rgb = {1, 228/255, 181/255}, },
-    aquamarine  = {hex ="7fffd4", rgb = {127/255, 1, 212/255}, },
-    lightsalmon = {hex ="FFA07A", rgb = {1, 160/255, 122/255}, },
 
-    junk        = {hex = "7f7f7f", rgb = {127/255, 127/255, 127/255}, },
-    normal      = {hex = "FFFFFF", rgb = {1, 1, 1}, },
-    fine        = {hex = "2dc50e", rgb = {45/255, 197/255, 14/255}, },
-    superior    = {hex = "3a92ff", rgb = {58/255, 146/255, 1}, },
-    epic        = {hex = "a02ef7", rgb = {160/255, 46/255, 247/255}, },
-    legendary   = {hex = "EECA00", rgb = {238/255, 202/255, 0}, },
-    mythic      = {hex = "ffaa00", rgb = {1, 170/255, 0}, },
+--[[ ---------------------
+	convenience color tables
+		These tables contain definitions for commonly used colors along with
+		names to easily indicate the color. 
+
+		Using these can somewhat reduce your addon's computational load as 
+		these are calculated once, when the library is loaded instead of 
+		whenever you go from hex to ZO_ColorDef/rgb or from ZO_ColorDef/rgb 
+		to hex again. It might be miniscule, but when you are doing the 
+		ZO_ColorDef creations and conversions with a lot of colors many many 
+		times, it all adds up.
+
+	SF_Color is defined in SFUtils_Color.lua
+--]]
+sfutil.colors = {
+--    gold        = {hex ="FFD700", rgb = {1, 215/255, 0}, },
+--    red         = {hex ="FF0000", rgb = {1, 0, 0}, },
+--    teal        = {hex ="00EFBB", rgb = {0, 239/255, 187/255}, },
+--    lime        = {hex ="00E600", rgb = {0, 230/255, 0}, },
+--    goldenrod   = {hex ="EECA00", rgb = {238/255, 202/255, 0}, },
+--    blue        = {hex ="0000FF", rgb = {0, 0, 1}, },
+--    purple      = {hex ="b000ff", rgb = {176/255, 0, 1}, },
+--    bronze      = {hex ="ff9900", rgb = {1, 153/255, 0}, },
+--	  ltskyblue   = {hex ="87cefa", rgb = {135/255, 206/255, 250/255}, },
+--	  lemon		  = {hex ="FFFACD", rgb = {1, 250/255, 205/255}, },
+--	  mocassin    = {hex ="FFE4B5", rgb = {1, 228/255, 181/255}, },
+--    aquamarine  = {hex ="7fffd4", rgb = {127/255, 1, 212/255}, },
+--    lightsalmon = {hex ="FFA07A", rgb = {1, 160/255, 122/255}, },
+
+--    junk        = {hex = "7f7f7f", rgb = {127/255, 127/255, 127/255}, },
+--    normal      = {hex = "FFFFFF", rgb = {1, 1, 1}, },
+--    fine        = {hex = "2dc50e", rgb = {45/255, 197/255, 14/255}, },
+--    superior    = {hex = "3a92ff", rgb = {58/255, 146/255, 1}, },
+--    epic        = {hex = "a02ef7", rgb = {160/255, 46/255, 247/255}, },
+--    legendary   = {hex = "EECA00", rgb = {238/255, 202/255, 0}, },
+--    mythic      = {hex = "ffaa00", rgb = {1, 170/255, 0}, },
+
+    gold        = SF_Color:New("FFD700"),    -- {hex ="FFD700", rgb = {1, 215/255, 0}, },
+    red         = SF_Color:New("FF0000"),    -- {hex ="FF0000", rgb = {1, 0, 0}, },
+    teal        = SF_Color:New("00EFBB"),    -- {hex ="00EFBB", rgb = {0, 239/255, 187/255}, },
+    lime        = SF_Color:New("00E600"),    -- {hex ="00E600", rgb = {0, 230/255, 0}, },
+    goldenrod   = SF_Color:New("EECA00"),    -- {hex ="EECA00", rgb = {238/255, 202/255, 0}, },
+    blue        = SF_Color:New("0000FF"),    -- {hex ="0000FF", rgb = {0, 0, 1}, },
+    purple      = SF_Color:New("b000ff"),    -- {hex ="b000ff", rgb = {176/255, 0, 1}, },
+    bronze      = SF_Color:New("ff9900"),    -- {hex ="ff9900", rgb = {1, 153/255, 0}, },
+	ltskyblue   = SF_Color:New("87cefa"),    -- {hex ="87cefa", rgb = {135/255, 206/255, 250/255}, },
+	lemon		= SF_Color:New("FFFACD"),    -- {hex ="FFFACD", rgb = {1, 250/255, 205/255}, },
+	mocassin	= SF_Color:New("FFE4B5"),    -- {hex ="FFE4B5", rgb = {1, 228/255, 181/255}, },
+    aquamarine  = SF_Color:New("7fffd4"),    -- {hex ="7fffd4", rgb = {127/255, 1, 212/255}, },
+    lightsalmon = SF_Color:New("FFA07A"),    -- {hex ="FFA07A", rgb = {1, 160/255, 122/255}, },
+
+    junk        = SF_Color:New("7f7f7f"),    -- {hex = "7f7f7f", rgb = {127/255, 127/255, 127/255}, },
+    normal      = SF_Color:New("FFFFFF"),    -- {hex = "FFFFFF", rgb = {1, 1, 1}, },
+    fine        = SF_Color:New("2dc50e"),    -- {hex = "2dc50e", rgb = {45/255, 197/255, 14/255}, },
+    superior    = SF_Color:New("3a92ff"),    -- {hex = "3a92ff", rgb = {58/255, 146/255, 1}, },
+    epic        = SF_Color:New("a02ef7"),    -- {hex = "a02ef7", rgb = {160/255, 46/255, 247/255}, },
+    legendary   = SF_Color:New("EECA00"),    -- {hex = "EECA00", rgb = {238/255, 202/255, 0}, },
+    mythic      = SF_Color:New("ffaa00"),    -- {hex = "ffaa00", rgb = {1, 170/255, 0}, },
+			--violet  = GetItemQualityColor(ITEM_DISPLAY_QUALITY_ARTIFACT),
+			--gold    = GetItemQualityColor(ITEM_DISPLAY_QUALITY_LEGENDARY),
+			--mythic  = GetItemQualityColor(ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE),
 }
+-- convenience lookup table for hex-value colors
 sfutil.hex = { 
     gold = sfutil.colors.gold.hex, 
     red = sfutil.colors.red.hex,
@@ -45,9 +74,9 @@ sfutil.hex = {
     blue = sfutil.colors.blue.hex,
     purple = sfutil.colors.purple.hex,
     bronze = sfutil.colors.bronze.hex,
-	  ltskyblue = sfutil.colors.ltskyblue.hex,
-	  lemon = sfutil.colors.lemon.hex,
-	  mocassin = sfutil.colors.mocassin.hex,
+	ltskyblue = sfutil.colors.ltskyblue.hex,
+	lemon = sfutil.colors.lemon.hex,
+	mocassin = sfutil.colors.mocassin.hex,
 
     junk = sfutil.colors.junk.hex,
     normal = sfutil.colors.normal.hex,
@@ -57,6 +86,7 @@ sfutil.hex = {
     legendary = sfutil.colors.legendary.hex,
     mythic = sfutil.colors.mythic.hex,
 }
+-- convenience lookup table for rgb-value colors
 sfutil.rgb = { 
     gold = sfutil.colors.gold.rgb, 
     red = sfutil.colors.red.rgb,
@@ -66,9 +96,9 @@ sfutil.rgb = {
     blue = sfutil.colors.blue.rgb,
     purple = sfutil.colors.purple.rgb,
     bronze = sfutil.colors.bronze.rgb,
-	  ltskyblue = sfutil.colors.ltskyblue.rgb,
-	  lemon = sfutil.colors.lemon.rgb,
-	  mocassin = sfutil.colors.mocassin.rgb,
+	ltskyblue = sfutil.colors.ltskyblue.rgb,
+	lemon = sfutil.colors.lemon.rgb,
+	mocassin = sfutil.colors.mocassin.rgb,
 
     junk = sfutil.colors.junk.rgb,
     normal = sfutil.colors.normal.rgb,
@@ -85,73 +115,18 @@ local function ZOS_addSystemMsg(msg)
 end
 
 
----------------------
---[[
-    Color conversion functions
-]]
-function sfutil.colorRGBToHex(r, g, b)
-  return string.format("%.2x%.2x%.2x", zo_floor(r * 255), zo_floor(g * 255), zo_floor(b * 255))
-end
-
-function sfutil.colorHexToRGBA(colourString)
-  local r=tonumber(string.sub(colourString, 1, 2), 16) or 255
-  local g=tonumber(string.sub(colourString, 3, 4), 16) or 255
-  local b=tonumber(string.sub(colourString, 5, 6), 16) or 255
-  return r/255, g/255, b/255, 1
-end
-
--- Turn a ([0,1])^3 RGB colour to "|cABCDEF" form. We could use
--- ZO_ColorDef, but we use so many colors, we won't do it.
--- Note: This is NOT the same as the LibSFUtils.colorRGBToHex() function!
-function sfutil.ConvertRGBToHex(r, g, b)
-    return string.format("|c%.2x%.2x%.2x", zo_floor(r * 255), zo_floor(g * 255), zo_floor(b * 255))
-end
-
--- Convert a colour from hexadecimal form to [0,1] RGB form.
--- Note: This is NOT the same as the LibSFUtils.colorHexToRGBA() function
---   as it can convert from a variety of hex string formats for colors:
---      |crrggbb, aarrggbb, and rrggbb
-function sfutil.ConvertHexToRGBA(colourString)
-    local r, g, b, a
-    if string.sub(colourString,1,1) == "|" then
-        -- format "|crrggbb"
-        r=tonumber(string.sub(colourString, 3, 4), 16) or 255
-        g=tonumber(string.sub(colourString, 5, 6), 16) or 255
-        b=tonumber(string.sub(colourString, 7, 8), 16) or 255
-        a = 255
-    elseif #colourString == 8 then
-        -- format "aarrggbb"
-        a=tonumber(string.sub(colourString, 1, 2), 16) or 255
-        r=tonumber(string.sub(colourString, 3, 4), 16) or 255
-        g=tonumber(string.sub(colourString, 5, 6), 16) or 255
-        b=tonumber(string.sub(colourString, 7, 8), 16) or 255
-    elseif #colourString == 6 then
-        -- format "rrggbb"
-        r=tonumber(string.sub(colourString, 1, 2), 16) or 255
-        g=tonumber(string.sub(colourString, 3, 4), 16) or 255
-        b=tonumber(string.sub(colourString, 5, 6), 16) or 255
-        a = 255
-    else
-        -- unidentified format
-        r = 255
-        g = 255
-        b = 255
-        a = 255
-    end
-    return r/255, g/255, b/255, a/255
-end
-
--- Convert a colour from "|cABCDEF" form to [0,1] RGB form and return them in a table.
-function sfutil.ConvertHexToRGBAPacked(colourString)
-    local r, g, b, a = sfutil.ConvertHexToRGBA(colourString)
-    return {r = r, g = g, b = b, a = a}
-end
-
-
-
----------------------
---[[
+--[[ ---------------------
     Concatenate varargs to a string
+	
+	To improve speed of ".." concatenation, we add the 
+	arguments to a table and do a concat on it.
+	
+	Value conversions:
+	* Numeric arguments are converted to string equivalents:
+	  i.e 16 -> "16".
+	* The elements of table arguments are recursively added.
+	* nil is converted to "(nil)"
+	* Everything else is run through tostring()
 ]]
 function sfutil.str(...)
    local nargs = select('#',...)
@@ -171,6 +146,21 @@ function sfutil.str(...)
    return table.concat(arg)
 end
 
+--[[ ---------------------
+	Similar to sfutil.str except that it will try to convert the 
+	numeric arguments in the argument list into strings using the
+	GetString() function.
+	
+	To improve speed of ".." concatenation, we add the 
+	arguments to a table and do a concat on it.
+	
+	Value conversions:
+	* Numeric arguments are run through the GetString function:
+	  i.e 16 -> GetString(16).
+	* The elements of table arguments are recursively added.
+	* nil is converted to "(nil)"
+	* Everything else is run through tostring()
+]]
 function sfutil.lstr(...)
    local nargs = select('#',...)
    local arg = {}
@@ -191,10 +181,13 @@ function sfutil.lstr(...)
    return table.concat(arg)
 end
 
----------------------
---[[
-    Concatenate varargs to a delimited string
-]]
+--[[ ---------------------
+    Concatenate varargs to a delimited string.
+	Similar to sfutil.str() except that a delimiter is
+	placed between each of the values of the string - the
+	arguments to the function and also between the items within
+	a table that was passed in.
+--]]
 function sfutil.dstr(delim, ...)
     local nargs = select('#',...)
     local arg = {}
@@ -213,11 +206,58 @@ function sfutil.dstr(delim, ...)
     return table.concat(arg,delim)
 end
 
----------------------
--- Create a string containing an optional icon (of optional color) followed by a text
--- prompt (specified either as a string itself or as a localization string id)
--- (Without the  parameters, it simply prepares and optionally colorizes text.)
--- The color parameters are all hex colors.
+--[[ ---------------------
+	Split a string into smaller chunks if necessary.
+	If maxlen is not provided, it defaults to 1800 bytes.
+	
+	Returns the string (if less than the maxlen), or a table of strings (less than maxlen)
+	that would concatenate into the original string.
+--]]
+function sfutil.strSplitLen( str, maxlen )
+	if maxlen == nil then maxlen = 1800 end
+	
+	local length = zo_strlen(str)
+	if (length <= maxlen) then
+		return str
+	end
+	
+	local result = {}
+	local i, j = 1
+	while (i <= length) do
+		j = i + maxlen
+		table.insert(result, zo_strsub(str, i, j - 1))
+		i = j
+	end
+	return result
+end
+
+
+--[[ ---------------------
+	Concatenate a table of strings of any length into a string (or table of strings) that are 
+	no longer than maxlen. 
+	If maxlen is not provided, this function will always return a single string.
+	If maxlen is provided, this function may return another table of strings which are not
+	to exceed maxlen bytes in length or a single string that's length <= maxlen
+--]]
+function sfutil.tblJoinLen( tbl, maxlen )
+	local str = ""
+	if (type(tbl) == "string") then
+		str = tbl
+	elseif (type(tbl) == "table") then
+		str = table.concat(tbl, "")
+	end
+	if maxlen ~= nil then
+		return strSplit(str, maxlen)
+	end
+	return str
+end
+
+--[[ ---------------------
+	Create a string containing an optional icon (of optional color) followed by a text
+	prompt (specified either as a string itself or as a localization string id)
+	(Without the  parameters, it simply prepares and optionally colorizes text.)
+	The color parameters are all hex colors.
+--]]
 function sfutil.GetIconized(prompt, promptcolor, texturefile, texturecolor)
     local strprompt
 
@@ -246,11 +286,12 @@ function sfutil.GetIconized(prompt, promptcolor, texturefile, texturecolor)
     return strprompt
 end
 
----------------------
--- Create a string containing a text prompt (specified either as a string itself 
--- or as a localization string id) and a text color. The text color is optional, but
--- if you do not provide it, you just get the same text back that you put in.
--- The color parameters are all hex colors.
+--[[ ---------------------
+	Create a string containing a text prompt (specified either as a string itself 
+	or as a localization string id) and a text color. The text color is optional, but
+	if you do not provide it, you just get the same text back that you put in.
+	The color parameters are all hex colors.
+--]]
 function sfutil.ColorText(prompt, promptcolor)
     local strprompt
 
@@ -271,8 +312,8 @@ function sfutil.ColorText(prompt, promptcolor)
     return strprompt
 end
 
----------------------
---[[
+
+--[[ ---------------------
   Used to be able to wrap an existing function with another so that subsequent
   calls to the function will actually invoke the wrapping function.
   
@@ -297,7 +338,7 @@ end
     
     WrapFunction(TT, myfunc, mywrapper)
       will wrap TT.myfunc with a call to mywrapper
-]]
+--]]
 function sfutil.WrapFunction(namespace, functionName, wrapper)
     if type(namespace) == "string"  then
         -- We did not get a namespace parameter,
@@ -543,95 +584,6 @@ function sfutil.addonChatter:slashHelp(title, cmdstable)
 end
 
 
--- -----------------------------------------------------------------------
--- sound choice utilities
-
--- initSounds() is the only function to modify these tables in any way,
--- and they are never nil.
-local soundChoices = {}     -- contains [index] value=SOUNDS.xxx
-local soundReverse = {}     -- contains [SOUNDS.xxx] index
-
--- This function loads a pair of "singleton" arrays of sounds
--- from the ZOS SOUNDS map
---
--- An addon may call this (on loading), or may rely on the
--- other sfutil sound functions to call it. If it has already
--- run once, it does not do so again.
---
-function sfutil.initSounds(force)
-    if force == true then soundChoices={} end
-    -- load sound keys to table
-    if next(soundChoices) == nil then  
-        for k,_ in pairs(SOUNDS) do
-            local ndx = #soundChoices+1
-            soundChoices[ndx] = k
-        end
-        table.sort(soundChoices)
-        for i,k in pairs(soundChoices) do
-            soundReverse[k] = i
-        end
-    end
-end
-
--- provide the max number of sounds provided by ZOS
--- that were loaded into the soundChoices array
---
-function sfutil.numSounds()
-    sfutil.initSounds()
-    return #soundChoices
-end
-
--- Get the soundChoices index number for a SOUNDS.xxx value.
---
--- Useful for setting a slider value from a saved (string) sound entry.
-function sfutil.getSoundIndex(sound, fallback)
-    if not fallback then fallback = SOUNDS.DEFAULT_CLICK end
-    
-    sfutil.initSounds()
-    if not soundReverse[fallback] then fallback = SOUNDS.DEFAULT_CLICK end
-    
-    local ndx = soundReverse[sound]
-    if not ndx then return soundReverse[fallback] end
-    return ndx
-end
-
--- Given an index number, get the sound entry out of the
--- soundChoices array
-function sfutil.getSound(index)
-    sfutil.initSounds()
-    local sound = soundChoices[index]
-    if not sound then return "nil" end
-    return sound
-end
-
--- Play a sound selected by index number into a list 
--- of all of the games sounds we have access to or SOUNDS.xxx entry.
--- If the index is out-of-bounds or SOUNDS.xxx is nil, do not play a sound.
---
--- Note that at present, the SOUNDS array has TWO entries
--- for "No_Sound", which will "play" silence.
---
-function sfutil.PlaySound(index)
-    if not index then return end
-    
-    if type(index) == "number" then
-    	-- we have an index into our soundChoices array
-    	-- so, make sure it exists (once).
-    	sfutil.initSounds()
-        if soundChoices[index] == nil then return end
-        PlaySound(soundChoices[index])
-        
-    elseif type(index) == "string" then
-        if SOUNDS[index] ~= nil then
-        	-- we got a sound name (index into the SOUNDS array)
-            PlaySound(SOUNDS[index])
-            
-        else
-        	-- presume we have a string that was stored in a SOUNDS.xxx
-            PlaySound(index)
-        end
-    end
-end    
 
 -- -----------------------------------------------------------------------
 -- Utility for parsing delimited strings
@@ -894,11 +846,13 @@ function sfutil.colorsplit(markertable, str)
             if code == "c" then
                 -- expect color
                 ss, es, cs = string.find(str,"|+[Cc](%x%x%x%x%x%x)",v.start)
+				if ss == nil or es == nil then break end
                 table.insert(t2, string.format("|c%s",cs))
                 lastv = es
             elseif code == "r" then
                 -- end color
                 ss, es = string.find(str,"|+[Rr]",v.start)
+				if ss == nil or es == nil then break end
                 table.insert(t2,"|r")
                 lastv = es
             end
@@ -912,9 +866,11 @@ function sfutil.colorsplit(markertable, str)
         else    -- action == "-"
             if code == "c" then
                 ss, es = string.find(str,"|+[Cc]%x%x%x%x%x%x",v.start)
+				if ss == nil or es == nil then break end
                 lastv = es
             elseif code == "r" and v.start ~= -1 then
                 ss, es = string.find(str,"|+[Rr]",v.start)
+				if ss == nil or es == nil then break end
                 lastv = es
             end
         end
