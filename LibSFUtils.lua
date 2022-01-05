@@ -1,7 +1,6 @@
 -- LibSFUtils is already defined in prior loaded file
 local sfutil = LibSFUtils or {}
 
-
 --[[ ---------------------
 	convenience color tables
 		These tables contain definitions for commonly used colors along with
@@ -17,28 +16,6 @@ local sfutil = LibSFUtils or {}
 	SF_Color is defined in SFUtils_Color.lua
 --]]
 sfutil.colors = {
---    gold        = {hex ="FFD700", rgb = {1, 215/255, 0}, },
---    red         = {hex ="FF0000", rgb = {1, 0, 0}, },
---    teal        = {hex ="00EFBB", rgb = {0, 239/255, 187/255}, },
---    lime        = {hex ="00E600", rgb = {0, 230/255, 0}, },
---    goldenrod   = {hex ="EECA00", rgb = {238/255, 202/255, 0}, },
---    blue        = {hex ="0000FF", rgb = {0, 0, 1}, },
---    purple      = {hex ="b000ff", rgb = {176/255, 0, 1}, },
---    bronze      = {hex ="ff9900", rgb = {1, 153/255, 0}, },
---	  ltskyblue   = {hex ="87cefa", rgb = {135/255, 206/255, 250/255}, },
---	  lemon		  = {hex ="FFFACD", rgb = {1, 250/255, 205/255}, },
---	  mocassin    = {hex ="FFE4B5", rgb = {1, 228/255, 181/255}, },
---    aquamarine  = {hex ="7fffd4", rgb = {127/255, 1, 212/255}, },
---    lightsalmon = {hex ="FFA07A", rgb = {1, 160/255, 122/255}, },
-
---    junk        = {hex = "7f7f7f", rgb = {127/255, 127/255, 127/255}, },
---    normal      = {hex = "FFFFFF", rgb = {1, 1, 1}, },
---    fine        = {hex = "2dc50e", rgb = {45/255, 197/255, 14/255}, },
---    superior    = {hex = "3a92ff", rgb = {58/255, 146/255, 1}, },
---    epic        = {hex = "a02ef7", rgb = {160/255, 46/255, 247/255}, },
---    legendary   = {hex = "EECA00", rgb = {238/255, 202/255, 0}, },
---    mythic      = {hex = "ffaa00", rgb = {1, 170/255, 0}, },
-
     gold        = SF_Color:New("FFD700"),    -- {hex ="FFD700", rgb = {1, 215/255, 0}, },
     red         = SF_Color:New("FF0000"),    -- {hex ="FF0000", rgb = {1, 0, 0}, },
     teal        = SF_Color:New("00EFBB"),    -- {hex ="00EFBB", rgb = {0, 239/255, 187/255}, },
@@ -151,8 +128,8 @@ end
 	numeric arguments in the argument list into strings using the
 	GetString() function.
 	
-	To improve speed of ".." concatenation, we add the 
-	arguments to a table and do a concat on it.
+	To improve on the speed of ".." concatenation, we add the 
+	arguments to a table and do a concat on the table.
 	
 	Value conversions:
 	* Numeric arguments are run through the GetString function:
@@ -881,4 +858,5 @@ function sfutil.colorsplit(markertable, str)
     end
     return t2
 end
+
 

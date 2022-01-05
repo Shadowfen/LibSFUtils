@@ -45,7 +45,7 @@ function VC:New(addonName)
 	o = {} 
 	setmetatable(o, self)
 	self.__index = self
-    local mt = getmetatable (o)
+    local mt = getmetatable(o)
     mt.__index = self
     
     o.addonName = addonName

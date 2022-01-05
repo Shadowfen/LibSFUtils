@@ -13,10 +13,13 @@ end
 -- Convert "rrggbb" hex color into float numbers.
 -- Prefer sfutil.ConvertHexToRGBA() as it is more flexible.
 function sfutil.colorHexToRGBA(colourString)
-  local r=tonumber(string.sub(colourString, 1, 2), 16) or 255
-  local g=tonumber(string.sub(colourString, 3, 4), 16) or 255
-  local b=tonumber(string.sub(colourString, 5, 6), 16) or 255
-  return r/255, g/255, b/255, 1
+	if not colourString then
+		return 1,1,1,1
+	end
+	local r=tonumber(string.sub(colourString, 1, 2), 16) or 255
+	local g=tonumber(string.sub(colourString, 3, 4), 16) or 255
+	local b=tonumber(string.sub(colourString, 5, 6), 16) or 255
+	return r/255, g/255, b/255, 1
 end
 
 -- Turn a ([0,1])^3 RGB colour to "|cABCDEF" form. We could use
