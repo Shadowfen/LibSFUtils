@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]39[/COLOR]
+[LIST]
+[*] Fix lua error reported for rChat with wierd characters in the chat message.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]38[/COLOR]
 [LIST]
 [*] Splitting out existing colorizing functions to SFUtils_Color. Addition of new SF_Color object (interoperable with ZO_ColorDef).

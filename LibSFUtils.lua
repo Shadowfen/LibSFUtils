@@ -812,45 +812,47 @@ function sfutil.colorsplit(markertable, str)
     local lastv = 0
     local ss, es, cs
     for k,v in ipairs(markertable) do
-        local code = v.code
-        local action = v.action
-        if not action then
-            -- it's a section we're keeping
-            if v.start > lastv+1 then
-                table.insert(t2,str:sub(lastv+1,v.start-1))
-            end
-            -- string fragment
-            if code == "c" then
-                -- expect color
-                ss, es, cs = string.find(str,"|+[Cc](%x%x%x%x%x%x)",v.start)
-				if ss == nil or es == nil then break end
-                table.insert(t2, string.format("|c%s",cs))
-                lastv = es
-            elseif code == "r" then
-                -- end color
-                ss, es = string.find(str,"|+[Rr]",v.start)
-				if ss == nil or es == nil then break end
-                table.insert(t2,"|r")
-                lastv = es
-            end
-        elseif action == "+" then
-            -- new string fragment (|r)
-            if v.start > lastv+1 then
-                table.insert(t2,str:sub(lastv+1,v.start-1))
-            end
-            table.insert(t2,"|r")
-            lastv = v.start + 1
-        else    -- action == "-"
-            if code == "c" then
-                ss, es = string.find(str,"|+[Cc]%x%x%x%x%x%x",v.start)
-				if ss == nil or es == nil then break end
-                lastv = es
-            elseif code == "r" and v.start ~= -1 then
-                ss, es = string.find(str,"|+[Rr]",v.start)
-				if ss == nil or es == nil then break end
-                lastv = es
-            end
-        end
+		if v then
+			local code = v.code
+			local action = v.action
+			if not action then
+				-- it's a section we're keeping
+				if v.start > lastv+1 then
+					table.insert(t2,str:sub(lastv+1,v.start-1))
+				end
+				-- string fragment
+				if code == "c" then
+					-- expect color
+					ss, es, cs = string.find(str,"|+[Cc](%x%x%x%x%x%x)",v.start)
+					if ss == nil or es == nil then break end
+					table.insert(t2, string.format("|c%s",cs))
+					lastv = es
+				elseif code == "r" then
+					-- end color
+					ss, es = string.find(str,"|+[Rr]",v.start)
+					if ss == nil or es == nil then break end
+					table.insert(t2,"|r")
+					lastv = es
+				end
+			elseif action == "+" then
+				-- new string fragment (|r)
+				if v.start > lastv+1 then
+					table.insert(t2,str:sub(lastv+1,v.start-1))
+				end
+				table.insert(t2,"|r")
+				lastv = v.start + 1
+			else    -- action == "-"
+				if code == "c" then
+					ss, es = string.find(str,"|+[Cc]%x%x%x%x%x%x",v.start)
+					if ss == nil or es == nil then break end
+					lastv = es
+				elseif code == "r" and v.start ~= -1 then
+					ss, es = string.find(str,"|+[Rr]",v.start)
+					if ss == nil or es == nil then break end
+					lastv = es
+				end
+			end
+		end
     end
     if lastv <= #str then
         lastv = lastv +1
