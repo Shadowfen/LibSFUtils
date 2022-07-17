@@ -158,6 +158,26 @@ function sfutil.lstr(...)
    return table.concat(arg)
 end
 
+-- debug convenience function
+function sfutil.dTable(vtable, depth, name)
+	if type(vtable) ~= "table" then 
+		return sfutil.str(vtable) 
+	end
+    local arg = {}
+	if depth < 1 then return end
+	for k, v in pairs(vtable) do
+		if type(v) == "function" then
+			arg[#arg+1] = name.." : "..tostring(k).." -> (function),  \n"
+		elseif type(v) == "table" then 
+			arg[#arg+1] = sfutil.dTable(v, depth - 1, name.." - ["..tostring(k).."]") 
+		else
+			arg[#arg+1] = name.." : "..tostring(k).." -> "..tostring(v)..",  \n"
+		end
+	end
+    return table.concat(arg)
+end
+
+
 --[[ ---------------------
     Concatenate varargs to a delimited string.
 	Similar to sfutil.str() except that a delimiter is
@@ -394,6 +414,17 @@ function sfutil.isTrue(val)
 		return true
 	end
 	return false
+end
+
+---------------------
+-- given a (supposed) table variable
+--    either return the table variable
+--    or return an empty table if the table variable was nil
+function sfutil.safeTable(tbl)
+    if tbl == nil then
+        tbl = {}
+    end
+    return tbl
 end
 
 ---------------------
