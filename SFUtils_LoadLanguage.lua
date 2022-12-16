@@ -16,7 +16,7 @@ local sfutil = LibSFUtils
 -- a third use case allows using SafeAddString to overwrite an existing
 --   string definition with the "name" of the id passed in vs the numeric id
 --
--- Note that based on testing of the 100026 version of SafeAddString(),
+-- Note that based on testing of the 100026 version of ZOS's SafeAddString(),
 -- it does NOT properly enforce version protection.
 function sfutil.SafeAddString(stringId, stringValue, stringVersion)
     if not stringId then return end

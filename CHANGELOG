@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]42[/COLOR]:
+[LIST]
+[*] Added convenience convert seconds to HH:MM:SS string function [COLOR="MediumSeaGreen"]LibSFUtils.secondsToClock(seconds)[/COLOR]
+[/LIST]
+
 [COLOR="DeepSkyBlue"]41[/COLOR]:
 [LIST]
 [*] API bump (High Isle).
