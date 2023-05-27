@@ -1,3 +1,19 @@
+[COLOR="DeepSkyBlue"]45[/COLOR]:
+[LIST]
+[*] Added a "safe" wrapper function [COLOR="MediumSeaGreen"]LibSFUtils.safeClearTable(tbl)[/COLOR] for ZO_ClearTable(tbl) to ensure that it still works if nil is passed in as the table tbl. For a nil tbl, it will return an empty table {}.
+[/LIST]
+
+[COLOR="DeepSkyBlue"]44[/COLOR]:
+[LIST]
+[*] Added convenience color for ThiefTools to use.
+[*] API bump (Necrom).
+[/LIST]
+
+[COLOR="DeepSkyBlue"]43[/COLOR]:
+[LIST]
+[*] API bump (Scribes of Fate).
+[/LIST]
+
 [COLOR="DeepSkyBlue"]42[/COLOR]:
 [LIST]
 [*] Added convenience convert seconds to HH:MM:SS string function [COLOR="MediumSeaGreen"]LibSFUtils.secondsToClock(seconds)[/COLOR]

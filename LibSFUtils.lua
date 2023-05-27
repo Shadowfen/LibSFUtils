@@ -20,6 +20,7 @@ sfutil.colors = {
     red         = SF_Color:New("FF0000"),    -- {hex ="FF0000", rgb = {1, 0, 0}, },
     teal        = SF_Color:New("00EFBB"),    -- {hex ="00EFBB", rgb = {0, 239/255, 187/255}, },
     lime        = SF_Color:New("00E600"),    -- {hex ="00E600", rgb = {0, 230/255, 0}, },
+    green       = SF_Color:New("2dc50e"),    -- {hex ="2dc50e", rgb = {45/255, 197/255, 14/255}, },
     goldenrod   = SF_Color:New("EECA00"),    -- {hex ="EECA00", rgb = {238/255, 202/255, 0}, },
     blue        = SF_Color:New("0000FF"),    -- {hex ="0000FF", rgb = {0, 0, 1}, },
     purple      = SF_Color:New("b000ff"),    -- {hex ="b000ff", rgb = {176/255, 0, 1}, },
@@ -164,7 +165,7 @@ function sfutil.dTable(vtable, depth, name)
 		return sfutil.str(vtable) 
 	end
     local arg = {}
-	if depth < 1 then return end
+	if depth == nil or depth < 1 then return end
 	for k, v in pairs(vtable) do
 		if type(v) == "function" then
 			arg[#arg+1] = name.." : "..tostring(k).." -> (function),  \n"
@@ -367,6 +368,7 @@ function sfutil.defaultMissing(svtable, defaulttable)
 			if( type( defaulttable[k] )=='table' ) then
 				svtable[k] = {}
 				sfutil.defaultMissing( svtable[k], defaulttable[k])
+				
 			else
 				svtable[k] = defaulttable[k]
 			end
@@ -387,6 +389,7 @@ function sfutil.deepCopy(orig)
 			copy[sfutil.deepCopy(orig_key)] = sfutil.deepCopy(orig_value)
 		end
 		setmetatable(copy, sfutil.deepCopy(getmetatable(orig)))
+		
 	else -- number, string, boolean, etc
 		copy = orig
 	end
@@ -423,6 +426,21 @@ end
 function sfutil.safeTable(tbl)
     if tbl == nil or type(tbl) ~= "table" then
         tbl = {}
+    end
+    return tbl
+end
+
+---------------------
+-- given a (supposed) table variable
+--    either return the same table variable after discarding the contents
+--    or return an empty table if the table variable was nil
+function sfutil.safeClearTable(tbl)
+    if tbl == nil or type(tbl) ~= "table" then
+        tbl = {}
+		return tbl
+    end
+    for k in pairs(tbl) do
+        tbl[k] = nil
     end
     return tbl
 end

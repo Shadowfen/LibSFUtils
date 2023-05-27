@@ -93,15 +93,27 @@ The table is Global to the game; so once it is loaded it is available for any ad
 LibSFUtils.addonlist = { count=0 }
 local function loadAddonList()
     local addonlist = LibSFUtils.addonlist
-    if addonlist.count > 0 then return end
+    --if addonlist.count > 0 then return end
     
     local AddOnManager = GetAddOnManager()
-    for i = 1, AddOnManager:GetNumAddOns() do
-        local name, title, author, description, enabled, state, isOutOfDate, isLibrary = AddOnManager:GetAddOnInfo(i)
-        addonlist[name] = { index=i, enabled=enabled, state=state, isOutOfDate=isOutOfDate, isLibrary=isLibrary }
-        addonlist.count=addonlist.count+1
-        local version = AddOnManager.GetAddOnVersion and AddOnManager:GetAddOnVersion(i) or 0
-        addonlist[name].version = version
+	local currAddons = AddOnManager:GetNumAddOns()
+	if addonlist.count >= currAddons then return end
+    for i = 1, currAddons do
+        local name, title, author, description, enabled, state, 
+					isOutOfDate, isLibrary = AddOnManager:GetAddOnInfo(i)
+		if addonlist[name] == nil then
+			addonlist[name] = { 
+				index=i, 
+				enabled=enabled, 
+				state=state, 
+				isOutOfDate=isOutOfDate, 
+				isLibrary=isLibrary 
+			}
+			addonlist.count=addonlist.count+1
+			local version = AddOnManager.GetAddOnVersion 
+							and AddOnManager:GetAddOnVersion(i) or 0
+			addonlist[name].version = version
+		end
     end
 end
 
@@ -118,11 +130,20 @@ Note: This is a LibSFUtils function - not a VersionChecker one.
 function LibSFUtils.ForceUpdateAddons()
     local addonlist = { count=0 }
     local AddOnManager = GetAddOnManager()
-    for i = 1, AddOnManager:GetNumAddOns() do
-        local name, title, author, description, enabled, state, isOutOfDate, isLibrary = AddOnManager:GetAddOnInfo(i)
-        addonlist[name] = { index=i, enabled=enabled, state=state, isOutOfDate=isOutOfDate, isLibrary=isLibrary }
+	local currAddons = AddOnManager:GetNumAddOns()
+    for i = 1, currAddons do
+        local name, title, author, description, enabled, state, 
+				isOutOfDate, isLibrary = AddOnManager:GetAddOnInfo(i)
+        addonlist[name] = { 
+			index=i, 
+			enabled=enabled, 
+			state=state, 
+			isOutOfDate=isOutOfDate, 
+			isLibrary=isLibrary 
+		}
         addonlist.count=addonlist.count+1
-        local version = AddOnManager.GetAddOnVersion and AddOnManager:GetAddOnVersion(i) or 0
+        local version = AddOnManager.GetAddOnVersion 
+			and AddOnManager:GetAddOnVersion(i) or 0
         addonlist[name].version = version
     end
 	LibSFUtils.addonlist = addonlist

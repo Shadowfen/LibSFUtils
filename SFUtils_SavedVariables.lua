@@ -12,8 +12,9 @@ local sfutil = LibSFUtils
 --
 -- SavedVars are retrieved for the current server that you are on.
 function sfutil.getToonSavedVars(saveFile, saveVer, saveDefaults)
-    local toon = ZO_SavedVars:NewCharacterIdSettings(saveFile, saveVer, GetWorldName(), saveDefaults)
-    sfutil.defaultMissing(toon,saveDefaults)
+    local toon = ZO_SavedVars:NewCharacterIdSettings(saveFile, saveVer, 
+					GetWorldName(), saveDefaults)
+    sfutil.defaultMissing(toon, saveDefaults)
     return toon
 end
 
@@ -21,8 +22,9 @@ end
 --
 -- SavedVars are retrieved for the current server that you are on.
 function sfutil.getAcctSavedVars(saveFile, saveVer, saveDefaults)
-    local aw = ZO_SavedVars:NewAccountWide(saveFile, saveVer, GetWorldName(), saveDefaults)
-    sfutil.defaultMissing(aw,saveDefaults)
+    local aw = ZO_SavedVars:NewAccountWide(saveFile, saveVer, 
+					GetWorldName(), saveDefaults)
+    sfutil.defaultMissing(aw, saveDefaults)
     return aw
 end
 
@@ -40,7 +42,8 @@ end
 function sfutil.getAllSavedVars(saveFileName, saveVer, saveAWDefaults, saveToonDefaults)
     if saveAWDefaults == nil and saveToonDefaults == nil then
         local aw = ZO_SavedVars:NewAccountWide(saveFileName, saveVer, GetWorldName())
-        local toon = ZO_SavedVars:NewCharacterIdSettings(saveFileName, saveVer, GetWorldName())
+        local toon = ZO_SavedVars:NewCharacterIdSettings(saveFileName, saveVer, 
+						GetWorldName())
         toon.accountWide = sfutil.nilDefault(toon.accountWide, true)
         return aw, toon
     end
@@ -51,11 +54,13 @@ function sfutil.getAllSavedVars(saveFileName, saveVer, saveAWDefaults, saveToonD
     if saveToonDefaults == nil then
         saveToonDefaults = saveAWDefaults
     end
-    local aw = ZO_SavedVars:NewAccountWide(saveFileName, saveVer, GetWorldName(), saveAWDefaults)
-    local toon = ZO_SavedVars:NewCharacterIdSettings(saveFileName, saveVer, GetWorldName(), saveToonDefaults)
+    local aw = ZO_SavedVars:NewAccountWide(saveFileName, saveVer, 
+					GetWorldName(), saveAWDefaults)
+    local toon = ZO_SavedVars:NewCharacterIdSettings(saveFileName, saveVer, 
+					GetWorldName(), saveToonDefaults)
     sfutil.defaultMissing(aw, saveAWDefaults)
     sfutil.defaultMissing(toon, saveToonDefaults)
-	toon.accountWide = sfutil.nilDefault(toon.accountWide,true)
+	toon.accountWide = sfutil.nilDefault(toon.accountWide, true)
     return aw, toon
 end
 
