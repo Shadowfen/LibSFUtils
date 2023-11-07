@@ -1,3 +1,13 @@
+[COLOR="DeepSkyBlue"]47[/COLOR]:
+[LIST]
+[*] Added utility class to help with creating lists for dropdown UI elements.
+[/LIST]
+
+[COLOR="DeepSkyBlue"]46[/COLOR]:
+[LIST]
+[*] API bump.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]45[/COLOR]:
 [LIST]
 [*] Added a "safe" wrapper function [COLOR="MediumSeaGreen"]LibSFUtils.safeClearTable(tbl)[/COLOR] for ZO_ClearTable(tbl) to ensure that it still works if nil is passed in as the table tbl. For a nil tbl, it will return an empty table {}.

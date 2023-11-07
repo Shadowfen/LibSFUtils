@@ -927,4 +927,110 @@ function sfutil.colorsplit(markertable, str)
     return t2
 end
 
+function sfutil.add2linesctl()
+--[[	-- only needed when LibAddonMenu is having clipping problems
+	return 	{
+				type = "description",
+				title = " ",
+				text = " ",
+				disabled = true,
+			}
+--]]
+end
+
+function sfutil.addlinectl()
+--[[	-- only needed when LibAddonMenu is having clipping problems
+	return 	{
+				type = "description",
+				text = " ",
+				disabled = true,
+			}
+--]]
+end
+
+-- easily manage values and choice tables for dropdowns
+sfutil.DDValueTable = ZO_Object:Subclass()
+function sfutil.DDValueTable:New()
+    local o = ZO_Object.New(self)
+	return o
+end
+
+function sfutil.DDValueTable:append(val, strId)
+	table.insert(self, { value = val, strg = strId })
+end
+
+function sfutil.DDValueTable:add(ndx, val, strId)
+	self[ndx] = { value = val, strg = strId }
+end
+
+function sfutil.DDValueTable:val(ndx)
+	return self[ndx].value
+end
+
+function sfutil.DDValueTable:str(ndx)
+	return GetString(self[ndx].strg)
+end
+
+function sfutil.DDValueTable:choices(...)
+	local ac = select( '#', ... )
+	if ac == 0 then
+		error( string.format("error: %s(): require arguments." , fn))
+	end
+	local choicetbl = {}
+	for ax = 1, ac do
+		local ndx = select( ax, ... )
+		if not ndx then
+			error( string.format("error: %s():  argument is nil." , fn))
+		end
+		--d("choicetbl: "..ndx.." "..self:str(ndx))
+		table.insert(choicetbl,self:str(ndx))
+	end
+	return choicetbl
+end
+
+function sfutil.DDValueTable:choiceValues(...)
+	local ac = select( '#', ... )
+	if ac == 0 then
+		error( string.format("error: %s(): require arguments." , fn))
+	end
+	local valtbl = {}
+	for ax = 1, ac do
+		local ndx = select( ax, ... )
+		if not ndx then
+			error( string.format("error: %s():  argument is nil." , fn))
+		end
+		--d("valtbl: "..ndx.." "..self:val(ndx))
+		table.insert(valtbl,self:val(ndx))
+	end
+	return valtbl
+end
+
+-- returns choices and choicesValues tables for use with dropdowns
+function sfutil.DDValueTable:choicesNvalues(...)
+	local ac = select( '#', ... )
+	if ac == 0 then
+		error( string.format("error: %s(): require arguments." , fn))
+	end
+	local valtbl = {}
+	local choicetbl = {}
+	for ax = 1, ac do
+		local ndx = select( ax, ... )
+		if not ndx then
+			error( string.format("error: %s():  argument is nil." , fn))
+		end
+		--d("choicetbl: "..ndx.." "..self:str(ndx))
+		table.insert(choicetbl,self:str(ndx))
+		local valstr = self:val(ndx)
+		if valstr then
+			table.insert(valtbl,self:val(ndx))
+			--d("valtbl: "..ndx.." "..self:val(ndx))
+			
+		else
+			table.insert(valtbl,self:str(ndx))
+			--d("valtbl: "..ndx.." "..self:str(ndx))
+		end
+	end
+	return choicetbl, valtbl
+end
+
 
