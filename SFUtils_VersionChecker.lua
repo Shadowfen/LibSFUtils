@@ -1,6 +1,8 @@
 -- LibSFUtils is already defined in prior loaded file
 
 LibSFUtils = LibSFUtils or {}
+local sfutil = LibSFUtils
+
 
 
 --[[

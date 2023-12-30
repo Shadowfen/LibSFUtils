@@ -28,6 +28,7 @@ sfutil.colors = {
 	ltskyblue   = SF_Color:New("87cefa"),    -- {hex ="87cefa", rgb = {135/255, 206/255, 250/255}, },
 	lemon		= SF_Color:New("FFFACD"),    -- {hex ="FFFACD", rgb = {1, 250/255, 205/255}, },
 	mocassin	= SF_Color:New("FFE4B5"),    -- {hex ="FFE4B5", rgb = {1, 228/255, 181/255}, },
+	frangipani  = SF_Color:New("fad7a0"),
     aquamarine  = SF_Color:New("7fffd4"),    -- {hex ="7fffd4", rgb = {127/255, 1, 212/255}, },
     lightsalmon = SF_Color:New("FFA07A"),    -- {hex ="FFA07A", rgb = {1, 160/255, 122/255}, },
 
@@ -55,6 +56,7 @@ sfutil.hex = {
 	ltskyblue = sfutil.colors.ltskyblue.hex,
 	lemon = sfutil.colors.lemon.hex,
 	mocassin = sfutil.colors.mocassin.hex,
+	frangipani = sfutil.colors.frangipani.hex,
 
     junk = sfutil.colors.junk.hex,
     normal = sfutil.colors.normal.hex,
@@ -77,6 +79,7 @@ sfutil.rgb = {
 	ltskyblue = sfutil.colors.ltskyblue.rgb,
 	lemon = sfutil.colors.lemon.rgb,
 	mocassin = sfutil.colors.mocassin.rgb,
+	frangipani = sfutil.colors.frangipani.rgb,
 
     junk = sfutil.colors.junk.rgb,
     normal = sfutil.colors.normal.rgb,
@@ -159,26 +162,6 @@ function sfutil.lstr(...)
    return table.concat(arg)
 end
 
--- debug convenience function
-function sfutil.dTable(vtable, depth, name)
-	if type(vtable) ~= "table" then 
-		return sfutil.str(vtable) 
-	end
-    local arg = {}
-	if depth == nil or depth < 1 then return end
-	for k, v in pairs(vtable) do
-		if type(v) == "function" then
-			arg[#arg+1] = name.." : "..tostring(k).." -> (function),  \n"
-		elseif type(v) == "table" then 
-			arg[#arg+1] = sfutil.dTable(v, depth - 1, name.." - ["..tostring(k).."]") 
-		else
-			arg[#arg+1] = name.." : "..tostring(k).." -> "..tostring(v)..",  \n"
-		end
-	end
-    return table.concat(arg)
-end
-
-
 --[[ ---------------------
     Concatenate varargs to a delimited string.
 	Similar to sfutil.str() except that a delimiter is
@@ -203,6 +186,46 @@ function sfutil.dstr(delim, ...)
     end
     return table.concat(arg,delim)
 end
+
+
+--[[ ---------------------
+    Get the appropriate text string based on a variety
+	of input types.
+	    Type		Returns
+		nil			empty string ""
+		string 		textEntry
+		number		returns GetString(textEntry)
+		function    returns the return value of the textEntry function
+		               with whatever args were provided
+	(Note that any args after textEntry are ignored unless textEntry is a function.)
+--]]
+function sfutil.GetText(textEntry, ...)
+    local text
+	
+    if type(textEntry) == "nil" then
+        text = ""
+		
+    elseif type(textEntry) == "string" then
+        text = textEntry
+		
+    elseif type(textEntry) == "function" then
+        text = textEntry(...)
+		
+    else
+        text = GetString(textEntry)
+    end
+    return text
+end
+
+--[[
+	ternary trick
+	
+	(condition and {ifTrue} or {ifFalse})[1]
+	
+	ifTrue and ifFalse can be functions
+	
+--]]
+
 
 --[[ ---------------------
 	Split a string into smaller chunks if necessary.
@@ -241,9 +264,11 @@ function sfutil.tblJoinLen( tbl, maxlen )
 	local str = ""
 	if (type(tbl) == "string") then
 		str = tbl
+		
 	elseif (type(tbl) == "table") then
 		str = table.concat(tbl, "")
 	end
+	
 	if maxlen ~= nil then
 		return strSplit(str, maxlen)
 	end
@@ -296,8 +321,10 @@ function sfutil.ColorText(prompt, promptcolor)
     -- get the prompt text
     if( prompt == nil ) then
         strprompt = ""
+		
     elseif( type(prompt) == "string") then
         strprompt = prompt
+		
     else
         strprompt = GetString(prompt)
     end
@@ -355,48 +382,6 @@ function sfutil.WrapFunction(namespace, functionName, wrapper)
 end
 
 ---------------------
--- Recursively initialize missing values in a table from
--- a defaults table. Existing values in the svtable will
--- remain unchanged.
-function sfutil.defaultMissing(svtable, defaulttable)
-    if svtable == nil then return sfutil.deepCopy(defaulttable) end
-	if type(svtable) ~= 'table' then return end
-	if type(defaulttable) ~= 'table' then return end
-	
-	for k,v in pairs(defaulttable) do
-		if( svtable[k] == nil ) then 
-			if( type( defaulttable[k] )=='table' ) then
-				svtable[k] = {}
-				sfutil.defaultMissing( svtable[k], defaulttable[k])
-				
-			else
-				svtable[k] = defaulttable[k]
-			end
-		end
-	end
-end
-
----------------------
--- Recursively copy contents of a table into a new table
--- for table/object it returns a copy of the table/object
--- for anything else, it returns the value of the orig
-function sfutil.deepCopy(orig)
-	local orig_type = type(orig)
-	local copy
-	if orig_type == 'table' then
-		copy = {}
-		for orig_key, orig_value in next, orig, nil do
-			copy[sfutil.deepCopy(orig_key)] = sfutil.deepCopy(orig_value)
-		end
-		setmetatable(copy, sfutil.deepCopy(getmetatable(orig)))
-		
-	else -- number, string, boolean, etc
-		copy = orig
-	end
-	return copy
-end
-
----------------------
 -- turn a boolean value into a string
 -- suitable for display
 function sfutil.bool2str(bool)
@@ -404,6 +389,14 @@ function sfutil.bool2str(bool)
 		return "true"
 	end
 	return "false"
+end
+
+-- turn a string (hopefully containing a boolean value) into a boolean
+function sfutil.str2bool(str)
+	if( string.lower(str)== "true" or str == "1" ) then
+		return true
+	end
+	return false
 end
 
 ---------------------
@@ -417,32 +410,6 @@ function sfutil.isTrue(val)
 		return true
 	end
 	return false
-end
-
----------------------
--- given a (supposed) table variable
---    either return the table variable
---    or return an empty table if the table variable was nil
-function sfutil.safeTable(tbl)
-    if tbl == nil or type(tbl) ~= "table" then
-        tbl = {}
-    end
-    return tbl
-end
-
----------------------
--- given a (supposed) table variable
---    either return the same table variable after discarding the contents
---    or return an empty table if the table variable was nil
-function sfutil.safeClearTable(tbl)
-    if tbl == nil or type(tbl) ~= "table" then
-        tbl = {}
-		return tbl
-    end
-    for k in pairs(tbl) do
-        tbl[k] = nil
-    end
-    return tbl
 end
 
 ---------------------
@@ -927,6 +894,8 @@ function sfutil.colorsplit(markertable, str)
     return t2
 end
 
+-- -----------------------------------------------------------------------
+-- temporary hacks
 function sfutil.add2linesctl()
 --[[	-- only needed when LibAddonMenu is having clipping problems
 	return 	{
@@ -948,33 +917,98 @@ function sfutil.addlinectl()
 --]]
 end
 
+--[[
+-- -----------------------------------------------------------------------
 -- easily manage values and choice tables for dropdowns
+-- creates a simple lookup table for potential choices
+-- for dropdowns, each entry with an index key (ndx), a
+-- choice (strId), and the optional choiceValue (val)
+--
+-- Then you can create choices and choiceValues lists
+-- by passing in table indexes.
+--
+-- Elsewhere in your code, you can compare what was returned
+-- from the dropdown to an indexed value of your lookup table,
+-- thus avoiding the problem of tracking down the hardcoded
+-- references to a value sprinkled throughout your code. Only
+-- the table has to change, and everything else just works.
+
 sfutil.DDValueTable = ZO_Object:Subclass()
 function sfutil.DDValueTable:New()
     local o = ZO_Object.New(self)
 	return o
 end
 
-function sfutil.DDValueTable:append(val, strId)
-	table.insert(self, { value = val, strg = strId })
+-- Append a value row to the end of the DDValueTable.
+-- While it is prefered for the strId parameter to be a ZOS stringId,
+-- it can be a string instead (not recommended).
+-- The val parameter should either be nil (it is after all optional)
+-- or it should be a string or numeric value
+function sfutil.DDValueTable:append(val, strId, tooltip)
+	if val == nil then
+		if type(strId) == "string" then
+			table.insert(self, { value = strId, strg = strId, tt = tooltip })
+			
+		else
+			table.insert(self, { value = GetString(strId), strg = strId, tt = tooltip })
+		end
+		
+	else
+		table.insert(self, { value = val, strg = strId, tt = tooltip })
+	end
+	return #self
 end
 
-function sfutil.DDValueTable:add(ndx, val, strId)
-	self[ndx] = { value = val, strg = strId }
+-- Add a value row to the DDValueTable.
+-- While it is prefered for the strId parameter to be a ZOS stringId,
+-- it can be a string instead (not recommended).
+-- The val parameter should either be nil (it is after all optional)
+-- or it should be a string or numeric value
+function sfutil.DDValueTable:add(ndx, val, strId, tooltip)
+	if val == nil then
+		if type(strId) == "string" then
+			self[ndx] = { value = strId, strg = strId, tt = tooltip }
+			
+		else
+			self[ndx] = { value = GetString(strId), strg = strId, tt = tooltip}
+		end
+		
+	else
+		self[ndx] = { value = val, strg = strId, tt = tooltip }
+	end
+	return ndx
 end
 
+-- Get the choiceValue string for the specified index
 function sfutil.DDValueTable:val(ndx)
 	return self[ndx].value
 end
 
+-- Get the choice string for the specified index
 function sfutil.DDValueTable:str(ndx)
-	return GetString(self[ndx].strg)
+	if type(self[ndx].strg) == "string" then
+		return self[ndx].strg
+	else
+		return GetString(self[ndx].strg)
+	end
 end
 
+-- Get the choice tooltip for the specified index
+function sfutil.DDValueTable:tip(ndx)
+	if type(self[ndx].tt) == "string" then
+		return self[ndx].tt
+	else
+		return GetString(self[ndx].tt)
+	end
+end
+
+-- returns choices table for use with dropdowns
 function sfutil.DDValueTable:choices(...)
-	local ac = select( '#', ... )
+
+	local choicetbl = {}
+	ac = select( '#', ... )
 	if ac == 0 then
-		error( string.format("error: %s(): require arguments." , fn))
+		--error( string.format("error: %s(): require arguments." , fn))
 	end
 	local choicetbl = {}
 	for ax = 1, ac do
@@ -983,11 +1017,12 @@ function sfutil.DDValueTable:choices(...)
 			error( string.format("error: %s():  argument is nil." , fn))
 		end
 		--d("choicetbl: "..ndx.." "..self:str(ndx))
-		table.insert(choicetbl,self:str(ndx))
+		table.insert(choicetbl, self:str(ndx))
 	end
 	return choicetbl
 end
 
+-- returns (dropdown-optional) choicesValues table for use with dropdowns
 function sfutil.DDValueTable:choiceValues(...)
 	local ac = select( '#', ... )
 	if ac == 0 then
@@ -1003,6 +1038,24 @@ function sfutil.DDValueTable:choiceValues(...)
 		table.insert(valtbl,self:val(ndx))
 	end
 	return valtbl
+end
+
+-- returns (dropdown-optional) choiceTooltips table for use with dropdowns
+function sfutil.DDValueTable:choiceTooltips(...)
+	local ac = select( '#', ... )
+	if ac == 0 then
+		error( string.format("error: %s(): require arguments." , fn))
+	end
+	local tiptbl = {}
+	for ax = 1, ac do
+		local ndx = select( ax, ... )
+		if not ndx then
+			error( string.format("error: %s():  argument is nil." , fn))
+		end
+		--d("tiptbl: "..ndx.." "..self:tip(ndx))
+		table.insert(tiptbl,self:tip(ndx))
+	end
+	return tiptbl
 end
 
 -- returns choices and choicesValues tables for use with dropdowns
@@ -1032,5 +1085,241 @@ function sfutil.DDValueTable:choicesNvalues(...)
 	end
 	return choicetbl, valtbl
 end
+--]]
+
+-- -----------------------------------------------------------------------
+-- easily manage values and choice tables for dropdowns
+-- creates a simple lookup table for potential choices
+-- for dropdowns, each entry with an index key (ndx), a
+-- choice (strId), and the optional choiceValue (val)
+--
+-- Then you can create choices and choiceValues lists
+-- by passing in table indexes.
+--
+-- Elsewhere in your code, you can compare what was returned
+-- from the dropdown to an indexed value of your lookup table,
+-- thus avoiding the problem of tracking down the hardcoded
+-- references to a value sprinkled throughout your code. Only
+-- the table has to change, and everything else just works.
+
+sfutil.DDValueTable = ZO_Object:Subclass()
+function sfutil.DDValueTable:New()
+    local o = ZO_Object.New(self)
+    return o
+end
+
+-- Append a value row to the end of the DDValueTable.
+-- While it is prefered for the strId parameter to be a ZOS stringId,
+-- it can be a string instead (not recommended).
+-- The val parameter should either be nil (it is after all optional)
+-- or it should be a string (not a stringId)
+function sfutil.DDValueTable:append(val, strId, tooltip)
+    if val == nil then
+        if type(strId) == "string" then
+            table.insert(self, { value = strId, strg = strId, tt = tooltip })
+        else
+            table.insert(self, { value = GetString(strId), strg = strId, tt = tooltip })
+        end
+        
+    else
+        table.insert(self, { value = val, strg = strId, tt = tooltip })
+    end
+    return #self
+end
+
+-- Add a value row to the DDValueTable.
+-- While it is prefered for the strId parameter to be a ZOS stringId,
+-- it can be a string instead (not recommended).
+-- The val parameter should either be nil (it is after all optional)
+-- or it should be a string (not a stringId)
+function sfutil.DDValueTable:add(ndx, val, strId, tooltip)
+    if val == nil then
+        if type(strId) == "string" then
+            self[ndx] = { value = strId, strg = strId, tt = tooltip }
+            
+        else
+            self[ndx] = { value = GetString(strId), strg = strId, tt = tooltip}
+        end
+        
+    else
+        self[ndx] = { value = val, strg = strId, tt = tooltip }
+    end
+    return ndx
+end
+
+-- Get the choiceValue string for the specified index
+function sfutil.DDValueTable:val(ndx)
+    return self[ndx].value
+end
+
+-- Get the choice string for the specified index
+function sfutil.DDValueTable:str(ndx)
+    if type(self[ndx].strg) == "string" then
+        return self[ndx].strg
+    else
+        return GetString(self[ndx].strg)
+    end
+end
+
+-- Get the choice tooltip for the specified index
+function sfutil.DDValueTable:tip(ndx)
+    if type(self[ndx].tt) == "string" then
+        return self[ndx].tt
+    else
+        return GetString(self[ndx].tt)
+    end
+end
+
+-- returns choices table for use with dropdowns
+function sfutil.DDValueTable:choices(...)
+    local ac = select( '#', ... )
+    if ac == 0 then
+        --error( string.format("error: %s(): require arguments." , fn))
+        return self:choicesAll()
+    end
+    local choicetbl = {}
+    for ax = 1, ac do
+        local ndx = select( ax, ... )
+        if not ndx then
+            error( string.format("error: %s():  argument is nil." , fn))
+        end
+        --d("choicetbl: "..ndx.." "..self:str(ndx))
+        table.insert(choicetbl, self:str(ndx))
+    end
+    return choicetbl
+end
+
+-- returns choices table for use with dropdowns
+function sfutil.DDValueTable:choicesAll()
+    local choicetbl = {}
+    for ax = 1, #self do
+        local ndx = self[ax]
+        if not ndx then
+            error( string.format("error: %s():  argument is nil." , fn))
+        end
+        --d("choicetbl: "..ndx.." "..self:str(ndx))
+        table.insert(choicetbl, self:str(ax))
+    end
+    return choicetbl
+end
+
+-- returns (dropdown-optional) choicesValues table for use with dropdowns
+function sfutil.DDValueTable:choiceValues(...)
+    local ac = select( '#', ... )
+    if ac == 0 then
+        --error( string.format("error: %s(): require arguments." , fn))
+        return self:choiceValuesAll()
+    end
+    local valtbl = {}
+    for ax = 1, ac do
+        local ndx = select( ax, ... )
+        if not ndx then
+            error( string.format("error: %s():  argument is nil." , fn))
+        end
+        --d("valtbl: "..ndx.." "..self:val(ndx))
+        table.insert(valtbl,self:val(ndx))
+    end
+    return valtbl
+end
+
+-- returns choices table for use with dropdowns
+function sfutil.DDValueTable:choiceValuesAll()
+    local valtbl = {}
+    for ax = 1, #self do
+        local ndx = self[ax]
+        if not ndx then
+            error( string.format("error: %s():  argument is nil." , fn))
+        end
+        --d("valtbl: "..ndx.." "..self:str(ndx))
+        table.insert(valtbl, self:val(ax))
+    end
+    return valtbl
+end
+
+-- returns (dropdown-optional) choiceTooltips table for use with dropdowns
+function sfutil.DDValueTable:choiceTooltips(...)
+    local ac = select( '#', ... )
+    if ac == 0 then
+        --error( string.format("error: %s(): require arguments." , fn))
+        return self:choiceTooltipsAll()
+    end
+    local tiptbl = {}
+    for ax = 1, ac do
+        local ndx = select( ax, ... )
+        if not ndx then
+            error( string.format("error: %s():  argument is nil." , fn))
+        end
+        --d("tiptbl: "..ndx.." "..self:tip(ndx))
+        table.insert(tiptbl,self:tip(ndx))
+    end
+    return tiptbl
+end
+
+-- returns choices table for use with dropdowns
+function sfutil.DDValueTable:choiceTooltipsAll()
+    local tiptbl = {}
+    for ax = 1, #self do
+        local ndx = self[ax]
+        if not ndx then
+            error( string.format("error: %s():  argument is nil." , fn))
+        end
+        --d("tiptbl: "..ndx.." "..self:str(ndx))
+        table.insert(tiptbl, self:tip(ax))
+    end
+    return tiptbl
+end
+
+-- returns choices and choicesValues tables for use with dropdowns
+function sfutil.DDValueTable:choicesNvalues(...)
+    local ac = select( '#', ... )
+    if ac == 0 then
+        --error( string.format("error: %s(): require arguments." , fn))
+        return self:choicesNvaluesAll()
+    end
+    local valtbl = {}
+    local choicetbl = {}
+    for ax = 1, ac do
+        local ndx = select( ax, ... )
+        if not ndx then
+            error( string.format("error: %s():  argument is nil." , fn))
+        end
+        --d("choicetbl: "..ndx.." "..self:str(ndx))
+        table.insert(choicetbl,self:str(ndx))
+        local valstr = self:val(ndx)
+        if valstr then
+            table.insert(valtbl,self:val(ndx))
+            --d("valtbl: "..ndx.." "..self:val(ndx))
+            
+        else
+            table.insert(valtbl,self:str(ndx))
+            --d("valtbl: "..ndx.." "..self:str(ndx))
+        end
+    end
+    return choicetbl, valtbl
+end
 
 
+-- returns choices and choicesValues tables for use with dropdowns
+function sfutil.DDValueTable:choicesNvaluesAll()
+    local valtbl = {}
+    local choicetbl = {}
+    --d("cNv - self = "..#self)
+    for ax = 1, #self do
+        local ndx = self[ax]
+        if not ndx then
+            error( string.format("error: %s():  argument is nil." , fn))
+        end
+        --d("choicetbl: "..ax.." "..self:str(ax))
+        table.insert(choicetbl,self:str(ax))
+        local valstr = self:val(ax)
+        if valstr then
+            table.insert(valtbl,self:val(ax))
+            --d("valtbl: "..ax.." "..self:val(ax))
+            
+        else
+            table.insert(valtbl,self:str(ndx))
+            --d("valtbl: "..ndx.." "..self:str(ndx))
+        end
+    end
+    return choicetbl, valtbl
+end

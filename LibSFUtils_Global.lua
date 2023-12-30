@@ -3,6 +3,9 @@
 
 LibSFUtils = {
     name = "LibSFUtils",
-    LibVersion = 47,    -- change this with every release!
+    LibVersion = 49,    -- change this with every release!
     author = "Shadowfen",
 }
+
+LibSFUtils.logger = LibDebugLogger.Create("SFUtils")
+LibSFUtils.logger:SetEnabled(true)
