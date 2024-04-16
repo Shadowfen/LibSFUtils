@@ -90,8 +90,16 @@ function sfutil.safeClearTable(tbl)
         tbl = {}
 		return tbl
     end
-    for k in pairs(tbl) do
-        tbl[k] = nil
+    for k,v in pairs(tbl) do
+		if type(v) == 'table' then
+			sfutil.safeClearTable( v )
+			if next( v ) == nil then
+				tbl[k] = nil
+			end
+			
+		else
+			tbl[k] = nil
+		end
     end
     return tbl
 end
@@ -110,6 +118,33 @@ function sfutil.RemainsInList(listA, listB)
 	end
 
 	return newList
+end
+
+--[[ ---------------------
+	Return a count of the number of items in the table.
+	Return nil if the supposed "table" is not a table
+	Handles non-contiguous.
+--]]
+function sfutil.GetSize(tbl)
+    if tbl == nil or type(tbl) ~= "table" then
+		return nil
+	end
+	local count = 0
+	for _ in pairs(tbl) do count = count + 1 end
+	return count
+end
+
+
+--[[ ---------------------
+	Return true or false if the table is empty or not
+	Return nil if the supposed "table" is not a table
+--]]
+function sfutil.isEmpty(tbl)
+    if tbl == nil or type(tbl) ~= "table" then
+		return nil
+	end
+	local next = tbl.next
+	return next(tbl) == nil or tbl == {}
 end
 
 

@@ -28,17 +28,21 @@ function sfutil.SafeAddString(stringId, stringValue, stringVersion)
             ZO_CreateStringId(stringId, stringValue)
             id = _G[stringId]
             SafeAddVersion(id, stringVersion)
+
         else
             SafeAddString(id, stringValue, stringVersion)
         end
+		
     elseif type(stringId) == "number" then
         if not GetString(stringId) then
             -- It's really a bad idea to add this without first doing the ZO_CreateString
             -- although ZOS allows it.
             assert(false,"Tried to use LibSFUtils.SafeAddString on a numeric stringId that a string had not been created for.")
+
         else
             SafeAddString(stringId, stringValue, stringVersion)
         end
+
     else
         assert(false,"Tried to use LibSFUtils.SafeAddString on a stringId that was not a string or a number(id)")
     end
@@ -77,6 +81,7 @@ function sfutil.LoadLanguage(lang_strings, defaultLang)
         for stringId, stringValue in pairs(dlocalstr) do
             sfutil.SafeAddString(stringId, stringValue, 1)
         end
+		
     else
         -- default language is not in lang_strings table
         --d("LoadLanguage: Default language ("..defaultLang..") is not in lang_strings table")
@@ -89,6 +94,7 @@ function sfutil.LoadLanguage(lang_strings, defaultLang)
             for stringId, stringValue in pairs(localstr) do
                 sfutil.SafeAddString(stringId, stringValue, 2)
             end
+			
         else
             -- current language is not in lang_strings table
             --d("LoadLanguage: Current language ("..lang..") is not in lang_strings table")

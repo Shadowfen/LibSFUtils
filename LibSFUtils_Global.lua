@@ -3,9 +3,11 @@
 
 LibSFUtils = {
     name = "LibSFUtils",
-    LibVersion = 49,    -- change this with every release!
+    LibVersion = 50,    -- change this with every release!
     author = "Shadowfen",
 }
-
+if not LibDebugLogger then
+	error("[LibSFUtils] LibDebugLogger has not yet been loaded. Cannot continue.")
+end
 LibSFUtils.logger = LibDebugLogger.Create("SFUtils")
 LibSFUtils.logger:SetEnabled(true)
