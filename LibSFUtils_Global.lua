@@ -3,7 +3,7 @@
 
 LibSFUtils = {
     name = "LibSFUtils",
-    LibVersion = 50,    -- change this with every release!
+    LibVersion = 51,    -- change this with every release!
     author = "Shadowfen",
 }
 if not LibDebugLogger then
