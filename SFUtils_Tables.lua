@@ -70,8 +70,8 @@ end
 
 --[[ ---------------------
 	given a (supposed) table variable
-		either return the table variable
-		or return an empty table if the table variable was nil
+		either return the table variable (reference)
+		or return a new empty table if the table variable was nil
 --]]
 function sfutil.safeTable(tbl)
     if tbl == nil or type(tbl) ~= "table" then

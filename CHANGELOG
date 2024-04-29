@@ -1,5 +1,6 @@
 [COLOR="DeepSkyBlue"]51[/COLOR]:
 [LIST]
+[*] Updated some function comments and removed obsolete (initial implementation of) DDValueTable functions.
 [*] API bump.
 [/LIST]
 
