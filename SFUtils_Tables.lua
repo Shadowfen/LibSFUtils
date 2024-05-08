@@ -84,6 +84,10 @@ end
 	given a (supposed) table variable
 		either return the same table variable after discarding the contents
 		or return an empty table if the table variable was nil
+		
+	The difference between this and ZO_ClearTable is the initial safety check
+		and that we return the empty table (which might have been created if
+		the parameter was not a proper table).
 --]]
 function sfutil.safeClearTable(tbl)
     if tbl == nil or type(tbl) ~= "table" then
@@ -91,15 +95,7 @@ function sfutil.safeClearTable(tbl)
 		return tbl
     end
     for k,v in pairs(tbl) do
-		if type(v) == 'table' then
-			sfutil.safeClearTable( v )
-			if next( v ) == nil then
-				tbl[k] = nil
-			end
-			
-		else
-			tbl[k] = nil
-		end
+		tbl[k] = nil
     end
     return tbl
 end

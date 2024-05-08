@@ -371,6 +371,7 @@ function sfutil.WrapFunction(namespace, functionName, wrapper)
         wrapper = functionName
         functionName = namespace
         namespace = _G
+		
     elseif type(namespace) ~= "table" then
         -- invalid parameters
         return nil
@@ -429,6 +430,37 @@ function sfutil.nilDefault( val, defaultval )
 end
 
 ---------------------
+-- return the value of val; unless it is nil or an empty string 
+-- when we then will return defaultval instead of the nil.
+--
+function sfutil.nilDefaultStr( val, defaultval )
+	if( val == nil ) then
+		return defaultval
+	end
+	if val == "" then 
+		return defaultval
+	end
+	return val
+end
+
+---------------------
+-- Get various addon meta info
+--  namespace is a table to add the info to,
+--    if the namespace is not a table, create a table and return it.
+-- Always returns a table with the info inside it
+function sfutil.addonMeta(namespace, name)
+	namespace = sfutil.safeTable(namespace)
+    namespace.addonName = name		-- addon name for these saved vars
+    namespace.server = GetWorldName()
+    namespace.account = GetDisplayName()
+    namespace.charId = GetCurrentCharacterId()
+	namespace.charName = GetUnitName("player")
+	namespace.fmtCharName = zo_strformat(SI_UNIT_NAME, GetUnitName("player"))
+	namespace.API = GetAPIVersion()
+	return namespace
+end
+
+---------------------
 -- Convert a number of seconds into an
 -- HH:MM:SS string.
 function sfutil.secondsToClock(seconds)
@@ -442,61 +474,6 @@ function sfutil.secondsToClock(seconds)
     secs = string.format("%02.f", math.floor(seconds - hours*3600 - mins *60));
     return hours..":"..mins..":"..secs
   end
-end
-
-
--- ------------------------------------------------------
--- Guild functions
-
--- SafeGetGuildName(index)
---    where index is 1..5
---
--- returns: guild name, guild Id
---     or  "Invalid guild x", nil if no such guild
---
--- does not return nil for name! - if bad then return nil guildId
-function sfutil.SafeGetGuildName(index)
-
-    -- Guildname
-    local guildId = GetGuildId(index)
-    if not guildId then 
-        return ("Invalid guild " .. index),nil
-    end
-    local guildName = GetGuildName(guildId)
-
-    -- Occurs sometimes
-    if(not guildName or (guildName):len() < 1) then
-        guildName = "Guild " .. guildId
-    end
-    return guildName, guildId
-end
-
--- Get list of all active guild names in index order (1..5)
-function sfutil.GetActiveGuildNames()
-	local guildList = {}
-	local numGuilds = GetNumGuilds()
-	if numGuilds > 0 then
-		local name, id
-		for guild = 1, numGuilds do
-			name, id = sfutil.SafeGetGuildName(guild)
-			table.insert(guildList, name)
-		end
-	end	
-	return guildList
-end
-
--- Get list of all active guild ids in index order (1..5)
-function sfutil.GetActiveGuildIds()
-	local guildList = {}
-	local numGuilds = GetNumGuilds()
-	if numGuilds > 0 then
-		local name, id
-		for guild = 1, numGuilds do
-			name, id = sfutil.SafeGetGuildName(guild)
-			table.insert(guildList, id)
-		end
-	end	
-	return guildList
 end
 
 ---------------------
@@ -796,6 +773,7 @@ function sfutil.stripColors(markertable,str)
                 end
                 ss, es = string.find(str,"|+[Cc]%x%x%x%x%x%x",v.start)
                 lastv = es
+				
             elseif code == "r" then
                 -- end color
                 if v.start > lastv+1 then
@@ -803,19 +781,23 @@ function sfutil.stripColors(markertable,str)
                 end
                 ss, es = string.find(str,"|+[Rr]",v.start)
                 lastv = es
+				
             else
                 -- uninteresting
             end
+			
         elseif action == "+" then
             -- new string fragment (|r)
             if v.start > lastv+1 then
                 table.insert(t2,str:sub(lastv+1,v.start-1))
             end
             lastv = v.start + 1
+			
         else    -- action == "-"
             if code == "c" then
                 ss, es = string.find(str,"|+[Cc]%x%x%x%x%x%x",v.start)
                 lastv = es
+				
             elseif code == "r" and v.start ~= -1 then
                 ss, es = string.find(str,"|+[Rr]",v.start)
                 lastv = es
@@ -860,6 +842,7 @@ function sfutil.colorsplit(markertable, str)
 					if ss == nil or es == nil then break end
 					table.insert(t2, string.format("|c%s",cs))
 					lastv = es
+					
 				elseif code == "r" then
 					-- end color
 					ss, es = string.find(str,"|+[Rr]",v.start)
@@ -867,6 +850,7 @@ function sfutil.colorsplit(markertable, str)
 					table.insert(t2,"|r")
 					lastv = es
 				end
+				
 			elseif action == "+" then
 				-- new string fragment (|r)
 				if v.start > lastv+1 then
@@ -874,11 +858,13 @@ function sfutil.colorsplit(markertable, str)
 				end
 				table.insert(t2,"|r")
 				lastv = v.start + 1
+				
 			else    -- action == "-"
 				if code == "c" then
 					ss, es = string.find(str,"|+[Cc]%x%x%x%x%x%x",v.start)
 					if ss == nil or es == nil then break end
 					lastv = es
+					
 				elseif code == "r" and v.start ~= -1 then
 					ss, es = string.find(str,"|+[Rr]",v.start)
 					if ss == nil or es == nil then break end
@@ -936,6 +922,7 @@ end
 sfutil.DDValueTable = ZO_Object:Subclass()
 function sfutil.DDValueTable:New()
     local o = ZO_Object.New(self)
+    --o:initialize(...)
     return o
 end
 
@@ -988,6 +975,7 @@ end
 function sfutil.DDValueTable:str(ndx)
     if type(self[ndx].strg) == "string" then
         return self[ndx].strg
+		
     else
         return GetString(self[ndx].strg)
     end
@@ -997,6 +985,7 @@ end
 function sfutil.DDValueTable:tip(ndx)
     if type(self[ndx].tt) == "string" then
         return self[ndx].tt
+		
     else
         return GetString(self[ndx].tt)
     end

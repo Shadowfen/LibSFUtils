@@ -1,3 +1,9 @@
+[COLOR="DeepSkyBlue"]52[/COLOR]:
+[LIST]
+[*] Added the nilDefaultStr() function to return the default value if the primary value is either nil or an empty string. (The companion function nilDefault() only returned default if the primay was nil.)
+[*] Split the Guild-related functions into a separate source file for ease of maintenance. They are still part of the LibSFUtils library so no changes from a use standpoint.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]51[/COLOR]:
 [LIST]
 [*] Updated some function comments and removed obsolete (initial implementation of) DDValueTable functions.
