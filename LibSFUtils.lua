@@ -29,6 +29,7 @@ sfutil.colors = {
 	lemon		= SF_Color:New("FFFACD"),    -- {hex ="FFFACD", rgb = {1, 250/255, 205/255}, },
 	mocassin	= SF_Color:New("FFE4B5"),    -- {hex ="FFE4B5", rgb = {1, 228/255, 181/255}, },
 	frangipani  = SF_Color:New("fad7a0"),
+	--brick       = SF_Color:New("cb4154"),
     aquamarine  = SF_Color:New("7fffd4"),    -- {hex ="7fffd4", rgb = {127/255, 1, 212/255}, },
     lightsalmon = SF_Color:New("FFA07A"),    -- {hex ="FFA07A", rgb = {1, 160/255, 122/255}, },
 
@@ -57,6 +58,7 @@ sfutil.hex = {
 	lemon = sfutil.colors.lemon.hex,
 	mocassin = sfutil.colors.mocassin.hex,
 	frangipani = sfutil.colors.frangipani.hex,
+	--brick = sfutil.colors.brick.hex,
 
     junk = sfutil.colors.junk.hex,
     normal = sfutil.colors.normal.hex,
@@ -80,6 +82,7 @@ sfutil.rgb = {
 	lemon = sfutil.colors.lemon.rgb,
 	mocassin = sfutil.colors.mocassin.rgb,
 	frangipani = sfutil.colors.frangipani.rgb,
+	--brick = sfutils.colors.brick.rgb,
 
     junk = sfutil.colors.junk.rgb,
     normal = sfutil.colors.normal.rgb,

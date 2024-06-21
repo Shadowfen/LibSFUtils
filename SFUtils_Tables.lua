@@ -13,8 +13,10 @@ function sfutil.dTable(vtable, depth, name)
 	for k, v in pairs(vtable) do
 		if type(v) == "function" then
 			arg[#arg+1] = name.." : "..tostring(k).." -> (function),  \n"
+			
 		elseif type(v) == "table" then 
 			arg[#arg+1] = sfutil.dTable(v, depth - 1, name.." - ["..tostring(k).."]") 
+			
 		else
 			arg[#arg+1] = name.." : "..tostring(k).." -> "..tostring(v)..",  \n"
 		end
@@ -119,28 +121,32 @@ end
 --[[ ---------------------
 	Return a count of the number of items in the table.
 	Return nil if the supposed "table" is not a table
-	Handles non-contiguous.
+	Handles non-contiguous. More safe version of ZOS's NonContiguousCount()
 --]]
 function sfutil.GetSize(tbl)
     if tbl == nil or type(tbl) ~= "table" then
-		return nil
+		return 0
 	end
 	local count = 0
-	for _ in pairs(tbl) do count = count + 1 end
+	for _ in pairs(tbl) do 
+		count = count + 1 
+	end
 	return count
 end
 
 
 --[[ ---------------------
-	Return true or false if the table is empty or not
+	Return true or false if the table is empty or not.
 	Return nil if the supposed "table" is not a table
+	(Adds the type() check above what ZO_IsTableEmpty() does.
+	Also, I regard a nil "t" to be not an "empty" table as it
+	is not a table at all. ZOS seems to disagree.)
 --]]
 function sfutil.isEmpty(tbl)
     if tbl == nil or type(tbl) ~= "table" then
 		return nil
 	end
-	local next = tbl.next
-	return next(tbl) == nil or tbl == {}
+	return next(tbl) == nil
 end
 
 

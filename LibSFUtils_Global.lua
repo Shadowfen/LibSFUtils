@@ -20,8 +20,11 @@ local printLibDebug = {
     Info = function(self,...)  print("INFO: "..string.format(...)) end,
     Debug = function(self,...)  print("DEBUG: "..string.format(...)) end,
 }
-setmetatable(printLibDebug, getmetatable(nilLibDebug))
-
+setmetatable(printLibDebug,  { __call = function(self, name) 
+            self.addonName = name 
+            return self
+        end
+    })
 
 if LibDebugLogger then
   LibSFUtils.logger = LibDebugLogger.Create("SFUtils")
