@@ -800,14 +800,14 @@ function sfutil.stripColors(markertable,str)
             if code == "c" then
                 ss, es = string.find(str,"|+[Cc]%x%x%x%x%x%x",v.start)
                 lastv = es
-				
+
             elseif code == "r" and v.start ~= -1 then
                 ss, es = string.find(str,"|+[Rr]",v.start)
                 lastv = es
             end
         end
     end
-    if lastv <= #str then
+    if lastv and lastv <= #str then
         lastv = lastv +1
         table.insert(t2,str:sub(lastv))
     end
