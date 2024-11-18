@@ -39,7 +39,7 @@ local default_profiles = {
 -- defaults of values that would be saved in a profile
 local default_profile = {
 	profileName = "Account-Wide",
-	
+
 	-- addon-specific vars
 	general = {
 		closeLootWindow = false,
@@ -95,7 +95,7 @@ function profMgmt:createProfile(name, from)
 	if from == nil or from == "Default" then
 		from = "Default"
 		fromprof = default_profile
-		
+
 	else
 		fromprof = self.profTbl.profiles[from]
 		if not fromprof then 
@@ -107,7 +107,7 @@ function profMgmt:createProfile(name, from)
 	if self.profTbl.profiles[name] then
 		SF.logger:Debug("profTbl.profiles["..name.."] set to values from ",from)
 		self.profTbl.profiles[name].profileName = name
-		
+
 	else
 		SF.logger:Debug("profTbl.profiles["..name.."] set to nil")
 	end
@@ -123,12 +123,12 @@ function profMgmt:loadProfile(name, fromtbl)
 	if self.profTbl.profiles[name] ~= nil then
 		assert(self.profTbl.profiles[name] ~= nil, "loadProfile(): trying to REload "..name)
 	end
-	
+
 	self.profTbl.profiles[name] = SF.deepCopy(fromtbl)
 	if self.profTbl.profiles[name] then
 		SF.logger:Debug("profTbl.profiles["..name.."] set to values from ",from)
 		self.profTbl.profiles[name].profileName = name
-		
+
 	else
 		SF.logger:Debug("profTbl.profiles["..name.."] set to nil")
 	end
@@ -145,12 +145,12 @@ end
 --    profTbl = profiles settings
 function profMgmt:loadsv()
     SF.logger:Info("Starting profMgmt.loadsv")
-	
+
 	local prfnm = SF.saved.profileName
-	
+
     -- load our saved variables
 	--SF.saved = ZO_SavedVars:NewCharacterIdSettings("TTFAS_VARS", 1, nil, default, GetWorldName())
-	
+
 	self.profTbl = ZO_SavedVars:NewAccountWide(self.profSVnm, 1, nil, default_profiles, GetWorldName())
 	SF.defaultMissing(self.profTbl, default_profiles)
 
@@ -178,16 +178,16 @@ function profMgmt:loadsv()
 		SF.saved.profileName = "Account-Wide"
 		SF.currentProfile = profMgmt.profTbl.profiles["Account-Wide"]
 		return
-		
+
 	-- character assigned profile no longer exists, create it
 	elseif self.profTbl.profiles[SF.saved.profileName] == nil then
 		SF.logger:Warn(SF.str("acct profile ",prfnm, " not found - creating a profile ", SF.saved.profile))
 		self:createProfile(prfnm)
 		SF.currentProfile = self.profTbl.profiles[prfnm]
-		
+
 	else
 		SF.logger:Info(SF.str("loading profile ", prfnm))
-		SF.currentProfile = self.profTbl.profiles[prfnm]		
+		SF.currentProfile = self.profTbl.profiles[prfnm]
 	end
 
 end

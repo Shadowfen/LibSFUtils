@@ -18,7 +18,7 @@ function sfutil.LoadAcctChars( )
 	-- Create entries for every character on the account
 	for i = 1, GetNumCharacters() do
 		local name, gender, level, classId, raceId, alliance, id, locationId = GetCharacterInfo(i)
-		chars[id] = SF.SafeTable(chars[id])
+		chars[id] = sfutil.SafeTable(chars[id])
 		chars[id].server = server
 		chars[id].account = acct
 		chars[id].id = id

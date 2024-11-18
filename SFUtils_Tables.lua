@@ -40,7 +40,7 @@ function sfutil.defaultMissing(svtable, defaulttable)
 			if( type( defaulttable[k] )=='table' ) then
 				svtable[k] = {}
 				sfutil.defaultMissing( svtable[k], defaulttable[k])
-				
+
 			else
 				svtable[k] = defaulttable[k]
 			end
@@ -62,7 +62,7 @@ function sfutil.deepCopy(orig)
 			copy[sfutil.deepCopy(orig_key)] = sfutil.deepCopy(orig_value)
 		end
 		setmetatable(copy, sfutil.deepCopy(getmetatable(orig)))
-		
+
 	else -- number, string, boolean, etc
 		copy = orig
 	end

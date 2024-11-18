@@ -255,7 +255,7 @@ Example of use:
 ```
     function myaddon.checkLibraryVersions()
         local vc = SF.VersionChecker("myaddon")
-        local logger = LibDebugLogger.Create("rChat")
+        local logger = LibDebugLogger:Create("rChat")
         vc:Enable(logger)
         vc:CheckVersion("LibAddonMenu-2.0", 30)
         vc:CheckVersion("LibMediaProvider-1.0", 12)

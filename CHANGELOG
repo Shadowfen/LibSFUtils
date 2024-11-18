@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]54[/COLOR]:
+[LIST]
+[*] Add a logger creation mechanism that will uses LibDebugLogger if it is available, otherwise it just prints to chat. You can use :SetEnabled() to control if the logger is supposed to produce output.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]53[/COLOR]:
 [LIST]
 [*] Fix random "810: operator < is not supported for nil" in LibSFUtils when used from rChat.

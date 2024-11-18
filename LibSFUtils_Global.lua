@@ -3,17 +3,14 @@
 
 LibSFUtils = {
     name = "LibSFUtils",
-    LibVersion = 53,    -- change this with every release!
+    LibVersion = 54,    -- change this with every release!
     author = "Shadowfen",
 }
---if not LibDebugLogger then
---	error("[LibSFUtils] LibDebugLogger has not yet been loaded. Cannot continue.")
---end
-
 --[[
 An implementation of a logger which uses the lua print function
 to output the messages.
 --]]
+-- [ [
 local printLibDebug = {
     Error = function(self,...)  print("ERROR: "..string.format(...)) end,
     Warn = function(self,...)  print("WARN: "..string.format(...)) end,
@@ -27,9 +24,9 @@ setmetatable(printLibDebug,  { __call = function(self, name)
     })
 
 if LibDebugLogger then
-  LibSFUtils.logger = LibDebugLogger.Create("SFUtils")
+  LibSFUtils.logger = LibDebugLogger:Create("SFUtils")
   LibSFUtils.logger:SetEnabled(true)
 else
-  LibSFUtils.logger = printLibDebug
+  LibSFUtils.logger = printLibDebug("SFUtils")
 end
-
+-- ] ]
