@@ -3,14 +3,15 @@
 
 LibSFUtils = {
     name = "LibSFUtils",
-    LibVersion = 54,    -- change this with every release!
+    LibVersion = 55,    -- change this with every release!
     author = "Shadowfen",
 }
 --[[
 An implementation of a logger which uses the lua print function
 to output the messages.
+
+This is an internal-only logger as the LibSFUtils.Createlogger is not yet available (not loaded).
 --]]
--- [ [
 local printLibDebug = {
     Error = function(self,...)  print("ERROR: "..string.format(...)) end,
     Warn = function(self,...)  print("WARN: "..string.format(...)) end,
@@ -29,4 +30,3 @@ if LibDebugLogger then
 else
   LibSFUtils.logger = printLibDebug("SFUtils")
 end
--- ] ]

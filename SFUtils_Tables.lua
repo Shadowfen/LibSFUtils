@@ -13,10 +13,10 @@ function sfutil.dTable(vtable, depth, name)
 	for k, v in pairs(vtable) do
 		if type(v) == "function" then
 			arg[#arg+1] = name.." : "..tostring(k).." -> (function),  \n"
-			
+
 		elseif type(v) == "table" then 
 			arg[#arg+1] = sfutil.dTable(v, depth - 1, name.." - ["..tostring(k).."]") 
-			
+
 		else
 			arg[#arg+1] = name.." : "..tostring(k).." -> "..tostring(v)..",  \n"
 		end
@@ -34,7 +34,7 @@ function sfutil.defaultMissing(svtable, defaulttable)
     if svtable == nil then return sfutil.deepCopy(defaulttable) end
 	if type(svtable) ~= 'table' then return end
 	if type(defaulttable) ~= 'table' then return end
-	
+
 	for k,v in pairs(defaulttable) do
 		if( svtable[k] == nil ) then 
 			if( type( defaulttable[k] )=='table' ) then

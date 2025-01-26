@@ -1,3 +1,11 @@
+[COLOR="DeepSkyBlue"]55[/COLOR]:
+[LIST]
+[*] Enhance the version checker so that you can pass in the logger instance you want to use.
+[*] Added ability to enable or disable the logger output at the call level.
+[*] Code cleanup.
+[*] API bump.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]54[/COLOR]:
 [LIST]
 [*] Add a logger creation mechanism that will uses LibDebugLogger if it is available, otherwise it just prints to chat. You can use :SetEnabled() to control if the logger is supposed to produce output.

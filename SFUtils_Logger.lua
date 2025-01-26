@@ -3,16 +3,20 @@ local sfutil = LibSFUtils or {}
 -- logger that prints to chat
 local activePrintDebug = {
     Error = function(self,...)
+            if not self.enabled then return end
             print("["..self.addonName.."] ERROR: "..string.format(...)) 
         end,
     Warn = function(self,...)
-            print("["..self.addonName.."] WARN: "..string.format(...)) 
+        if not self.enabled then return end
+        print("["..self.addonName.."] WARN: "..string.format(...)) 
         end,
     Info = function(self,...)
-            print("["..self.addonName.."] INFO: "..string.format(...)) 
+        if not self.enabled then return end
+        print("["..self.addonName.."] INFO: "..string.format(...)) 
         end,
     Debug = function(self,...)
-            print("["..self.addonName.."] DEBUG: "..string.format(...)) 
+        if not self.enabled then return end
+        print("["..self.addonName.."] DEBUG: "..string.format(...)) 
         end,
     Create = function(self,name)
             local o = setmetatable({}, { __index = self})
@@ -39,27 +43,23 @@ local nilPrintDebug = {
 -- logger that prints to chat when enabled
 local printDebug = {
     Error = function(self,...)  
-            if self.enabled then 
-                print("["..self.addonName.."] ERROR: "..string.format(...)) 
-            end
+        if not self.enabled then return end
+        print("["..self.addonName.."] ERROR: "..string.format(...)) 
         end,
 
     Warn = function(self,...)  
-            if self.enabled then 
-                print("["..self.addonName.."] WARN: "..string.format(...)) 
-            end
+        if not self.enabled then return end
+        print("["..self.addonName.."] WARN: "..string.format(...)) 
         end,
 
     Info = function(self,...) 
-            if self.enabled then 
-                print("["..self.addonName.."] INFO: "..string.format(...)) 
-            end
+        if not self.enabled then return end
+        print("["..self.addonName.."] INFO: "..string.format(...)) 
         end,
 
     Debug = function(self,...)
-            if self.enabled then 
-                print("["..self.addonName.."] DEBUG: "..string.format(...)) 
-            end
+        if not self.enabled then return end
+        print("["..self.addonName.."] DEBUG: "..string.format(...)) 
         end,
 
     Create = function(self,name)

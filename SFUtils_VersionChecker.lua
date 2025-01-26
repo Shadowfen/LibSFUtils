@@ -43,7 +43,7 @@ local VC = {}
 setmetatable(VC, { __call = function(self, name, plogger) return VC:New(name) end 
     })
 
-function VC:New(addonName)
+function VC:New(addonName, logger)
 	o = {} 
 	setmetatable(o, self)
 	self.__index = self
@@ -52,6 +52,7 @@ function VC:New(addonName)
     
     o.addonName = addonName
     o.enabled = true
+    o.logger = logger
     if not logger then
         o.logger = nilLibDebug
     end
