@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]56[/COLOR]:
+[LIST]
+[*] API bump.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]55[/COLOR]:
 [LIST]
 [*] Enhance the version checker so that you can pass in the logger instance you want to use.
