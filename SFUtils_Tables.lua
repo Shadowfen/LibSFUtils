@@ -86,7 +86,7 @@ end
 	given a (supposed) table variable
 		either return the same table variable after discarding the contents
 		or return an empty table if the table variable was nil
-		
+
 	The difference between this and ZO_ClearTable is the initial safety check
 		and that we return the empty table (which might have been created if
 		the parameter was not a proper table).

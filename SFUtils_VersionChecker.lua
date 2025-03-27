@@ -97,7 +97,7 @@ LibSFUtils.addonlist = { count=0 }
 local function loadAddonList()
     local addonlist = LibSFUtils.addonlist
     --if addonlist.count > 0 then return end
-    
+
     local AddOnManager = GetAddOnManager()
 	local currAddons = AddOnManager:GetNumAddOns()
 	if addonlist.count >= currAddons then return end
@@ -145,7 +145,7 @@ function LibSFUtils.ForceUpdateAddons()
 			isLibrary=isLibrary 
 		}
         addonlist.count=addonlist.count+1
-        local version = AddOnManager.GetAddOnVersion 
+        local version = AddOnManager.GetAddOnVersion
 			and AddOnManager:GetAddOnVersion(i) or 0
         addonlist[name].version = version
     end

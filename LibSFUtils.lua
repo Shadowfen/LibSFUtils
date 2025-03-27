@@ -98,10 +98,10 @@ end
 
 --[[ ---------------------
     Concatenate varargs to a string
-	
+
 	To improve speed of ".." concatenation, we add the 
 	arguments to a table and do a concat on it.
-	
+
 	Value conversions:
 	* Numeric arguments are converted to string equivalents:
 	  i.e 16 -> "16".
@@ -131,10 +131,10 @@ end
 	Similar to sfutil.str except that it will try to convert the 
 	numeric arguments in the argument list into strings using the
 	GetString() function.
-	
+
 	To improve on the speed of ".." concatenation, we add the 
 	arguments to a table and do a concat on the table.
-	
+
 	Value conversions:
 	* Numeric arguments are run through the GetString function:
 	  i.e 16 -> GetString(16).
@@ -493,7 +493,7 @@ function sfutil.addonChatter:New(addon_name)
     o.normalcolor = sfutil.hex.mocassin
     o.debugcolor = sfutil.hex.ltskyblue
     o.d = function(...)
-    end -- debug messages off by default
+        end -- debug messages off by default
     o.isdbgon = false
     return o
 end
@@ -501,7 +501,7 @@ end
 function sfutil.addonChatter:disableDebug()
     self.isdbgon = false
     self.d = function(...)
-    end
+        end
 end
 -- print normal messages to chat
 function sfutil.addonChatter:systemMessage(...)
@@ -520,9 +520,9 @@ end
 function sfutil.addonChatter:enableDebug()
     self.isdbgon = true
     self.d = function(...)
-        local msg = sfutil.ColorText(sfutil.dstr(" ", ...), self.debugcolor)
-        ZOS_addSystemMsg(self.prefix .. msg)
-    end
+            local msg = sfutil.ColorText(sfutil.dstr(" ", ...), self.debugcolor)
+            ZOS_addSystemMsg(self.prefix .. msg)
+        end
 end
 
 function sfutil.addonChatter:toggleDebug()

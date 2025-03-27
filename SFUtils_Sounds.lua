@@ -21,7 +21,7 @@ local soundReverse = {}     -- contains [SOUNDS.xxx] index
 function sfutil.initSounds(force)
     if force == true then soundChoices={} end
     -- load sound keys to table
-    if next(soundChoices) == nil then  
+    if next(soundChoices) == nil then
         for k,_ in pairs(SOUNDS) do
             local ndx = #soundChoices+1
             soundChoices[ndx] = k
@@ -46,10 +46,10 @@ end
 -- Useful for setting a slider value from a saved (string) sound entry.
 function sfutil.getSoundIndex(sound, fallback)
     if not fallback then fallback = SOUNDS.DEFAULT_CLICK end
-    
+
     sfutil.initSounds()
     if not soundReverse[fallback] then fallback = SOUNDS.DEFAULT_CLICK end
-    
+
     local ndx = soundReverse[sound]
     if not ndx then return soundReverse[fallback] end
     return ndx
@@ -73,22 +73,22 @@ end
 --
 function sfutil.PlaySound(index)
     if not index then return end
-    
+
     if type(index) == "number" then
     	-- we have an index into our soundChoices array
     	-- so, make sure it exists (once).
     	sfutil.initSounds()
         if soundChoices[index] == nil then return end
         PlaySound(soundChoices[index])
-        
+
     elseif type(index) == "string" then
         if SOUNDS[index] ~= nil then
         	-- we got a sound name (index into the SOUNDS array)
             PlaySound(SOUNDS[index])
-            
+
         else
         	-- presume we have a string that was stored in a SOUNDS.xxx
             PlaySound(index)
         end
     end
-end    
+end

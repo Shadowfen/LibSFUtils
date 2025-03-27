@@ -165,7 +165,7 @@ function profMgmt:loadsv()
 		SF.saved.profileName = "Account-Wide"
 		SF.currentProfile = self.profTbl.profiles["Account-Wide"]
 		return
-		
+
 	-- if the character does not have an assigned profile then
 	-- create "Account-Wide" and assign it.
 	-- Should probably check first if "Account-Wide" already exists!

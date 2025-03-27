@@ -26,7 +26,7 @@ function sfutil.CreateMsgWin(name, title, width, height, visible)
 		msgWinCloseButton:SetHandler("OnClicked",function(self, but)
 			win:SetHidden(true)
 		end)
-		
+
 		if visible == true then
 			win:SetHidden(false)
 		else
