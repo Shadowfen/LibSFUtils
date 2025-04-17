@@ -471,8 +471,7 @@ end
 ---------------------
 function sfutil.initSystemMsgPrefix(addon_name, hexcolor)
     hexcolor = sfutil.nilDefault(hexcolor, sfutil.hex.goldenrod)
-    local prefix = sfutil.ColorText(addon_name, hexcolor)
-    return prefix
+    return sfutil.ColorText(addon_name, hexcolor)
 end
 
 function sfutil.systemMsg(prefix, text, hexcolor)
@@ -998,6 +997,7 @@ function sfutil.DDValueTable:choices(...)
         --error( string.format("error: %s(): require arguments." , fn))
         return self:choicesAll()
     end
+
     local choicetbl = {}
     for ax = 1, ac do
         local ndx = select(ax, ...)

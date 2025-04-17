@@ -7,8 +7,8 @@ SF.ProfileMgmt = profMgmt
 
 function profMgmt:New(...)
     local obj = ZO_Object.New(self)
-    obj:Initialize(...)
-    return obj
+    return obj:Initialize(...)
+    --return obj
 end
 
 -- addontbl - the table (namespace) for the parent addon
@@ -20,6 +20,7 @@ function profMgmt:Initialize(addontbl, savedtbl, profSVname, default_profile)
 	self.parentsv = savedtbl
 	self.profSVnm = profSVname
 	self.default_profile = default_profile
+	return self
 end
 
 
