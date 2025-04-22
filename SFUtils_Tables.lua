@@ -77,7 +77,7 @@ end
 --]]
 function sfutil.safeTable(tbl)
     if tbl == nil or type(tbl) ~= "table" then
-        tbl = {}
+        return {}
     end
     return tbl
 end
@@ -93,8 +93,7 @@ end
 --]]
 function sfutil.safeClearTable(tbl)
     if tbl == nil or type(tbl) ~= "table" then
-        tbl = {}
-		return tbl
+        return {}
     end
     for k,v in pairs(tbl) do
 		tbl[k] = nil
