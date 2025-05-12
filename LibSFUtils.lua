@@ -112,6 +112,7 @@ end
 function sfutil.str(...)
     local nargs = select("#", ...)
     local arg = {}
+    local sf_str = sfutil.str
 
     for i = 1, nargs do
         local v = select(i, ...)
@@ -119,7 +120,7 @@ function sfutil.str(...)
         if (v == nil) then
             arg[#arg + 1] = "(nil)"
         elseif (t == "table") then
-            arg[#arg + 1] = sfutil.str(v)
+            arg[#arg + 1] = sf_str(v)
         else
             arg[#arg + 1] = tostring(v)
         end
@@ -504,7 +505,8 @@ function sfutil.addonChatter:disableDebug()
 end
 -- print normal messages to chat
 function sfutil.addonChatter:systemMessage(...)
-    local msg = self.prefix .. sfutil.ColorText(sfutil.dstr(" ", ...), self.normalcolor)
+    local msg = sfutil.str(self.prefix, sfutil.ColorText(sfutil.dstr(" ", ...), self.normalcolor))
+    --local msg = self.prefix .. sfutil.ColorText(sfutil.dstr(" ", ...), self.normalcolor)
     ZOS_addSystemMsg(msg)
 end
 
@@ -585,10 +587,10 @@ function sfutil.gsplit(str, pat)
     local fpat = "(.-)" .. pat
     local last_end = 1
     local s1, e1, cap = str:find(fpat, 1)
-
+    local tbl_insert = table.insert
     if not s1 then
         -- special case - string does not contain delimiter
-        table.insert(t1, str)
+        tbl_insert(t1, str)
         return t1
     end
 
@@ -599,7 +601,7 @@ function sfutil.gsplit(str, pat)
             cap = ""
         end
         -- save the front captured piece of the string
-        table.insert(t1, cap)
+        tbl_insert(t1, cap)
         last_end = e1 + 1
         s1, e1, cap = str:find(fpat, last_end)
     end
@@ -607,7 +609,7 @@ function sfutil.gsplit(str, pat)
     if last_end - 1 <= #str then
         -- still have the last piece of string without delimiters
         cap = str:sub(last_end)
-        table.insert(t1, cap)
+        tbl_insert(t1, cap)
     end
     return t1
 end
@@ -636,6 +638,7 @@ function sfutil.getAllColorDelim(str)
 
     local s1, e1, c = str:find("|+([CcRr])", 1)
     local strlen = #str
+    local tbl_insert = table.insert
     while s1 do
         if s1 == strlen then
             break
@@ -645,7 +648,7 @@ function sfutil.getAllColorDelim(str)
         if code == "c" then
             e1 = e1 + 6 -- include color code
         end
-        table.insert(t1, {start = s1, estr = e1, code = code})
+        tbl_insert(t1, {start = s1, estr = e1, code = code})
         -- look for next
         s1, e1, c = str:find("|+([CcRr])", e1)
     end
@@ -675,6 +678,7 @@ function sfutil.regularizeColors(markertable, str)
     -- clean positions
     local prev_v, sv_start
     local needR = false
+    local tbl_insert = table.insert
     for k, v in ipairs(markertable) do
         sv_start = v.start
         if v.code == "r" then
@@ -689,7 +693,7 @@ function sfutil.regularizeColors(markertable, str)
                 -- the color we were processing has been bumped to next, so we will process it again.
                 -- we are already in a color so we need to add a |r to close it
                 v = {start = sv_start, estr = sv_start, code = "r", action = "+"}
-                table.insert(markertable, k, v)
+                tbl_insert(markertable, k, v)
                 needR = false
             else
                 needR = true
@@ -707,7 +711,7 @@ function sfutil.regularizeColors(markertable, str)
     -- we've reached the end of the markertable
     if needR == true then
         -- we still need a |r, so append one
-        table.insert(markertable, {start = #str + 1, estr = #str + 1, action = "+", code = "r"})
+        tbl_insert(markertable, {start = #str + 1, estr = #str + 1, action = "+", code = "r"})
     end
     return markertable
 end
@@ -766,6 +770,7 @@ function sfutil.stripColors(markertable, str)
 
     local t2 = {}
     local lastv = 0
+    local tbl_insert = table.insert
     for k, v in ipairs(markertable) do
         local code = v.code
         local action = v.action
@@ -774,14 +779,14 @@ function sfutil.stripColors(markertable, str)
             -- string fragment
             if code == "c" then
                 if v.start > lastv + 1 then
-                    table.insert(t2, str:sub(lastv + 1, v.start - 1))
+                    tbl_insert(t2, str:sub(lastv + 1, v.start - 1))
                 end
                 ss, es = string.find(str, "|+[Cc]%x%x%x%x%x%x", v.start)
                 lastv = es
             elseif code == "r" then
                 -- end color
                 if v.start > lastv + 1 then
-                    table.insert(t2, str:sub(lastv + 1, v.start - 1))
+                    tbl_insert(t2, str:sub(lastv + 1, v.start - 1))
                 end
                 ss, es = string.find(str, "|+[Rr]", v.start)
                 lastv = es
@@ -791,7 +796,7 @@ function sfutil.stripColors(markertable, str)
         elseif action == "+" then
             -- new string fragment (|r)
             if v.start > lastv + 1 then
-                table.insert(t2, str:sub(lastv + 1, v.start - 1))
+                tbl_insert(t2, str:sub(lastv + 1, v.start - 1))
             end
             lastv = v.start + 1
         else -- action == "-"
@@ -806,7 +811,7 @@ function sfutil.stripColors(markertable, str)
     end
     if lastv and lastv <= #str then
         lastv = lastv + 1
-        table.insert(t2, str:sub(lastv))
+        tbl_insert(t2, str:sub(lastv))
     end
     return table.concat(t2)
 end
@@ -828,6 +833,7 @@ function sfutil.colorsplit(markertable, str)
     local t2 = {}
     local lastv = 0
     local ss, es, cs
+    local tbl_insert = table.insert
     for k, v in ipairs(markertable) do
         if v then
             local code = v.code
@@ -835,7 +841,7 @@ function sfutil.colorsplit(markertable, str)
             if not action then
                 -- it's a section we're keeping
                 if v.start > lastv + 1 then
-                    table.insert(t2, str:sub(lastv + 1, v.start - 1))
+                    tbl_insert(t2, str:sub(lastv + 1, v.start - 1))
                 end
                 -- string fragment
                 if code == "c" then
@@ -844,7 +850,7 @@ function sfutil.colorsplit(markertable, str)
                     if ss == nil or es == nil then
                         break
                     end
-                    table.insert(t2, string.format("|c%s", cs))
+                    tbl_insert(t2, string.format("|c%s", cs))
                     lastv = es
                 elseif code == "r" then
                     -- end color
@@ -852,15 +858,15 @@ function sfutil.colorsplit(markertable, str)
                     if ss == nil or es == nil then
                         break
                     end
-                    table.insert(t2, "|r")
+                    tbl_insert(t2, "|r")
                     lastv = es
                 end
             elseif action == "+" then
                 -- new string fragment (|r)
                 if v.start > lastv + 1 then
-                    table.insert(t2, str:sub(lastv + 1, v.start - 1))
+                    tbl_insert(t2, str:sub(lastv + 1, v.start - 1))
                 end
-                table.insert(t2, "|r")
+                tbl_insert(t2, "|r")
                 lastv = v.start + 1
             else -- action == "-"
                 if code == "c" then
@@ -881,7 +887,7 @@ function sfutil.colorsplit(markertable, str)
     end
     if lastv <= #str then
         lastv = lastv + 1
-        table.insert(t2, str:sub(lastv))
+        tbl_insert(t2, str:sub(lastv))
     end
     return t2
 end
@@ -1037,7 +1043,6 @@ function sfutil.DDValueTable:choiceValues(...)
         if not ndx then
             error(string.format("error: %s():  argument is nil.", fn))
         end
-        --d("valtbl: "..ndx.." "..self:val(ndx))
         table.insert(valtbl, self:val(ndx))
     end
     return valtbl
@@ -1051,7 +1056,6 @@ function sfutil.DDValueTable:choiceValuesAll()
         if not ndx then
             error(string.format("error: %s():  argument is nil.", fn))
         end
-        --d("valtbl: "..ndx.." "..self:str(ndx))
         table.insert(valtbl, self:val(ax))
     end
     return valtbl
@@ -1070,7 +1074,6 @@ function sfutil.DDValueTable:choiceTooltips(...)
         if not ndx then
             error(string.format("error: %s():  argument is nil.", fn))
         end
-        --d("tiptbl: "..ndx.." "..self:tip(ndx))
         table.insert(tiptbl, self:tip(ndx))
     end
     return tiptbl
@@ -1084,7 +1087,6 @@ function sfutil.DDValueTable:choiceTooltipsAll()
         if not ndx then
             error(string.format("error: %s():  argument is nil.", fn))
         end
-        --d("tiptbl: "..ndx.." "..self:str(ndx))
         table.insert(tiptbl, self:tip(ax))
     end
     return tiptbl
@@ -1104,14 +1106,11 @@ function sfutil.DDValueTable:choicesNvalues(...)
         if not ndx then
             error(string.format("error: %s():  argument is nil.", fn))
         end
-        --d("choicetbl: "..ndx.." "..self:str(ndx))
         table.insert(choicetbl, self:str(ndx))
         local valstr = self:val(ndx)
         if valstr then
-            --d("valtbl: "..ndx.." "..self:val(ndx))
             table.insert(valtbl, self:val(ndx))
         else
-            --d("valtbl: "..ndx.." "..self:str(ndx))
             table.insert(valtbl, self:str(ndx))
         end
     end
@@ -1132,10 +1131,8 @@ function sfutil.DDValueTable:choicesNvaluesAll()
         table.insert(choicetbl, self:str(ax))
         local valstr = self:val(ax)
         if valstr then
-            --d("valtbl: "..ax.." "..self:val(ax))
             table.insert(valtbl, self:val(ax))
         else
-            --d("valtbl: "..ndx.." "..self:str(ndx))
             table.insert(valtbl, self:str(ndx))
         end
     end

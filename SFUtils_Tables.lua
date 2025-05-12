@@ -9,7 +9,7 @@ function sfutil.dTable(vtable, depth, name)
 		return sfutil.str(vtable) 
 	end
     local arg = {}
-	if depth == nil or depth < 1 then return end
+	if depth == nil or depth < 1 then return table.concat(arg) end
 	for k, v in pairs(vtable) do
 		if type(v) == "function" then
 			arg[#arg+1] = name.." : "..tostring(k).." -> (function),  \n"
@@ -32,12 +32,11 @@ end
 --]]
 function sfutil.defaultMissing(svtable, defaulttable)
     if svtable == nil then return sfutil.deepCopy(defaulttable) end
-	if type(svtable) ~= 'table' then return end
-	if type(defaulttable) ~= 'table' then return end
+	if type(svtable) ~= 'table' or type(defaulttable) ~= 'table' then return sfutil.safeTable(svtable) end
 
 	for k,v in pairs(defaulttable) do
-		if( svtable[k] == nil ) then 
-			if( type( defaulttable[k] )=='table' ) then
+		if svtable[k] == nil then 
+			if type( defaulttable[k] )=='table' then
 				svtable[k] = {}
 				sfutil.defaultMissing( svtable[k], defaulttable[k])
 
@@ -46,6 +45,7 @@ function sfutil.defaultMissing(svtable, defaulttable)
 			end
 		end
 	end
+    return svtable
 end
 
 --[[ ---------------------
@@ -55,17 +55,13 @@ end
 --]]
 function sfutil.deepCopy(orig)
 	local orig_type = type(orig)
-	local copy
-	if orig_type == 'table' then
-		copy = {}
-		for orig_key, orig_value in next, orig, nil do
-			copy[sfutil.deepCopy(orig_key)] = sfutil.deepCopy(orig_value)
-		end
-		setmetatable(copy, sfutil.deepCopy(getmetatable(orig)))
-
-	else -- number, string, boolean, etc
-		copy = orig
+	if orig_type ~= 'table' then return orig end
+	local copy = {}
+	for orig_key, orig_value in next, orig, nil do
+		copy[sfutil.deepCopy(orig_key)] = sfutil.deepCopy(orig_value)
 	end
+	setmetatable(copy, sfutil.deepCopy(getmetatable(orig)))
+
 	return copy
 end
 
