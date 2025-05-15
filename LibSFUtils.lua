@@ -120,12 +120,16 @@ function sfutil.str(...)
         if (v == nil) then
             arg[#arg + 1] = "(nil)"
         elseif (t == "table") then
-            arg[#arg + 1] = sf_str(v)
+            for k, v1 in pairs(v) do
+                arg[#arg + 1] = k
+                arg[#arg + 1] = sf_str(v1)
+            end
         else
             arg[#arg + 1] = tostring(v)
         end
     end
-    return table.concat(arg)
+    local s = table.concat(arg)
+    return s
 end
 
 --[[ ---------------------
@@ -150,12 +154,15 @@ function sfutil.lstr(...)
     for i = 1, nargs do
         local v = select(i, ...)
         local t = type(v)
-        if (v == nil) then
+        if v == nil then
             arg[#arg + 1] = "(nil)"
         elseif t == "number" then
             arg[#arg + 1] = GetString(v)
-        elseif (t == "table") then
-            arg[#arg + 1] = sfutil.str(v)
+        elseif t == "table" then
+            for k, v1 in pairs(v) do
+                arg[#arg + 1] = k
+                arg[#arg + 1] = sf_str(v1)
+            end
         else
             arg[#arg + 1] = tostring(v)
         end
@@ -180,7 +187,10 @@ function sfutil.dstr(delim, ...)
         if (v == nil) then
             arg[#arg + 1] = "(nil)"
         elseif (t == "table") then
-            arg[#arg + 1] = sfutil.str(v)
+            for k, v1 in pairs(v) do
+                arg[#arg + 1] = k
+                arg[#arg + 1] = sf_str(v1)
+            end
         else
             arg[#arg + 1] = tostring(v)
         end
@@ -414,7 +424,7 @@ end
 -- Here we specifically only want the default value if
 -- val == nil.
 function sfutil.nilDefault(val, defaultval)
-    if (val == nil) then
+    if val == nil then
         return defaultval
     end
     return val
@@ -425,7 +435,7 @@ end
 -- when we then will return defaultval instead of the nil.
 --
 function sfutil.nilDefaultStr(val, defaultval)
-    if (val == nil) then
+    if val == nil then
         return defaultval
     end
     if val == "" then

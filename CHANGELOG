@@ -1,3 +1,10 @@
+[COLOR="DeepSkyBlue"]57[/COLOR]:
+[LIST]
+[*] Fix the sfutil.str(...) to properly recurse through tables for string values to return.
+[*] Fix the sfutil.lstr(...) to properly recurse through tables for string values to return.
+[*] Fix the sfutil.dstr(delim, ...) to properly recurse through tables for string values to return.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]56[/COLOR]:
 [LIST]
 [*] API bump.
