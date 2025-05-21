@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]58[/COLOR]:
+[LIST]
+[*] Rewrote the sfutil.dstr(delim, ...) to use tail calls when recursing through tables for string values to return. This has the effect of allowing the function to handle much larger/deeper tables.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]57[/COLOR]:
 [LIST]
 [*] Fix the sfutil.str(...) to properly recurse through tables for string values to return.

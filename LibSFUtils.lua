@@ -150,6 +150,7 @@ end
 function sfutil.lstr(...)
     local nargs = select("#", ...)
     local arg = {}
+    local sf_str = sfutil.lstr
 
     for i = 1, nargs do
         local v = select(i, ...)
@@ -177,9 +178,45 @@ end
 	arguments to the function and also between the items within
 	a table that was passed in.
 --]]
+-- create a table of strings to concatenate togeether from the input params
+local function tcdstr(delim, rslt, ...)
+    local nargs = select("#", ...)
+    local function retval(rslt)
+        return table.concat(rslt,delim)
+    end
+
+    local function appendVal(val)
+        rslt[#rslt+1] = tostring(val)
+    end
+
+    for i = 1, nargs do
+        local v = select(i, ...)
+        local t = type(v)
+        if (v == nil) then
+            appendVal( "(nil)" )
+            --return retval(rslt)
+        elseif (t == "table") then
+            for k, v1 in pairs(v) do
+                appendVal(k)
+                return tcdstr(delim, v1)
+            end
+        else
+            appendVal(v)
+            --return retval(rslt)
+        end
+    end
+end
+
 function sfutil.dstr(delim, ...)
     local nargs = select("#", ...)
     local arg = {}
+    tcdstr(" ", arg, ...)
+    return table.concat(arg)
+end
+function sfutil.dstr1(delim, ...)
+    local nargs = select("#", ...)
+    local arg = {}
+    local sf_str = sfutil.dstr
 
     for i = 1, nargs do
         local v = select(i, ...)
@@ -189,7 +226,7 @@ function sfutil.dstr(delim, ...)
         elseif (t == "table") then
             for k, v1 in pairs(v) do
                 arg[#arg + 1] = k
-                arg[#arg + 1] = sf_str(v1)
+                arg[#arg + 1] = sf_str(delim, v1)
             end
         else
             arg[#arg + 1] = tostring(v)
