@@ -7,7 +7,8 @@ local sfutil = LibSFUtils or {}
 ]]
 -- Turn a ([0,1])^3 RGB colour to "ABCDEF" form.
 function sfutil.colorRGBToHex(r, g, b)
-  return string.format("%.2x%.2x%.2x", zo_floor(r * 255), zo_floor(g * 255), zo_floor(b * 255))
+	if not r or not g or not b then return nil end
+  return string.format("%.2x%.2x%.2x", zo_floor((tonumber(r) or 1) * 255), zo_floor((tonumber(g) or 1) * 255), zo_floor((tonumber(b) or 1) * 255))
 end
 
 -- Convert "rrggbb" hex color into float numbers.
@@ -37,7 +38,7 @@ function sfutil.ConvertHexToRGBA(colourString)
 	if type(colourString) ~= "string" then 
 		return 1,1,1,1
 	end
-	
+
     local r, g, b, a
     if string.sub(colourString,1,1) == "|" then
         -- format "|crrggbb"
@@ -77,47 +78,6 @@ end
 -- ------------------------------------------
 SF_Color = ZO_Object:Subclass()
 
---[[ ---------------------
-	Create a color object. 
-		This is a storage container for:
-			hex - a 6-character hex representation of the RGB color
-			rgb - a table containing the float values for r, g, b, a  (values btwn 0-1)
-		with some handy related functions.
-		
-		Why not use the already existing ZO_ColorDef? The intention is to have an object
-		which does not do as much calculation behind the scenes with every use - with the
-		intention of optimizing speed at the expense of a little extra memory.
-		The capability to convert between one and the other is provided.
-		
-	Parameters options:
-		pr, pg, pb, pa - The RGB floats between 0-1.
-			Missing (nil) rgba values will be set to 1.
-		pr - The hex value (6-character string) to set the color to.
-		pr - Another SF_Color object to copy values from.
-		pr - A ZO_ColorDef to copy/calculate values from.
---]]
-function SF_Color:New(pr, pg, pb, pa)
-    local c = ZO_Object.New(self)
-	c.rgb = {r=1, g=1, b=1, a=1}
-	local rgb = c.rgb
-
-	c:SetColor(pr, pg, pb, pa)
-
-    return c
-end
-
---[[ ---------------------
---]]
-function SF_Color:UnpackRGB()
-    return self.r, self.g, self.b
-end
-
---[[ ---------------------
---]]
-function SF_Color:UnpackRGBA()
-    return self.r, self.g, self.b, self.a
-end
-
 --[[ 
 	Don't want to make this public because it can leave
 	SF_Color in an inconsistant state - hex is not set
@@ -125,20 +85,80 @@ end
 	will be taken care of.
 --]]
 local function setRGB(sfcolor, r, g, b, a)
+	r = r>1 and r/255 or r
+	g = g>1 and g/255 or g
+	b = b>1 and b/255 or b
+	a = a>1 and a/255 or a
 	sfcolor.rgb.r = r or 1
 	sfcolor.rgb.g = g or 1
 	sfcolor.rgb.b = b or 1
 	sfcolor.rgb.a = a or 1
 end
 
+
+--[[ ---------------------
+	Create a color object. 
+		This is a storage container for:
+			hex - a 6-character hex representation of the RGB color
+			rgb - a table containing the float values for r, g, b, a  (values btwn 0-1)
+		with some handy related functions.
+
+		Why not use the already existing ZO_ColorDef? The intention is to have an object
+		which does not do as much calculation behind the scenes with every use - with the
+		intention of optimizing speed at the expense of a little extra memory.
+		The capability to convert between one and the other is provided.
+
+	Parameters options:
+		pr, pg, pb, pa - The RGB floats between 0-1.
+			Missing (nil) rgba values will be set to 1.
+		pr - The hex value (6-character string rrggbb) to set the color to.
+		pr - The hex value (8-character string aarrggbb) to set the color to.
+		pr - Another SF_Color object to copy values from.
+		pr - A ZO_ColorDef to copy/calculate values from.
+--]]
+function SF_Color:New(pr, pg, pb, pa)
+    local c = ZO_Object.New(self)
+	c.rgb = {r=1, g=1, b=1, a=1}
+
+	c:SetColor(pr, pg, pb, pa)
+
+    return c
+end
+
+--[[ ---------------------
+	returns the color values r, g, b (in that order)
+	color values are in [0,1]
+--]]
+function SF_Color:UnpackRGB()
+	if not self.rgb and self.r then 
+		return self.r, self.g, self.b 
+	end
+    return self.rgb.r, self.rgb.g, self.rgb.b
+end
+
+--[[ ---------------------
+	returns the color values r, g, b, a (in that order)
+	color values are in [0,1]
+--]]
+function SF_Color:UnpackRGBA()
+	if not self.rgb and self.r then
+		return self.r, self.g, self.b, self.a or 1
+	end
+    return self.rgb.r or 1, self.rgb.g or 1, self.rgb.b or 1, self.rgb.a or 1
+end
+
 function SF_Color:SetAlpha(a)
-    self.a = a
+	if self.rgb then
+		self.rgb.a = a
+	elseif self.r then
+		self.a = a
+	end
 end
 
 
 --[[ ---------------------
 	Set a color object to a particular color value. 
-		
+
 	Parameters:
 		pr, pg, pb, pa - The RGB floats between 0-1.
 			Missing (nil) rgba values will be set to 1.
@@ -151,24 +171,24 @@ function SF_Color:SetColor(r, g, b, a)
 		-- r is hex value
 		self.hex = r
 		self.rgb.r, self.rgb.g, self.rgb.b, self.rgb.a = sfutil.ConvertHexToRGBA(r)
-		--self.hex = sfutil.colorRGBToHex(r,g,b)
-		
+
     elseif type(r) == "table" then
 		if r.r ~= nil then
 			-- r is ZO_ColorDef
 			setRGB(self, r:UnpackRGBA())
 			self.hex = sfutil.colorRGBToHex(r:UnpackRGB())
+
 		else
-			-- r is SF_Color
+			-- r is SF_Color we are copying
 			setRGB(self, r:UnpackRGBA())
 			self.hex = r.hex
 		end
-		
+
 	elseif r > 1 or g > 1 or b > 1 or a > 1 then
-		-- r is RGB value [0,255]
+		-- r is RGB value (1,255]
 		setRGB(self, r/255, g/255, b/255, a/255)
 		self.hex = sfutil.colorRGBToHex(self:UnpackRGB())
-		
+
 	else
 		-- r is float value [0,1]
 		setRGB(self, r, g, b, a)
@@ -180,7 +200,7 @@ end
 --[[ ---------------------
 	Create a ZO_ColorDef object with the same color values
 	as are in the SF_Color object.
-	
+
 	Returns a ZO_ColorDef object.
 --]]
 function SF_Color:ToZO_ColorDef()
@@ -189,11 +209,11 @@ end
 
 --[[ ---------------------
 	Add the colorizing markup to a string of text for display
-	
+
 	Parameter:
 		text - string text to be colorized, or
 		text - number to use GetString() on to get text to color
-		
+
 	Return:
 		string - colorized text
 --]]
@@ -241,3 +261,5 @@ end
 function SF_Color:ToHex()
     return self.hex
 end
+
+sfutil.SF_Color = SF_Color

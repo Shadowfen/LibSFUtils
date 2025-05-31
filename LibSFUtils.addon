@@ -2,8 +2,8 @@
 ## Title: LibSFUtils
 ## Author: Shadowfen
 ## IsLibrary: true
-## AddOnVersion: 59
-## Version: 59
+## AddOnVersion: 60
+## Version: 60
 ## Description: Library containing a variety of utilities used in Shadowfen's addons.
 ## DependsOn: LibDebugLogger>=268
 ## OptionalDependsOn: LibMsgWin-1.0>=11

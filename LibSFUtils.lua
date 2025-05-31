@@ -1,5 +1,6 @@
 -- LibSFUtils is already defined in prior loaded file
 local sfutil = LibSFUtils or {}
+local SF_Color = sfutil.SF_Color
 
 --[[ ---------------------
 	convenience color tables
@@ -194,7 +195,6 @@ local function tcdstr(delim, rslt, ...)
         local t = type(v)
         if (v == nil) then
             appendVal( "(nil)" )
-            --return retval(rslt)
         elseif (t == "table") then
             for k, v1 in pairs(v) do
                 appendVal(k)
@@ -202,7 +202,6 @@ local function tcdstr(delim, rslt, ...)
             end
         else
             appendVal(v)
-            --return retval(rslt)
         end
     end
 end
@@ -211,7 +210,7 @@ function sfutil.dstr(delim, ...)
     local nargs = select("#", ...)
     local arg = {}
     tcdstr(" ", arg, ...)
-    return table.concat(arg)
+    return table.concat(arg, delim)
 end
 function sfutil.dstr1(delim, ...)
     local nargs = select("#", ...)
@@ -584,6 +583,10 @@ end
 function sfutil.addonChatter:getDebugState()
     -- as a debug function, this returns a string
     return sfutil.bool2str(self.isdbgon)
+end
+
+function sfutil.addonChatter:isDebugEnabled()
+    return self.isdbgon
 end
 
 -- -------------------------------------------------------
