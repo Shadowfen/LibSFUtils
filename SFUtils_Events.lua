@@ -79,9 +79,21 @@ function sfutil.EvtMgr:filterEvt(event, ...)
 	EVENT_MANAGER:AddFilterForEvent(self.name, event, ...)
 end
 
+-- Add an updating event to register for this addon, with the appropriate
+-- parameters for it.
+-- * RegisterForUpdate(*string* _name_, *integer* _minInterval_, *function* _callback_)
+-- ** _Returns:_ *bool* _ret_
+--
+function sfutil.EvtMgr:registerUpdateEvt(event, interval, callback, ...)
+	local name = evtnames[event] or event
+	sfutil.logger:Debug("Registering update event ", name)
+	table.insert(self.eventsList, event)
+	EVENT_MANAGER:RegisterForUpdate(name, interval, callback, ...)
+end
+
 -- Unregister (remove) a particular registered event for this addon.
 -- Associated filters will also go away when the event is unregistered
--- by the game.
+-- by the game. Works with Update Events too.
 function sfutil.EvtMgr:unregEvt(event)
 	EVENT_MANAGER:UnregisterForEvent(self.name, event)
 	-- remove the event from our tracking list

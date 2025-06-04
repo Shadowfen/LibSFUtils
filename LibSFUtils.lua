@@ -980,6 +980,7 @@ end
 -- references to a value sprinkled throughout your code. Only
 -- the table has to change, and everything else just works.
 
+-- used by TTFAS
 sfutil.DDValueTable = ZO_Object:Subclass()
 function sfutil.DDValueTable:New()
     local o = ZO_Object.New(self)
