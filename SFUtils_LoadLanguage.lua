@@ -19,8 +19,8 @@ local sfutil = LibSFUtils
 -- Note that based on testing of the 100026 version of ZOS's SafeAddString(),
 -- it does NOT properly enforce version protection.
 function sfutil.SafeAddString(stringId, stringValue, stringVersion)
-    if not stringId then return end
-    
+    --if not stringId then return end
+
     local id = stringId
     if type(stringId) == "string" then
         id = _G[stringId]
@@ -32,7 +32,7 @@ function sfutil.SafeAddString(stringId, stringValue, stringVersion)
         else
             SafeAddString(id, stringValue, stringVersion)
         end
-		
+
     elseif type(stringId) == "number" then
         if not GetString(stringId) then
             -- It's really a bad idea to add this without first doing the ZO_CreateString
@@ -58,7 +58,7 @@ function sfutil.LoadLanguage(lang_strings, defaultLang)
         return 
     end
     defaultLang = sfutil.nilDefault(defaultLang, "en")
-    
+
     -- get current language
     local lang = GetCVar("language.2")
 
@@ -67,26 +67,26 @@ function sfutil.LoadLanguage(lang_strings, defaultLang)
     if lang_strings[lang] == nil then
         chosen = defaultLang
     end
-    
+
     if( lang_strings[chosen] == nil or type(lang_strings[chosen]) ~= "table" ) then
         -- chosen language is not in lang_strings table
         --d("LoadLanguage: Chosen language is not in lang_strings table")
         assert(false,"Could not find localization tables for default ("..defaultLang..") or current ("..lang..") languages")
         return
     end
-    
+
     -- load strings for default language
     local dlocalstr = lang_strings[defaultLang]
     if lang_strings[defaultLang] then
         for stringId, stringValue in pairs(dlocalstr) do
             sfutil.SafeAddString(stringId, stringValue, 1)
         end
-		
+
     else
         -- default language is not in lang_strings table
         --d("LoadLanguage: Default language ("..defaultLang..") is not in lang_strings table")
     end
-    
+
     -- load strings for current language
     if lang ~= defaultLang then
         local localstr = lang_strings[lang]
@@ -94,8 +94,8 @@ function sfutil.LoadLanguage(lang_strings, defaultLang)
             for stringId, stringValue in pairs(localstr) do
                 sfutil.SafeAddString(stringId, stringValue, 2)
             end
-			
-        else
+
+        --else
             -- current language is not in lang_strings table
             --d("LoadLanguage: Current language ("..lang..") is not in lang_strings table")
         end
