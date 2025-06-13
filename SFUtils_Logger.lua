@@ -103,3 +103,12 @@ function sfutil.Createlogger(addonName)
     end
     return logger
 end
+
+-- create an instance of a nil logger
+-- This logger will never output anything (useful for turning off debugging)
+function sfutil.CreateNilLogger(addonName)
+    -- initialize the logger for an addon
+    local logger = nilPrintDebug:Create(addonName)
+    logger.sfdb = "with nilPrintDebug"
+    return logger
+end
