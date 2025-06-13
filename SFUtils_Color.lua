@@ -81,7 +81,7 @@ SF_Color = ZO_Object:Subclass()
 --[[ 
 	Don't want to make this public because it can leave
 	SF_Color in an inconsistant state - hex is not set
-	from these values. We just assume that has been or 
+	from these values. We just assume that has been or
 	will be taken care of.
 --]]
 local function setRGB(sfcolor, r, g, b, a)
