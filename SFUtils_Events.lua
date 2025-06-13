@@ -61,13 +61,14 @@ function sfutil.EvtMgr:New(addonName)
     local o = ZO_Object.New(self)
 	o.name = addonName
 	o.eventsList = {}
+	o.updatesList = {}
 	return o
 end
 
 -- Add an event to register for this addon, with the appropriate
 -- parameters for it.
 function sfutil.EvtMgr:registerEvt(event, ...)
-	local name = evtnames[event] or event
+	local name = evtnames[event] or tostring(event)
 	sfutil.logger:Debug("Registering event ", self.name, " ", name)
 	table.insert(self.eventsList, event)
 	EVENT_MANAGER:RegisterForEvent(self.name, event, ...)
@@ -84,10 +85,10 @@ end
 -- * RegisterForUpdate(*string* _name_, *integer* _minInterval_, *function* _callback_)
 -- ** _Returns:_ *bool* _ret_
 --
-function sfutil.EvtMgr:registerUpdateEvt(event, interval, callback, ...)
-	local name = evtnames[event] or event
+function sfutil.EvtMgr:registerUpdateEvt(name, interval, callback, ...)
+	--local name = evtnames[event] or event
 	sfutil.logger:Debug("Registering update event ", name)
-	table.insert(self.eventsList, event)
+	table.insert(self.updatesList, name)
 	EVENT_MANAGER:RegisterForUpdate(name, interval, callback, ...)
 end
 
@@ -107,11 +108,30 @@ function sfutil.EvtMgr:unregEvt(event)
 	end	
 end
 
+function sfutil.EvtMgr:unregUpdateEvt(name)
+	EVENT_MANAGER:UnregisterForUpdateEvent(name)
+	-- remove the event from our tracking list
+	for k,uname in ipairs(self.updatesList) do
+		if uname == name then
+			sfutil.logger:Debug("Unregistering update evt ", name)
+			table.remove(self.updatesList,k)
+			return
+		end
+	end
+end
+
 -- Unregister ALL events currently tracked by this EvtMgr instance.
 function sfutil.EvtMgr:unregAllEvt()
 	for _,evt in ipairs(self.eventsList) do
 		local name = evtnames[evt] or evt
 		sfutil.logger:Debug("All: Unregistering evt ", self.name, " ", name)
 		EVENT_MANAGER:UnregisterForEvent(self.name, evt)
-	end	
+	end
+end
+
+function sfutil.EvtMgr:unregAllUpdateEvt()
+	for _,uname in ipairs(self.updatesList) do
+		sfutil.logger:Debug("All: Unregistering update evt ", uname)
+		EVENT_MANAGER:UnregisterForUpdateEvent(uname)
+	end
 end
