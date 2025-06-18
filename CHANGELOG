@@ -1,3 +1,9 @@
+[COLOR="DeepSkyBlue"]61[/COLOR]:
+[LIST]
+[*] Revise implementation for EvtMgr update events registration/unregistration.
+[*] Added a createNilLogger() to create a logger that does absolutely nothing.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]60[/COLOR]:
 [LIST]
 [*] Added a function IsDebugEnabled() to sfutil.addonChatter.
