@@ -212,6 +212,7 @@ function sfutil.dstr(delim, ...)
     tcdstr(" ", arg, ...)
     return table.concat(arg, delim)
 end
+
 function sfutil.dstr1(delim, ...)
     local nargs = select("#", ...)
     local arg = {}
