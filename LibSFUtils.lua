@@ -550,7 +550,7 @@ function sfutil.secondsToClock(seconds)
 end
 
 ---------------------
--- MESSAGE / DEBUG --
+-- Addon Chat MESSAGE / DEBUG --
 ---------------------
 function sfutil.initSystemMsgPrefix(addon_name, hexcolor)
     hexcolor = sfutil.nilDefault(hexcolor, sfutil.hex.goldenrod)
