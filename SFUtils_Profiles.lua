@@ -8,12 +8,11 @@ SF.ProfileMgmt = profMgmt
 function profMgmt:New(...)
     local obj = ZO_Object.New(self)
     return obj:Initialize(...)
-    --return obj
 end
 
 -- addontbl - the table (namespace) for the parent addon
 -- saved - the table for the addon's saved variables (used to save current profile name)
--- profSVname - the name for the profile saved variables (must add to parent .txt manifest)
+-- profSVname - the name for the profile saved variables (must add to parent .addon manifest)
 -- default_profile - defaults of values that would be saved in a profile
 function profMgmt:Initialize(addontbl, savedtbl, profSVname, default_profile)
 	self.parentns = addontbl

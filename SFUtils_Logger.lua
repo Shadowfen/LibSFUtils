@@ -87,9 +87,69 @@ local printDebug = {
         end,
 }
 
+-- Returns a function to return a logger object (creating it if necessary first).
+-- If a logger gets created, it will be enabled by default.
+--[[
+    namespace = the table that you want the logger object stored into. If this
+        is not a table, we assume it is the name of the table that is found in _G.
+        If it is a string, it will be used for the addonname parameter and the name of the
+        table to find (or create) in _G.
+    loggervar =  the name of the logger instance to use.
+    addonname =  the name of the addon this logger object is associated with.
+
+    The function returned by this function runs quicker than sfutil.SafeLogger() because
+    the preliminary checking is done only before the function is created - not every time it runs.
+--]]
+function sfutil.SafeLoggerFunction(namespace, loggervar, addonname)
+
+    if type(namespace) ~= "table" then
+        addonname = namespace
+        namespace = _G[addonname]
+        if not namespace then
+            _G[addonname] = {}
+            namespace = _G[addonname]
+        end
+    end
+
+    return function()
+        if not namespace[loggervar] then
+            local mylogger
+            mylogger = sfutil.Createlogger(addonname)
+            mylogger:SetEnabled(true)
+            mylogger:SetDebug(false)
+            namespace[loggervar] = mylogger
+        end
+        return namespace[loggervar]
+    end
+end
+
+-- Returns a logger object (creating it if necessary first)
+--[[
+    Recommend that you create a specific logger function using sfutils.SafeLoggerFunction()
+    instead of using this function.
+--]]
+function sfutil.SafeLogger(namespace, loggervar, addonname)
+    if type(namespace) ~= "table" then
+        addonname = namespace
+        namespace = _G[addonname]
+        if not namespace then
+            _G[addonname] = {}
+            namespace = _G[addonname]
+        end
+    end
+
+    local mylogger
+    if not namespace[loggervar] then
+        mylogger = sfutil.Createlogger(addonname)
+        mylogger:SetEnabled(true)
+    end
+    namespace[loggervar] = mylogger
+    return mylogger
+end
 
 -- create an instance of a logger (with LibDebugLogger if available, otherwise just print)
--- by default the logger is set to be not enabled (i.e. output nothing). You can use :SetEnabled() to turn on output
+-- by default the logger is set to be not enabled (i.e. output nothing).
+-- You can use :SetEnabled() to turn on output.
 function sfutil.Createlogger(addonName)
     -- initialize the logger for an addon
     local logger = nil
@@ -101,6 +161,18 @@ function sfutil.Createlogger(addonName)
         logger = printDebug:Create(addonName)
         logger.sfdb = "with printDebug"
     end
+
+    logger.origDebug = logger.Debug
+    logger.SetDebug=function(self,truefalse)
+        logger.enableDebug = truefalse 
+        if logger.enableDebug == false then
+            logger.Debug = nilPrintDebug.Debug
+        else
+            logger.Debug = logger.origDebug
+        end
+    end
+    logger:SetDebug(false)
+
     return logger
 end
 
@@ -110,5 +182,8 @@ function sfutil.CreateNilLogger(addonName)
     -- initialize the logger for an addon
     local logger = nilPrintDebug:Create(addonName)
     logger.sfdb = "with nilPrintDebug"
+    logger.SetDebug=function(self,truefalse)
+        self.enableDebug = truefalse 
+        end
     return logger
 end

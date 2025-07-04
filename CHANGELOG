@@ -1,13 +1,16 @@
 [COLOR="DeepSkyBlue"]61[/COLOR]:
 [LIST]
+[*] Added a [COLOR="MediumSeaGreen"]LibSFUtils.SafeLoggerFunction(namespace, loggervar, addonname)[/color] to create a function which will return a logger object whenever it is called. If it has to create a logger object in order to return one, that is okay too. Works with (on top of) LibDebugLogger.
+[*] Created an enable/disable control (logger[COLOR="MediumSeaGreen"]:SetDebug()[/color]) on the emitting of DEBUG-level messages to the log. When disabled, DEBUG message alone are NOT written to the logger.
+[*] Added a [COLOR="MediumSeaGreen"]LibSFUtils.createNilLogger()[/color] to create a logger that does absolutely nothing.
 [*] Revise implementation for EvtMgr update events registration/unregistration.
-[*] Added a createNilLogger() to create a logger that does absolutely nothing.
+[*] Create a tail-called version of [COLOR="MediumSeaGreen"]LibSFUtils.str()[/color] for safety when recursing through a table.
 [/LIST]
 
 [COLOR="DeepSkyBlue"]60[/COLOR]:
 [LIST]
-[*] Added a function IsDebugEnabled() to sfutil.addonChatter.
-[*] Fix delimiter use in sfutil.dstr() .
+[*] Added a function [COLOR="MediumSeaGreen"]LibSFUtils.IsDebugEnabled()[/color] to sfutil.addonChatter.
+[*] Fix delimiter use in [COLOR="MediumSeaGreen"]LibSFUtils.dstr()[/color] .
 [*] Fix the new, set, unpackRGB, and unpackRGBA functions for SF_Color. Now works for SF_Color as well as SF_Color.rgb.
 [/LIST]
 
@@ -19,14 +22,14 @@
 
 [COLOR="DeepSkyBlue"]58[/COLOR]:
 [LIST]
-[*] Rewrote the sfutil.dstr(delim, ...) to use tail calls when recursing through tables for string values to return. This has the effect of allowing the function to handle much larger/deeper tables.
+[*] Rewrote the [COLOR="MediumSeaGreen"]sfutil.dstr(delim, ...)[/color] to use tail calls when recursing through tables for string values to return. This has the effect of allowing the function to handle much larger/deeper tables.
 [/LIST]
 
 [COLOR="DeepSkyBlue"]57[/COLOR]:
 [LIST]
-[*] Fix the sfutil.str(...) to properly recurse through tables for string values to return.
-[*] Fix the sfutil.lstr(...) to properly recurse through tables for string values to return.
-[*] Fix the sfutil.dstr(delim, ...) to properly recurse through tables for string values to return.
+[*] Fix the [COLOR="MediumSeaGreen"]sfutil.str(...)[/color] to properly recurse through tables for string values to return.
+[*] Fix the [COLOR="MediumSeaGreen"]sfutil.lstr(...)[/color] to properly recurse through tables for string values to return.
+[*] Fix the [COLOR="MediumSeaGreen"]sfutil.dstr(delim, ...)[/color] to properly recurse through tables for string values to return.
 [/LIST]
 
 [COLOR="DeepSkyBlue"]56[/COLOR]:

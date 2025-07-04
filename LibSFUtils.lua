@@ -110,7 +110,41 @@ end
 	* nil is converted to "(nil)"
 	* Everything else is run through tostring()
 ]]
+--[[ ---------------------
+    Concatenate varargs to a string.
+--]]
+-- create a table of strings to concatenate togeether from the input params
+local function tcstr(rslt, ...)
+    local nargs = select("#", ...)
+
+    local function appendVal(val)
+        rslt[#rslt+1] = tostring(val)
+    end
+
+    for i = 1, nargs do
+        local v = select(i, ...)
+        local t = type(v)
+        if (v == nil) then
+            appendVal( "(nil)" )
+        elseif (t == "table") then
+            for k, v1 in pairs(v) do
+                appendVal(k)
+                return tcstr(v1)
+            end
+        else
+            appendVal(v)
+        end
+    end
+end
+
 function sfutil.str(...)
+    local nargs = select("#", ...)
+    local arg = {}
+    tcstr(arg, ...)
+    return table.concat(arg)
+end
+-- old non-tail call version
+function sfutil.str1(...)
     local nargs = select("#", ...)
     local arg = {}
     local sf_str = sfutil.str
@@ -148,6 +182,7 @@ end
 	* nil is converted to "(nil)"
 	* Everything else is run through tostring()
 ]]
+
 function sfutil.lstr(...)
     local nargs = select("#", ...)
     local arg = {}

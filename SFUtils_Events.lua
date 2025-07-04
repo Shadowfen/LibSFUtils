@@ -69,7 +69,7 @@ end
 -- parameters for it.
 function sfutil.EvtMgr:registerEvt(event, ...)
 	local name = evtnames[event] or tostring(event)
-	sfutil.logger:Debug("Registering event ", self.name, " ", name)
+	--sfutil.logger:Debug("Registering event ", self.name, " ", name)
 	table.insert(self.eventsList, event)
 	EVENT_MANAGER:RegisterForEvent(self.name, event, ...)
 end
@@ -87,7 +87,7 @@ end
 --
 function sfutil.EvtMgr:registerUpdateEvt(name, interval, callback, ...)
 	--local name = evtnames[event] or event
-	sfutil.logger:Debug("Registering update event ", name)
+	--sfutil.logger:Debug("Registering update event ", name)
 	table.insert(self.updatesList, name)
 	EVENT_MANAGER:RegisterForUpdate(name, interval, callback, ...)
 end
@@ -101,7 +101,7 @@ function sfutil.EvtMgr:unregEvt(event)
 	for k,evt in ipairs(self.eventsList) do
 		if evt == event then
 			local name = evtnames[event] or event
-			sfutil.logger:Debug("Unregistering evt ", self.name, " ", name)
+			--sfutil.logger:Debug("Unregistering evt ", self.name, " ", name)
 			table.remove(self.eventsList,k)
 			return
 		end
@@ -113,7 +113,7 @@ function sfutil.EvtMgr:unregUpdateEvt(name)
 	-- remove the event from our tracking list
 	for k,uname in ipairs(self.updatesList) do
 		if uname == name then
-			sfutil.logger:Debug("Unregistering update evt ", name)
+			--sfutil.logger:Debug("Unregistering update evt ", name)
 			table.remove(self.updatesList,k)
 			return
 		end
@@ -124,14 +124,14 @@ end
 function sfutil.EvtMgr:unregAllEvt()
 	for _,evt in ipairs(self.eventsList) do
 		local name = evtnames[evt] or evt
-		sfutil.logger:Debug("All: Unregistering evt ", self.name, " ", name)
+		--sfutil.logger:Debug("All: Unregistering evt ", self.name, " ", name)
 		EVENT_MANAGER:UnregisterForEvent(self.name, evt)
 	end
 end
 
 function sfutil.EvtMgr:unregAllUpdateEvt()
 	for _,uname in ipairs(self.updatesList) do
-		sfutil.logger:Debug("All: Unregistering update evt ", uname)
+		--sfutil.logger:Debug("All: Unregistering update evt ", uname)
 		EVENT_MANAGER:UnregisterForUpdateEvent(uname)
 	end
 end
