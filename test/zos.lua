@@ -22,6 +22,17 @@ EsoStrings = {}
 EsoStringVersions = {}
 ZOS.nextCustomId = 1
 
+zo_strsub           = string.sub
+zo_strgsub          = string.gsub
+zo_strlen           = string.len
+zo_strmatch         = string.match
+zo_strgmatch        = string.gmatch
+zo_strfind          = string.find
+zo_plainstrfind     = PlainStringFind
+zo_strsplit         = SplitString
+zo_loadstring       = LoadString
+
+
 function ZO_CreateStringId(stringId, stringToAdd)
     _G[stringId] = ZOS.nextCustomId
     EsoStrings[ZOS.nextCustomId] = stringToAdd
@@ -134,7 +145,7 @@ function ZO_DeepTableCopy(source, dest)
 end
 
 function zo_strformat( fmt, ... )
-    print(fmt, ...)
+    return table.concat({fmt, ...}, " ")
 end
 
 function zo_loadstring(...)

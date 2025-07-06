@@ -117,6 +117,11 @@ end
 local function tcstr(rslt, ...)
     local nargs = select("#", ...)
 
+    -- convert result table into a string
+    local function retval(rslt)
+        return table.concat(rslt)
+    end
+    -- append another value to the result table
     local function appendVal(val)
         rslt[#rslt+1] = tostring(val)
     end
@@ -126,23 +131,34 @@ local function tcstr(rslt, ...)
         local t = type(v)
         if (v == nil) then
             appendVal( "(nil)" )
+            
         elseif (t == "table") then
             for k, v1 in pairs(v) do
                 appendVal(k)
-                return tcstr(v1)
+                if type(v1) ~= "table" then 
+                  appendVal(v1)
+                else
+                  return tcstr(rslt, v1)
+                end
             end
+        elseif t == "function" then
+            -- do nothing with it
         else
             appendVal(v)
         end
     end
 end
-
+-- all of the strings that are passed in are concatenated
+-- the contents of tables passed in are concatenated with their keys
+-- a nil arg is converted to "(nil)"
+-- numbers are converted with tostring()
 function sfutil.str(...)
     local nargs = select("#", ...)
     local arg = {}
     tcstr(arg, ...)
     return table.concat(arg)
 end
+
 -- old non-tail call version
 function sfutil.str1(...)
     local nargs = select("#", ...)
@@ -193,8 +209,10 @@ function sfutil.lstr(...)
         local t = type(v)
         if v == nil then
             arg[#arg + 1] = "(nil)"
+            
         elseif t == "number" then
             arg[#arg + 1] = GetString(v)
+            
         elseif t == "table" then
             for k, v1 in pairs(v) do
                 arg[#arg + 1] = k
@@ -213,14 +231,21 @@ end
 	placed between each of the values of the string - the
 	arguments to the function and also between the items within
 	a table that was passed in.
+  
+  nil -> ""
+  table -> k v k v k v...
+  function -> ignored
+  other -> tostring
 --]]
 -- create a table of strings to concatenate togeether from the input params
 local function tcdstr(delim, rslt, ...)
     local nargs = select("#", ...)
+    -- convert result table into a string
     local function retval(rslt)
         return table.concat(rslt,delim)
     end
 
+    -- append another value to the result table
     local function appendVal(val)
         rslt[#rslt+1] = tostring(val)
     end
@@ -230,11 +255,18 @@ local function tcdstr(delim, rslt, ...)
         local t = type(v)
         if (v == nil) then
             appendVal( "(nil)" )
+            
         elseif (t == "table") then
             for k, v1 in pairs(v) do
                 appendVal(k)
-                return tcdstr(delim, v1)
+                if type(v1) ~= "table" then 
+                  appendVal(v1)
+                else
+                  return tcdstr(delim, rslt, v1)
+                end
             end
+        elseif t == "function" then
+            -- do nothing with the function
         else
             appendVal(v)
         end
@@ -347,7 +379,7 @@ function sfutil.tblJoinLen(tbl, maxlen)
     end
 
     if maxlen ~= nil then
-        return strSplit(str, maxlen)
+        return sfutil.strSplitLen(str, maxlen)
     end
     return str
 end
