@@ -1,3 +1,13 @@
+[COLOR="DeepSkyBlue"]62[/COLOR]:
+[LIST]
+[*] Added documentation (comments) to the Logger wrapper functions to understand why it exists and how to use it.
+[*] Revised [COLOR="MediumSeaGreen"]ListSFUitls.DeepCopy()[/color] so that when the origin table contains multiple references to the same sub-table, it is only copied once and then for the other subtable instance references, they are assigned appropriately as references to the copied subtable.
+[*] Revise implementation for EvtMgr events definition so that they are only added when running in-game - allows use with external tests without having to reimplement the events list that ZOS provides.
+[*] Updaated the implementation of the old [COLOR="MediumSeaGreen"]ListSFUitls.addonChatter[/color] object specifically designed to log directly to the chat window.
+[*] Create a tail-called version of [COLOR="MediumSeaGreen"]LibSFUtils.lstr()[/color] for safety when recursing through a table.
+[*] (In git only - Not included in release) Added more standalone unit tests for testing the logging wrapper system,  strings functions, and tables functions.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]61[/COLOR]:
 [LIST]
 [*] Added a [COLOR="MediumSeaGreen"]LibSFUtils.SafeLoggerFunction(namespace, loggervar, addonname)[/color] to create a function which will return a logger object whenever it is called. If it has to create a logger object in order to return one, that is okay too. Works with (on top of) LibDebugLogger.
