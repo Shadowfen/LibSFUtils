@@ -5,21 +5,28 @@ local sfutil = LibSFUtils
 
 -- debug convenience function
 function sfutil.dTable(vtable, depth, name)
-	if type(vtable) ~= "table" then 
-		return sfutil.str(vtable) 
+	if type(vtable) ~= "table" then
+		return sfutil.str(vtable)
 	end
+    local function appendVal(tbl, val)
+        tbl[#tbl+1] = val
+        return tbl
+    end
+
     local arg = {}
+    local vt
 	if depth == nil or depth < 1 then return table.concat(arg) end
 	for k, v in pairs(vtable) do
-		if type(v) == "function" then
-			arg[#arg+1] = name.." : "..tostring(k).." -> (function),  \n"
+      vt = type(v)
+      if vt == "function" then
+          appendVal(arg, sfutil.str(name, " : ", k, " -> (function),  \n"))
 
-		elseif type(v) == "table" then 
-			arg[#arg+1] = sfutil.dTable(v, depth - 1, name.." - ["..tostring(k).."]") 
+      elseif vt == "table" then 
+          appendVal(arg, (sfutil.dTable(v, depth - 1, name.." - ["..tostring(k).."]")))
 
-		else
-			arg[#arg+1] = name.." : "..tostring(k).." -> "..tostring(v)..",  \n"
-		end
+      else
+          appendVal(arg, sfutil.str(name, " : ", k, " -> ", v, ",  \n"))
+      end
 	end
     return table.concat(arg)
 end
@@ -53,18 +60,29 @@ end
 	for table/object it returns a copy of the table/object
 	for anything else, it returns the value of the orig
 --]]
-function sfutil.deepCopy(orig)
+
+function sfutil.deepCopy(orig, seen)
+    local dcpy = sfutil.deepCopy
+    seen = sfutil.safeTable(seen)
 	local orig_type = type(orig)
 	if orig_type ~= 'table' then return orig end
-	local copy = {}
-	for orig_key, orig_value in next, orig, nil do
-		copy[sfutil.deepCopy(orig_key)] = sfutil.deepCopy(orig_value)
+    if seen[orig] then
+        return seen[orig]
+    end
+
+	local tcopy = {}
+    seen[orig] = tcopy
+	for orig_key, orig_value in pairs(orig) do
+        if not orig_key then break end
+		tcopy[dcpy(orig_key)] = dcpy(orig_value)
 	end
-	setmetatable(copy, sfutil.deepCopy(getmetatable(orig)))
+    local mt = getmetatable(orig)
+    if mt then
+	    setmetatable(tcopy, mt)
+    end
 
-	return copy
+	return tcopy
 end
-
 
 --[[ ---------------------
 	given a (supposed) table variable
@@ -92,13 +110,14 @@ function sfutil.safeClearTable(tbl)
         return {}
     end
     for k,v in pairs(tbl) do
-		tbl[k] = nil
+        tbl[k] = nil
     end
     return tbl
 end
 
 --[[ ---------------------
 	Return only listA (all) items that are not in listB (known)
+  Note: Compares listA values to listB keys, returns listA values as keys in remains with values of 1. Kinda wierd.
 --]]
 function sfutil.RemainsInList(listA, listB)
 	local newList = {}

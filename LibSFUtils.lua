@@ -131,7 +131,7 @@ local function tcstr(rslt, ...)
         local t = type(v)
         if (v == nil) then
             appendVal( "(nil)" )
-            
+
         elseif (t == "table") then
             for k, v1 in pairs(v) do
                 appendVal(k)
@@ -198,21 +198,61 @@ end
 	* nil is converted to "(nil)"
 	* Everything else is run through tostring()
 ]]
+local function tclstr(rslt, ...)
+    local nargs = select("#", ...)
+
+    -- append another value to the result table
+    local function appendVal(val)
+        rslt[#rslt+1] = tostring(val)
+    end
+
+    for i = 1, nargs do
+        local v = select(i, ...)
+        local t = type(v)
+        if (v == nil) then
+            appendVal( "(nil)" )
+
+        elseif t == "number" then
+            appendVal(GetString(v))
+
+        elseif (t == "table") then
+            for k, v1 in pairs(v) do
+                appendVal(k)
+                if type(v1) ~= "table" then 
+                  appendVal(v1)
+                else
+                  return tclstr(rslt, v1)
+                end
+            end
+        elseif t == "function" then
+            -- do nothing with the function
+        else
+            appendVal(v)
+        end
+    end
+end
 
 function sfutil.lstr(...)
+    --local nargs = select("#", ...)
+    local arg = {}
+    tclstr(arg, ...)
+    return table.concat(arg)
+end
+
+function sfutil.lstr1(...)
     local nargs = select("#", ...)
     local arg = {}
-    local sf_str = sfutil.lstr
+    local sf_str = sfutil.lstr1
 
     for i = 1, nargs do
         local v = select(i, ...)
         local t = type(v)
         if v == nil then
             arg[#arg + 1] = "(nil)"
-            
+
         elseif t == "number" then
             arg[#arg + 1] = GetString(v)
-            
+
         elseif t == "table" then
             for k, v1 in pairs(v) do
                 arg[#arg + 1] = k
@@ -224,6 +264,8 @@ function sfutil.lstr(...)
     end
     return table.concat(arg)
 end
+
+
 
 --[[ ---------------------
     Concatenate varargs to a delimited string.
@@ -240,10 +282,6 @@ end
 -- create a table of strings to concatenate togeether from the input params
 local function tcdstr(delim, rslt, ...)
     local nargs = select("#", ...)
-    -- convert result table into a string
-    local function retval(rslt)
-        return table.concat(rslt,delim)
-    end
 
     -- append another value to the result table
     local function appendVal(val)
@@ -255,7 +293,7 @@ local function tcdstr(delim, rslt, ...)
         local t = type(v)
         if (v == nil) then
             appendVal( "(nil)" )
-            
+
         elseif (t == "table") then
             for k, v1 in pairs(v) do
                 appendVal(k)
@@ -315,12 +353,13 @@ end
 --]]
 function sfutil.GetText(textEntry, ...)
     local text
+    local teType = type(textEntry)
 
-    if type(textEntry) == "nil" then
+    if teType == "nil" then
         text = ""
-    elseif type(textEntry) == "string" then
+    elseif teType == "string" then
         text = textEntry
-    elseif type(textEntry) == "function" then
+    elseif teType == "function" then
         text = textEntry(...)
     else
         text = GetString(textEntry)
@@ -554,6 +593,10 @@ end
 --    if the namespace is not a table, create a table and return it.
 -- Always returns a table with the info inside it
 function sfutil.addonMeta(namespace, name)
+    if type(namespace) == "string" then
+        name = namespace
+        namespace = nil
+    end
     namespace = sfutil.safeTable(namespace)
     namespace.addonName = name -- addon name for these saved vars
     namespace.server = GetWorldName()
@@ -584,11 +627,13 @@ end
 ---------------------
 -- Addon Chat MESSAGE / DEBUG --
 ---------------------
+-- Set the prefix msg  to be used for chat messages
 function sfutil.initSystemMsgPrefix(addon_name, hexcolor)
     hexcolor = sfutil.nilDefault(hexcolor, sfutil.hex.goldenrod)
-    return sfutil.ColorText(addon_name, hexcolor)
+    return sfutil.ColorText(sfutil.str("[", addon_name, "] "), hexcolor)
 end
 
+-- Send a system message to chat with the specified prefix and the text in the specified color. (Standalone function - not part of addonChatter.)
 function sfutil.systemMsg(prefix, text, hexcolor)
     hexcolor = sfutil.nilDefault(hexcolor, sfutil.hex.normal)
     msg = prefix .. sfutil.ColorText(text, hexcolor)
@@ -602,14 +647,22 @@ function sfutil.addonChatter:New(addon_name)
     setmetatable(o, self)
     self.__index = self
 
-    o.prefix = sfutil.ColorText(sfutil.str("[", addon_name, "] "), sfutil.hex.goldenrod)
     o.namecolor = sfutil.hex.goldenrod
     o.normalcolor = sfutil.hex.mocassin
     o.debugcolor = sfutil.hex.ltskyblue
+    o.prefix = sfutil.initSystemMsgPrefix(addon_name, o.namecolor)
     o.d = function(...)
         end -- debug messages off by default
     o.isdbgon = false
     return o
+end
+
+function sfutil.addonChatter:setNormalColor(hexcolor)
+    self.normalcolor = hexcolor
+end
+
+function sfutil.addonChatter:setDebugColor(hexcolor)
+    self.debugcolor = hexcolor
 end
 
 function sfutil.addonChatter:disableDebug()

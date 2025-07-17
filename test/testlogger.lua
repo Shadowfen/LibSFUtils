@@ -57,10 +57,14 @@ TK.assertTrue(lg1 == lgfn(),"second call returns first object")
 d()
 
 d("testing debug filtering")
-lg1:Debug("This is a debug test - default false")
+lg1:Info("This is a debug test - debug is currently "..tostring(lg1.SFenableDebug))
+lg1:SetDebug(lg1.SFenableDebug)
+lg1:Debug("This is a debug test - should not see this")
 lg1:SetDebug(true)
+lg1:Debug("This is a debug test - is currently "..tostring(lg1.SFenableDebug))
 lg1:Debug("This is a debug test 2 - set true")
 lg1:SetDebug(false)
+lg1:Info("This is a debug test - is currently "..tostring(lg1.SFenableDebug))
 lg1:Debug("This is a debug test 3 - set false")
 
 

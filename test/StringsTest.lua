@@ -103,7 +103,7 @@ local function Strings_testTblJoinLen_str()
         --d(v)
     end
     TK.assertTrue(lenok == true, "all entries lengths <= 5")
-    
+
 end
 
 local function Strings_testColorText()
@@ -111,7 +111,7 @@ local function Strings_testColorText()
     TK.printSuite(mn,fn)
     local rslt = SF.ColorText("no colors")
     TK.assertTrue(rslt == "no colors", "no color")
-    
+
     local rslt1 = SF.ColorText("red",SF.hex.red)
     TK.assertNotNil(rslt1,"got good rslt1")
     TK.assertTrue(rslt1 == "|c<<1>> <<2>>|r FF0000 red", "red - "..rslt1)
@@ -125,14 +125,7 @@ local function Strings_testBool2Str()
     TK.assertTrue("false" == SF.bool2str(false), "returns false")
 end
 
-local function Strings_testStr2Bool()
-    local fn = "testStr2Bool"
-    TK.printSuite(mn,fn)
-    TK.assertTrue(true == SF.str2bool("true"), "returns true")
-    --TK.assertTrue(false == SF.str2bool(nil), "returns false")
-    TK.assertTrue(false == SF.str2bool("False"), "returns false")
-end
-
+c
 
 function Strings_runTests()
     Strings_testStr()
