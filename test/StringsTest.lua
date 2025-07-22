@@ -32,6 +32,17 @@ local function Strings_testStr()
     TK.assertTrue(SF.str(function() return "ha" end) == "", "str - function ignored")
 end
 
+local function Strings_testLStr()
+    local fn = "testStr"
+    TK.printSuite(mn,fn)
+    TK.assertTrue(SF.lstr("test", "1") == "test1", "str - str - "..SF.str("test", "1"))
+    --d(SF.str({ "A", "B", "C"} ))
+    TK.assertTrue(SF.lstr({ "A", "B", "C"}) == "1A2B3C", "str - tbl")
+    --d( SF.str({ "AA", 22, "CA", {"Z", "Y", "X", "W"} } ))
+    TK.assertTrue(SF.lstr({ "AA", 22, "CA", {"Z", "Y", "X", "W"} }) == "1AA2223CA41Z2Y3X4W", "str - tbl2")
+    TK.assertTrue(SF.lstr(nil) == "(nil)", "str - nil")
+    TK.assertTrue(SF.lstr(function() return "ha" end) == "", "str - function ignored")
+end
 
 local function Strings_testDstr()
     local fn = "testDstr"
@@ -125,11 +136,9 @@ local function Strings_testBool2Str()
     TK.assertTrue("false" == SF.bool2str(false), "returns false")
 end
 
-c
-
 function Strings_runTests()
     Strings_testStr()
-    --Strings_testLstr()
+    Strings_testLStr()
     Strings_testDstr()
     --Strings_testDstr1()
     Strings_testGetText()
