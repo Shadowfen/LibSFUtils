@@ -145,6 +145,9 @@ function ZO_DeepTableCopy(source, dest)
 end
 
 function zo_strformat( fmt, ... )
+    if type(fmt) == "number" then
+        fmt = GetString(fmt)
+    end
     return table.concat({fmt, ...}, " ")
 end
 

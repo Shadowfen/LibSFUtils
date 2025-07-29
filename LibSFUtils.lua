@@ -97,6 +97,25 @@ local function ZOS_addSystemMsg(msg)
     CHAT_ROUTER:AddSystemMessage(msg)
 end
 
+-- create a varargs iterator function
+-- without using the 5.2 table.pack()
+-- returns index, value, total with each iteration. (total does not change until ... does)
+function sfutil.iter_args(...)
+  local t = {...}
+  local n = select("#", ...)
+  local i = 0
+
+  return function()
+    i=i+1
+    if i<=n then 
+        return i,t[i], n
+    else
+        return nil, nil, n
+    end
+  end
+end
+
+
 --[[ ---------------------
     Concatenate varargs to a string
 
@@ -154,9 +173,9 @@ end
 -- numbers are converted with tostring()
 function sfutil.str(...)
     local nargs = select("#", ...)
-    local arg = {}
-    tcstr(arg, ...)
-    return table.concat(arg)
+    local rslt = {}
+    tcstr(rslt, ...)
+    return table.concat(rslt)
 end
 
 -- old non-tail call version
@@ -234,9 +253,9 @@ end
 
 function sfutil.lstr(...)
     --local nargs = select("#", ...)
-    local arg = {}
-    tclstr(arg, ...)
-    return table.concat(arg)
+    local rslt = {}
+    tclstr(rslt, ...)
+    return table.concat(rslt)
 end
 
 function sfutil.lstr1(...)
