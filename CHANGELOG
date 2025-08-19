@@ -1,3 +1,9 @@
+[COLOR="DeepSkyBlue"]63[/COLOR]:
+[LIST]
+[*] Added an iterargs() iterator to go through "..." args.
+[*] More testing of string functions.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]62[/COLOR]:
 [LIST]
 [*] Added documentation (comments) to the Logger wrapper functions to understand why it exists and how to use it.
