@@ -58,24 +58,35 @@ end
 --[[ ---------------------
 	Recursively copy contents of a table into a new table
 	for table/object it returns a copy of the table/object
-	for anything else, it returns the value of the orig
+	for anything else, it returns the value of the orig.
+    The resulting table also gets a reference to the metatable
+    from the orig table.
+
+    The seen argument is typically nii when called from
+    outside, and a table of already seen tables when
+    called internally (recursively). This is so that
+    an orig table that contains multiple copies of another
+    table will copy the first instance of that table to the result
+    table and after that set all other instance of that table to
+    reference the first full copy.
 --]]
 
 function sfutil.deepCopy(orig, seen)
-    local dcpy = sfutil.deepCopy
     seen = sfutil.safeTable(seen)
-	local orig_type = type(orig)
-	if orig_type ~= 'table' then return orig end
+	if type(orig) ~= 'table' then return orig end
     if seen[orig] then
         return seen[orig]
     end
 
 	local tcopy = {}
     seen[orig] = tcopy
+    local dcpy = sfutil.deepCopy        -- alias
 	for orig_key, orig_value in pairs(orig) do
-        if not orig_key then break end
-		tcopy[dcpy(orig_key)] = dcpy(orig_value)
+        if orig_key then 
+		    tcopy[dcpy(orig_key, seen)] = dcpy(orig_value, seen)
+        end
 	end
+
     local mt = getmetatable(orig)
     if mt then
 	    setmetatable(tcopy, mt)
@@ -153,7 +164,7 @@ end
 	Return true or false if the table is empty or not.
 	Return nil if the supposed "table" is not a table
 	(Adds the type() check above what ZO_IsTableEmpty() does.
-	Also, I regard a nil "t" to be not an "empty" table as it
+	Also, I regard a nil "tbl" to be not an "empty" table as it
 	is not a table at all. ZOS seems to disagree.)
 --]]
 function sfutil.isEmpty(tbl)

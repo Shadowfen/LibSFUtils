@@ -29,7 +29,7 @@ local function iter_args(...)
   local n = select("#", ...)
   --print ("n = "..tostring(n))
   local i = 0
-  
+
   --[[
   print( "table is:")
   local v
@@ -39,7 +39,7 @@ local function iter_args(...)
   end
   print("---")
   --]]
-  
+
   return function()
     i=i+1
     if i<=n then return i,t[i], n end
@@ -51,7 +51,7 @@ local function iter_args1(...)
   local ac = select("#", ...)
   print ("ac="..tostring(ac))
   local ax = 0
-  
+
   print( "table is:")
   local v
   for k=1, ac do
@@ -59,20 +59,20 @@ local function iter_args1(...)
     print( tostring(k).."  v="..tostring(v) )
   end
   print("---")
-  
+
   return function (...)
             if ac == 0 or ax >= ac then return nil, nil, 0 end
-            
+
              ax = ax + 1
              print()
              print( "iter called with ax = "..ax..", ac = "..ac)
              if ax <= ac then
-                local v = select(ax, ...)
-                print( "ax = "..tostring(ax).." select("..tostring(ax)..", ...) returns "..tostring(v))
-                return ax, v, ac
+                local v1 = select(ax, ...)
+                print( "ax = "..tostring(ax).." select("..tostring(ax)..", ...) returns "..tostring(v1))
+                return ax, v1, ac
             end
         end
-  
+
 end
 
 
@@ -84,14 +84,14 @@ local function f0(...)
         print ("ax="..tostring(ax1)..", arg="..tostring(arg1), ", type="..type(arg1)..", total = "..tostring(ac1))
     end
     --print ("ax1="..tostring(ax1).." arg1="..tostring(arg1))
-    if not ac1 then return ac end
+    if not ac1 then return 0 end
     return ac1
 end
 
 local function Iter_testEmpty()
     local fn = "testEmpty"
     TK.printSuite(mn,fn)
-    
+
     local ac = f0()
     TK.assertTrue(ac < 1, "have no args")
     print()
@@ -108,7 +108,7 @@ end
 local function Iter_testMulti()
     local fn = "testMulti"
     TK.printSuite(mn,fn)
-    
+
     TK.assertTrue(f0(1,2,"aa", "bb") == 4, "f0 has 4 args")
     print()
 end
@@ -116,7 +116,7 @@ end
 local function Iter_testMultiNil()
     local fn = "testMultiNil"
     TK.printSuite(mn,fn)
-    
+
     TK.assertTrue(f0(1,2,nil,"aa", "bb") == 5, "f0 has 5 args")
     print()
 end

@@ -10,7 +10,7 @@ sfutil = LibSFUtils
 function sfutil.getDLCs()
 	d("COLLECTIBLE_CATEGORY_TYPE_DLC = "..COLLECTIBLE_CATEGORY_TYPE_DLC)
     for categoryIndex = 1, GetNumCollectibleCategories() do
-        local categoryName, numSubCategories, numCollectibles, unlockedCollectibles = 
+        local categoryName, numSubCategories, numCollectibles, unlockedCollectibles =
 				GetCollectibleCategoryInfo(categoryIndex)
 		--d("categoryIndex="..categoryIndex.."  category Name="..categoryName)
 		if(categoryName == "Stories") then
@@ -24,20 +24,20 @@ function sfutil.getDLCs()
 				else
 					d("->Sub category Index: "..subcategoryIndex)
 				end
-				d("->Num subcollectibles: "..subNumCollectibles)	
+				d("->Num subcollectibles: "..subNumCollectibles)
 				--
-				local formattedSubcategoryName = 
+				local formattedSubcategoryName =
 					zo_strformat(SI_COLLECTIBLE_NAME_FORMATTER, subCategoryName)
 				d("formattedSubcategoryName->"..formattedSubcategoryName)
 				for coll=1, subNumCollectibles do
-					local id = GetCollectibleId(categoryIndex, 
+					local id = GetCollectibleId(categoryIndex,
 						subcategoryIndex, coll)
-					local name, description, iconFile, deprecatedLockedIconFile, 
-						unlocked, purchasable, active, categoryType, hint, 
+					local name, description, iconFile, deprecatedLockedIconFile,
+						unlocked, purchasable, active, categoryType, hint,
 						isPlaceholder = GetCollectibleInfo(id)
 					local unlockState = GetCollectibleUnlockStateById(id)
 					d("index: "..coll.."  id: "..id.."  Name: "..name.."  unlocked: "..sfutil.bool2str(unlocked).."  active: "..sfutil.bool2str(active))
- 				end
+                end
 				--]]
 			end
 		end

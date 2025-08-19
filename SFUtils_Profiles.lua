@@ -1,6 +1,6 @@
 local SF = LibSFUtils
 
-local L = GetString
+--local L = GetString
 
 local profMgmt = ZO_Object:Subclass()
 SF.ProfileMgmt = profMgmt
@@ -98,9 +98,9 @@ function profMgmt:createProfile(name, from)
 
 	else
 		fromprof = self.profTbl.profiles[from]
-		if not fromprof then 
+		if not fromprof then
 			from = "Default"
-			fromprof = default_profile 
+			fromprof = default_profile
 		end
 	end
 	self.profTbl.profiles[name] = SF.deepCopy(fromprof)
@@ -116,7 +116,7 @@ end
 -- create a profile with the specified name and default values
 function profMgmt:loadProfile(name, fromtbl)
     SF.logger:Info("loadProfile(): loading profile "..name)
-	local fromprof
+	--local fromprof
 	if name == nil then
 		name = "Default"
 	end
@@ -126,7 +126,7 @@ function profMgmt:loadProfile(name, fromtbl)
 
 	self.profTbl.profiles[name] = SF.deepCopy(fromtbl)
 	if self.profTbl.profiles[name] then
-		SF.logger:Debug("profTbl.profiles["..name.."] set to values from ",from)
+		SF.logger:Debug("profTbl.profiles["..name.."] set to values from ",fromtbl)
 		self.profTbl.profiles[name].profileName = name
 
 	else

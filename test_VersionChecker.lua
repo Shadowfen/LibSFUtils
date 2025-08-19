@@ -43,15 +43,16 @@ local testlogger = {
     Info = function(self,...)  self.msg.info = string.format(...) end,
     Debug = function(self,...)  self.msg.debug = string.format(...) end,
 }
-setmetatable(testlogger, { __call = function(self,name,logger) 
-            self.addonName = name 
+setmetatable(testlogger, { __call = function(self,name,logger)
+            self.addonName = name
             self.logger = logger
             return self
         end
     })
 vc = SF.VersionChecker("testVC", testlogger)
 vc:NoVersion("blah")
-TK.assertTrue(testlogger.msg.info == "Library \"blah\" does not provide version information", testlogger.msg.info or "test No Version failed")
+TK.assertTrue(testlogger.msg.info == "Library \"blah\" does not provide version information",
+        testlogger.msg.info or "test No Version failed")
 
 local function checkVer(libname)
     local libtab = {

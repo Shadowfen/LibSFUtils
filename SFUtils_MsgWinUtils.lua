@@ -15,7 +15,7 @@ function sfutil.CreateMsgWin(name, title, width, height, visible)
 			win.SetDimensions(width, height)
 		end
 		----- CLOSE BUTTON -----
-		msgWinCloseButton = WINDOW_MANAGER:CreateControl(name.."Close", win, CT_BUTTON)
+		local msgWinCloseButton = WINDOW_MANAGER:CreateControl(name.."Close", win, CT_BUTTON)
 		msgWinCloseButton:SetDimensions(40,40)
 		msgWinCloseButton:SetAnchor(TOPRIGHT, win, TOPRIGHT,0,20)
 

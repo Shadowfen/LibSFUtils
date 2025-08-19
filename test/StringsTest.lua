@@ -76,13 +76,13 @@ local function Strings_testStrSplitLen()
     TK.assertTrue(type(rslt) == "table", "rslt is table")
     TK.assertTrue(#rslt == 5, "rslt has entries "..#rslt)
     local lenok = true
-    for k, v in pairs(rslt) do
+    for _, v in pairs(rslt) do
         if #v > 10 then lenok = false end
         --d(v)
     end
     TK.assertTrue(lenok == true, "all entries lengths <= 10")
     TK.assertTrue(table.concat(rslt) == origtbl, "concat returns the original")
-    
+
 end
 
 
@@ -94,11 +94,11 @@ local function Strings_testTblJoinLen_tbl()
     TK.assertTrue(type(rslt) == "table", "rslt is table")
     TK.assertTrue(#rslt == 4, "rslt has entries "..#rslt)
     local lenok = true
-    for k, v in pairs(rslt) do
+    for _, v in pairs(rslt) do
         if #v > 3 then lenok = false end
     end
     TK.assertTrue(lenok == true, "all entries lengths <= 3")
-    
+
 end
 
 local function Strings_testTblJoinLen_str()
@@ -109,7 +109,7 @@ local function Strings_testTblJoinLen_str()
     TK.assertTrue(type(rslt) == "table", "rslt is table")
     TK.assertTrue(#rslt == 10, "rslt has entries "..#rslt)
     local lenok = true
-    for k, v in pairs(rslt) do
+    for _, v in pairs(rslt) do
         if #v > 5 then lenok = false end
         --d(v)
     end

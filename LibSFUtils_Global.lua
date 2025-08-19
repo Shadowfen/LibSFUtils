@@ -18,8 +18,8 @@ local printLibDebug = {
     Info = function(self,...)  print("INFO: "..string.format(...)) end,
     Debug = function(self,...)  print("DEBUG: "..string.format(...)) end,
 }
-setmetatable(printLibDebug,  { __call = function(self, name) 
-            self.addonName = name 
+setmetatable(printLibDebug,  { __call = function(self, name)
+            self.addonName = name
             return self
         end
     })

@@ -44,7 +44,7 @@ setmetatable(VC, { __call = function(self, name, plogger) return VC:New(name) en
     })
 
 function VC:New(addonName, logger)
-	o = {} 
+	local o = {} 
 	setmetatable(o, self)
 	self.__index = self
     local mt = getmetatable(o)

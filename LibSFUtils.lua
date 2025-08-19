@@ -5,13 +5,13 @@ local SF_Color = sfutil.SF_Color
 --[[ ---------------------
 	convenience color tables
 		These tables contain definitions for commonly used colors along with
-		names to easily indicate the color. 
+		names to easily indicate the color.
 
-		Using these can somewhat reduce your addon's computational load as 
-		these are calculated once, when the library is loaded instead of 
-		whenever you go from hex to ZO_ColorDef/rgb or from ZO_ColorDef/rgb 
-		to hex again. It might be miniscule, but when you are doing the 
-		ZO_ColorDef creations and conversions with a lot of colors many many 
+		Using these can somewhat reduce your addon's computational load as
+		these are calculated once, when the library is loaded instead of
+		whenever you go from hex to ZO_ColorDef/rgb or from ZO_ColorDef/rgb
+		to hex again. It might be miniscule, but when you are doing the
+		ZO_ColorDef creations and conversions with a lot of colors many many
 		times, it all adds up.
 
 	SF_Color is defined in SFUtils_Color.lua
@@ -106,20 +106,20 @@ function sfutil.iter_args(...)
   local i = 0
 
   return function()
-    i=i+1
-    if i<=n then 
-        return i,t[i], n
-    else
-        return nil, nil, n
+        i=i+1
+        if i<=n then
+            return i,t[i], n
+        else
+            return nil, nil, n
+        end
     end
-  end
 end
 
 
 --[[ ---------------------
     Concatenate varargs to a string
 
-	To improve speed of ".." concatenation, we add the 
+	To improve speed of ".." concatenation, we add the
 	arguments to a table and do a concat on it.
 
 	Value conversions:
@@ -134,45 +134,37 @@ end
 --]]
 -- create a table of strings to concatenate togeether from the input params
 local function tcstr(rslt, ...)
-    local nargs = select("#", ...)
 
-    -- convert result table into a string
-    local function retval(rslt)
-        return table.concat(rslt)
-    end
     -- append another value to the result table
     local function appendVal(val)
         rslt[#rslt+1] = tostring(val)
     end
 
-    for i = 1, nargs do
-        local v = select(i, ...)
-        local t = type(v)
+    for _, v in sfutil.iter_args(...) do
+        local t_v = type(v)
         if (v == nil) then
             appendVal( "(nil)" )
 
-        elseif (t == "table") then
+        elseif (t_v == "table") then
             for k, v1 in pairs(v) do
                 appendVal(k)
-                if type(v1) ~= "table" then 
+                if type(v1) ~= "table" then
                   appendVal(v1)
                 else
                   return tcstr(rslt, v1)
                 end
             end
-        elseif t == "function" then
-            -- do nothing with it
-        else
+        elseif t_v ~= "function" then
             appendVal(v)
         end
     end
 end
+
 -- all of the strings that are passed in are concatenated
 -- the contents of tables passed in are concatenated with their keys
 -- a nil arg is converted to "(nil)"
 -- numbers are converted with tostring()
 function sfutil.str(...)
-    local nargs = select("#", ...)
     local rslt = {}
     tcstr(rslt, ...)
     return table.concat(rslt)
@@ -203,11 +195,11 @@ function sfutil.str1(...)
 end
 
 --[[ ---------------------
-	Similar to sfutil.str except that it will try to convert the 
+	Similar to sfutil.str except that it will try to convert the
 	numeric arguments in the argument list into strings using the
 	GetString() function.
 
-	To improve on the speed of ".." concatenation, we add the 
+	To improve on the speed of ".." concatenation, we add the
 	arguments to a table and do a concat on the table.
 
 	Value conversions:
@@ -218,41 +210,38 @@ end
 	* Everything else is run through tostring()
 ]]
 local function tclstr(rslt, ...)
-    local nargs = select("#", ...)
 
     -- append another value to the result table
     local function appendVal(val)
         rslt[#rslt+1] = tostring(val)
     end
 
-    for i = 1, nargs do
-        local v = select(i, ...)
-        local t = type(v)
-        if (v == nil) then
+    --local nargs = select("#", ...)
+    --for i = 1, nargs do
+    for _, v in sfutil.iter_args(...) do
+        local t_v = type(v)
+        if not v then
             appendVal( "(nil)" )
 
-        elseif t == "number" then
+        elseif t_v == "number" then
             appendVal(GetString(v))
 
-        elseif (t == "table") then
+        elseif t_v == "table" then
             for k, v1 in pairs(v) do
                 appendVal(k)
-                if type(v1) ~= "table" then 
+                if type(v1) ~= "table" then
                   appendVal(v1)
                 else
                   return tclstr(rslt, v1)
                 end
             end
-        elseif t == "function" then
-            -- do nothing with the function
-        else
+        elseif t_v ~= "function" then
             appendVal(v)
         end
     end
 end
 
 function sfutil.lstr(...)
-    --local nargs = select("#", ...)
     local rslt = {}
     tclstr(rslt, ...)
     return table.concat(rslt)
@@ -292,7 +281,7 @@ end
 	placed between each of the values of the string - the
 	arguments to the function and also between the items within
 	a table that was passed in.
-  
+
   nil -> ""
   table -> k v k v k v...
   function -> ignored
@@ -300,38 +289,32 @@ end
 --]]
 -- create a table of strings to concatenate togeether from the input params
 local function tcdstr(delim, rslt, ...)
-    local nargs = select("#", ...)
-
     -- append another value to the result table
     local function appendVal(val)
         rslt[#rslt+1] = tostring(val)
     end
 
-    for i = 1, nargs do
-        local v = select(i, ...)
-        local t = type(v)
+    for _, v in sfutil.iter_args(...) do
+        local t_v = type(v)
         if (v == nil) then
             appendVal( "(nil)" )
 
-        elseif (t == "table") then
+        elseif (t_v == "table") then
             for k, v1 in pairs(v) do
                 appendVal(k)
-                if type(v1) ~= "table" then 
+                if type(v1) ~= "table" then
                   appendVal(v1)
                 else
                   return tcdstr(delim, rslt, v1)
                 end
             end
-        elseif t == "function" then
-            -- do nothing with the function
-        else
+        elseif t_v ~= "function" then
             appendVal(v)
         end
     end
 end
 
 function sfutil.dstr(delim, ...)
-    local nargs = select("#", ...)
     local arg = {}
     tcdstr(" ", arg, ...)
     return table.concat(arg, delim)
@@ -388,16 +371,17 @@ end
 
 --[[
 	ternary trick
-	
+
 	(condition and {ifTrue} or {ifFalse})[1]
-	
+
 	ifTrue and ifFalse can be functions
-	
+
 --]]
+
 --[[ ---------------------
 	Split a string into smaller chunks if necessary.
 	If maxlen is not provided, it defaults to 1800 bytes.
-	
+
 	Returns the string (if less than the maxlen), or a table of strings (less than maxlen)
 	that would concatenate into the original string.
 --]]
@@ -412,7 +396,8 @@ function sfutil.strSplitLen(str, maxlen)
     end
 
     local result = {}
-    local i, j = 1
+    local i = 1
+    local j
     while (i <= length) do
         j = i + maxlen
         table.insert(result, zo_strsub(str, i, j - 1))
@@ -422,8 +407,8 @@ function sfutil.strSplitLen(str, maxlen)
 end
 
 --[[ ---------------------
-	Concatenate a table of strings of any length into a string (or table of strings) that are 
-	no longer than maxlen. 
+	Concatenate a table of strings of any length into a string (or table of strings) that are
+	no longer than maxlen.
 	If maxlen is not provided, this function will always return a single string.
 	If maxlen is provided, this function may return another table of strings which are not
 	to exceed maxlen bytes in length or a single string that's length <= maxlen
@@ -477,7 +462,7 @@ function sfutil.GetIconized(prompt, promptcolor, texturefile, texturecolor)
 end
 
 --[[ ---------------------
-	Create a string containing a text prompt (specified either as a string itself 
+	Create a string containing a text prompt (specified either as a string itself
 	or as a localization string id) and a text color. The text color is optional, but
 	if you do not provide it, you just get the same text back that you put in.
 	The color parameters are all hex colors.
@@ -505,26 +490,28 @@ end
 --[[ ---------------------
   Used to be able to wrap an existing function with another so that subsequent
   calls to the function will actually invoke the wrapping function.
-  
+
   The wrapping function should accept a function as the first parameter, followed
   by the parameters expected by the original function. It will be passed in the
   original function so the wrapping function can call it (if it chooses).
-  
+
   Can be called with or without the namespace parameter (which defines the namespace
   where the original function is defined). If the namespace parameter is not provided
   then assume the global namespace _G.
-  
-  The wrapped function cannot be local - I mean, what's the point?
-  
+
   Parameters:
-    namespace - (optional) when provided, this is a table where the function to be wrapped resides. If not provided, the global namespace _G is assumed.
-    functionName - a string with the name of the function to be wrapped (used as a key to the namespace table)
-    wrapper - a function which accepts a function, followed by the parameters that the original function expects to be provided. Therefore the wrapped function can call the original function if it wishes to.
-  
+    namespace - (optional) when provided, this is a table where the function to be wrapped resides.
+                    If not provided, the global namespace _G is assumed.
+    functionName - a string with the name of the function to be wrapped
+                    (used as a key to the namespace table)
+    wrapper - a function which accepts a function, followed by the parameters that the
+                    original function expects to be provided. Therefore the wrapped function
+                    can call the original function if it wishes to.
+
   Examples:
     WrapFunction(myfunc, mywrapper)
       will wrap the global function myfunc to call mywrapper
-    
+
     WrapFunction(TT, myfunc, mywrapper)
       will wrap TT.myfunc with a call to mywrapper
 --]]
@@ -631,7 +618,7 @@ end
 -- Convert a number of seconds into an
 -- HH:MM:SS string.
 function sfutil.secondsToClock(seconds)
-    local seconds = tonumber(seconds)
+    seconds = tonumber(seconds)
 
     if seconds <= 0 then
         return "00:00:00"
@@ -652,10 +639,11 @@ function sfutil.initSystemMsgPrefix(addon_name, hexcolor)
     return sfutil.ColorText(sfutil.str("[", addon_name, "] "), hexcolor)
 end
 
--- Send a system message to chat with the specified prefix and the text in the specified color. (Standalone function - not part of addonChatter.)
+-- Send a system message to chat with the specified prefix and the text in the specified color.
+-- (Standalone function - not part of addonChatter.)
 function sfutil.systemMsg(prefix, text, hexcolor)
     hexcolor = sfutil.nilDefault(hexcolor, sfutil.hex.normal)
-    msg = prefix .. sfutil.ColorText(text, hexcolor)
+    local msg = prefix .. sfutil.ColorText(text, hexcolor)
     ZOS_addSystemMsg(msg)
 end
 
@@ -692,7 +680,6 @@ end
 -- print normal messages to chat
 function sfutil.addonChatter:systemMessage(...)
     local msg = sfutil.str(self.prefix, sfutil.ColorText(sfutil.dstr(" ", ...), self.normalcolor))
-    --local msg = self.prefix .. sfutil.ColorText(sfutil.dstr(" ", ...), self.normalcolor)
     ZOS_addSystemMsg(msg)
 end
 
@@ -746,7 +733,7 @@ function sfutil.addonChatter:slashHelp(title, cmdstable)
     end
 
     self:systemMessage(title)
-    for index, value in pairs(cmdstable) do
+    for _, value in pairs(cmdstable) do
         sysmsg(value[1], value[2])
     end
 end
@@ -918,7 +905,7 @@ function sfutil.applyColor(str, colorhex)
     sfutil.regularizeColors(parsetbl, str)
     local newtbl = {}
     local incolor = false
-    for k, v in ipairs(parsetbl) do
+    for _, v in ipairs(parsetbl) do
         if string.find(str, "|+[Cc]", v) then
             -- starting embedded color
             if incolor == true then
@@ -939,7 +926,7 @@ function sfutil.applyColor(str, colorhex)
             newtbl[#newtbl] = v
         end
     end
-    return table.concat(new)
+    return table.concat(newtbl)
 end
 
 -- Strip all of the color markers out of the string.
@@ -961,7 +948,7 @@ function sfutil.stripColors(markertable, str)
     local t2 = {}
     local lastv = 0
     local tbl_insert = table.insert
-    for k, v in ipairs(markertable) do
+    for _, v in ipairs(markertable) do
         local code = v.code
         local action = v.action
         if not action then
@@ -971,17 +958,15 @@ function sfutil.stripColors(markertable, str)
                 if v.start > lastv + 1 then
                     tbl_insert(t2, str:sub(lastv + 1, v.start - 1))
                 end
-                ss, es = string.find(str, "|+[Cc]%x%x%x%x%x%x", v.start)
-                lastv = es
+                local _, es = string.find(str, "|+[Cc]%x%x%x%x%x%x", v.start)
+                lastv = es or #str
             elseif code == "r" then
                 -- end color
                 if v.start > lastv + 1 then
                     tbl_insert(t2, str:sub(lastv + 1, v.start - 1))
                 end
-                ss, es = string.find(str, "|+[Rr]", v.start)
-                lastv = es
-            else
-                -- uninteresting
+                local _, es = string.find(str, "|+[Rr]", v.start)
+                lastv = es or #str
             end
         elseif action == "+" then
             -- new string fragment (|r)
@@ -991,11 +976,11 @@ function sfutil.stripColors(markertable, str)
             lastv = v.start + 1
         else -- action == "-"
             if code == "c" then
-                ss, es = string.find(str, "|+[Cc]%x%x%x%x%x%x", v.start)
-                lastv = es
+                local _, es = string.find(str, "|+[Cc]%x%x%x%x%x%x", v.start)
+                lastv = es or #str
             elseif code == "r" and v.start ~= -1 then
-                ss, es = string.find(str, "|+[Rr]", v.start)
-                lastv = es
+                local _, es = string.find(str, "|+[Rr]", v.start)
+                lastv = es or #str
             end
         end
     end
@@ -1024,7 +1009,7 @@ function sfutil.colorsplit(markertable, str)
     local lastv = 0
     local ss, es, cs
     local tbl_insert = table.insert
-    for k, v in ipairs(markertable) do
+    for _, v in ipairs(markertable) do
         if v then
             local code = v.code
             local action = v.action
@@ -1122,6 +1107,7 @@ end
 
 -- used by TTFAS
 sfutil.DDValueTable = ZO_Object:Subclass()
+
 function sfutil.DDValueTable:New()
     local o = ZO_Object.New(self)
     --o:initialize(...)
@@ -1199,9 +1185,9 @@ function sfutil.DDValueTable:choices(...)
     for ax = 1, ac do
         local ndx = select(ax, ...)
         if not ndx then
-            error(string.format("error: %s():  argument is nil.", fn))
+            --error(string.format("error: %s():  argument is nil.", fn))
+            return self:choicesAll()
         end
-        --d("choicetbl: "..ndx.." "..self:str(ndx))
         table.insert(choicetbl, self:str(ndx))
     end
     return choicetbl
@@ -1213,9 +1199,9 @@ function sfutil.DDValueTable:choicesAll()
     for ax = 1, #self do
         local ndx = self[ax]
         if not ndx then
-            error(string.format("error: %s():  argument is nil.", fn))
+            --error(string.format("error: %s():  argument is nil.", fn))
+            return self:choices()
         end
-        --d("choicetbl: "..ndx.." "..self:str(ndx))
         table.insert(choicetbl, self:str(ax))
     end
     return choicetbl
@@ -1232,7 +1218,8 @@ function sfutil.DDValueTable:choiceValues(...)
     for ax = 1, ac do
         local ndx = select(ax, ...)
         if not ndx then
-            error(string.format("error: %s():  argument is nil.", fn))
+            --error(string.format("error: %s():  argument is nil.", fn))
+            return self:choicesAll()
         end
         table.insert(valtbl, self:val(ndx))
     end
@@ -1245,7 +1232,8 @@ function sfutil.DDValueTable:choiceValuesAll()
     for ax = 1, #self do
         local ndx = self[ax]
         if not ndx then
-            error(string.format("error: %s():  argument is nil.", fn))
+            --error(string.format("error: %s():  argument is nil.", fn))
+            return self:choicesAll()
         end
         table.insert(valtbl, self:val(ax))
     end
@@ -1263,7 +1251,8 @@ function sfutil.DDValueTable:choiceTooltips(...)
     for ax = 1, ac do
         local ndx = select(ax, ...)
         if not ndx then
-            error(string.format("error: %s():  argument is nil.", fn))
+            --error(string.format("error: %s():  argument is nil.", fn))
+            return self:choicesAll()
         end
         table.insert(tiptbl, self:tip(ndx))
     end
@@ -1276,7 +1265,8 @@ function sfutil.DDValueTable:choiceTooltipsAll()
     for ax = 1, #self do
         local ndx = self[ax]
         if not ndx then
-            error(string.format("error: %s():  argument is nil.", fn))
+            --error(string.format("error: %s():  argument is nil.", fn))
+            return self:choicesAll()
         end
         table.insert(tiptbl, self:tip(ax))
     end
@@ -1295,7 +1285,8 @@ function sfutil.DDValueTable:choicesNvalues(...)
     for ax = 1, ac do
         local ndx = select(ax, ...)
         if not ndx then
-            error(string.format("error: %s():  argument is nil.", fn))
+            --error(string.format("error: %s():  argument is nil.", fn))
+            return self:choicesAll()
         end
         table.insert(choicetbl, self:str(ndx))
         local valstr = self:val(ndx)
@@ -1316,9 +1307,9 @@ function sfutil.DDValueTable:choicesNvaluesAll()
     for ax = 1, #self do
         local ndx = self[ax]
         if not ndx then
-            error(string.format("error: %s():  argument is nil.", fn))
+            --error(string.format("error: %s():  argument is nil.", fn))
+            return self:choicesAll()
         end
-        --d("choicetbl: "..ax.." "..self:str(ax))
         table.insert(choicetbl, self:str(ax))
         local valstr = self:val(ax)
         if valstr then

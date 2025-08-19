@@ -8,7 +8,8 @@ local sfutil = LibSFUtils or {}
 -- Turn a ([0,1])^3 RGB colour to "ABCDEF" form.
 function sfutil.colorRGBToHex(r, g, b)
 	if not r or not g or not b then return nil end
-  return string.format("%.2x%.2x%.2x", zo_floor((tonumber(r) or 1) * 255), zo_floor((tonumber(g) or 1) * 255), zo_floor((tonumber(b) or 1) * 255))
+  return string.format("%.2x%.2x%.2x", zo_floor((tonumber(r) or 1) * 255), 
+                zo_floor((tonumber(g) or 1) * 255), zo_floor((tonumber(b) or 1) * 255))
 end
 
 -- Convert "rrggbb" hex color into float numbers.
@@ -35,7 +36,7 @@ end
 --   as it can convert from a variety of hex string formats for colors:
 --      |crrggbb, aarrggbb, and rrggbb
 function sfutil.ConvertHexToRGBA(colourString)
-	if type(colourString) ~= "string" then 
+	if type(colourString) ~= "string" then
 		return 1,1,1,1
 	end
 
@@ -78,7 +79,7 @@ end
 -- ------------------------------------------
 SF_Color = ZO_Object:Subclass()
 
---[[ 
+--[[
 	Don't want to make this public because it can leave
 	SF_Color in an inconsistant state - hex is not set
 	from these values. We just assume that has been or
@@ -97,7 +98,7 @@ end
 
 
 --[[ ---------------------
-	Create a color object. 
+	Create a color object.
 		This is a storage container for:
 			hex - a 6-character hex representation of the RGB color
 			rgb - a table containing the float values for r, g, b, a  (values btwn 0-1)
@@ -130,8 +131,8 @@ end
 	color values are in [0,1]
 --]]
 function SF_Color:UnpackRGB()
-	if not self.rgb and self.r then 
-		return self.r, self.g, self.b 
+	if not self.rgb and self.r then
+		return self.r, self.g, self.b
 	end
     return self.rgb.r, self.rgb.g, self.rgb.b
 end
@@ -157,7 +158,7 @@ end
 
 
 --[[ ---------------------
-	Set a color object to a particular color value. 
+	Set a color object to a particular color value.
 
 	Parameters:
 		pr, pg, pb, pa - The RGB floats between 0-1.
@@ -218,6 +219,7 @@ end
 		string - colorized text
 --]]
 function SF_Color:Colorize(text)
+    local strprompt
     if( text == nil ) then
         return ""	-- Do NOT colorize an empty string!
     elseif( type(text) == "string") then
@@ -227,7 +229,7 @@ function SF_Color:Colorize(text)
 	else
 		strprompt = tostring(text)
     end
-	--if self then 
+	--if self then
 	--	if self.rgb then d("r="..self.rgb.r.."  g="..self.rgb.g.."  b="..self.rgb.b) end
 	--	if self.hex then d("color to colorize = 0x"..self.hex) end
 	--end
