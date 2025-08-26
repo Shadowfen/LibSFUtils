@@ -114,7 +114,7 @@ function sfutil.EvtMgr:unregEvt(event)
 end
 
 function sfutil.EvtMgr:unregUpdateEvt(name)
-	EVENT_MANAGER:UnregisterForUpdateEvent(name)
+	EVENT_MANAGER:UnregisterForUpdate(name)
 	-- remove the event from our tracking list
 	for k,uname in ipairs(self.updatesList) do
 		if uname == name then
@@ -134,6 +134,6 @@ end
 
 function sfutil.EvtMgr:unregAllUpdateEvt()
 	for _,uname in ipairs(self.updatesList) do
-		EVENT_MANAGER:UnregisterForUpdateEvent(uname)
+		EVENT_MANAGER:UnregisterForUpdate(uname)
 	end
 end
