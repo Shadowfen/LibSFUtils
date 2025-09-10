@@ -8,16 +8,16 @@ local activePrintDebug = {
             print("["..self.addonName.."] ERROR: "..string.format(...))
         end,
     Warn = function(self,...)
-        if not self.enabled then return end
-        print("["..self.addonName.."] WARN: "..string.format(...))
+            if not self.enabled then return end
+            print("["..self.addonName.."] WARN: "..string.format(...))
         end,
     Info = function(self,...)
-        if not self.enabled then return end
-        print("["..self.addonName.."] INFO: "..string.format(...))
+            if not self.enabled then return end
+            print("["..self.addonName.."] INFO: "..string.format(...))
         end,
     Debug = function(self,...)
-        if not self.enabled then return end
-        print("["..self.addonName.."] DEBUG: "..string.format(...))
+            if not self.enabled then return end
+            print("["..self.addonName.."] DEBUG: "..string.format(...))
         end,
     Create = function(self,name)
             local o = setmetatable({}, { __index = self})
@@ -45,24 +45,24 @@ local nilPrintDebug = {
 -- logger object that prints to chat when enabled
 -- Use Create() to create a logger instance of this type
 local printDebug = {
-    Error = function(self,...)  
+    Error = function(self,...)
         if not self.enabled then return end
-        print("["..self.addonName.."] ERROR: "..string.format(...)) 
+        print("["..self.addonName.."] ERROR: "..string.format(...))
         end,
 
-    Warn = function(self,...)  
+    Warn = function(self,...)
         if not self.enabled then return end
-        print("["..self.addonName.."] WARN: "..string.format(...)) 
+        print("["..self.addonName.."] WARN: "..string.format(...))
         end,
 
-    Info = function(self,...) 
+    Info = function(self,...)
         if not self.enabled then return end
-        print("["..self.addonName.."] INFO: "..string.format(...)) 
+        print("["..self.addonName.."] INFO: "..string.format(...))
         end,
 
     Debug = function(self,...)
         if not self.enabled or not self.SFenableDebug then return end
-        print("["..self.addonName.."] DEBUG: "..string.format(...)) 
+        print("["..self.addonName.."] DEBUG: "..string.format(...))
         end,
 
     Create = function(self,name)
@@ -177,11 +177,12 @@ end
 -- You can use :SetDebug(true) to turn on debug-level output as well.
 function sfutil.Createlogger(addonName)
     -- initialize the logger for an addon
-    local logger = nil
+    local logger
 
     if LibDebugLogger then
         logger = LibDebugLogger:Create(addonName)
         logger.sfdb = "with LibDebugLogger"
+
     else
         logger = printDebug:Create(addonName)
         logger.sfdb = "with printDebug"
@@ -198,7 +199,7 @@ function sfutil.Createlogger(addonName)
     logger.SetDebug = function(self,truefalse)
         -- Note: For Debug to work, you must ALSO enable debug messages in the
         -- Debug Log Viewer -> LibLogDebugger settings!!!
-        logger.SFenableDebug = truefalse
+        self.SFenableDebug = truefalse
 
         -- change the Debug() function to send or not send according total
         -- if debug is enabled here.

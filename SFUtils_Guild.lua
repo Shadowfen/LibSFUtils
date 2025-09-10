@@ -38,9 +38,9 @@ function sfutil.GetActiveGuildNames()
 		local name, id
 		for guild = 1, numGuilds do
 			name, id = sfutil.SafeGetGuildName(guild)
-			table.insert(guildList, name)
+            guildList[guild] = name      -- direct assignment, no table.insert overhead
 		end
-	end	
+	end
 	return guildList
 end
 
@@ -55,7 +55,7 @@ function sfutil.GetActiveGuildIds()
 			name, id = sfutil.SafeGetGuildName(guild)
 			table.insert(guildList, id)
 		end
-	end	
+	end
 	return guildList
 end
 

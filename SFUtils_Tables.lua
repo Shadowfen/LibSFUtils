@@ -21,7 +21,7 @@ function sfutil.dTable(vtable, depth, name)
       if vt == "function" then
           appendVal(arg, sfutil.str(name, " : ", k, " -> (function),  \n"))
 
-      elseif vt == "table" then 
+      elseif vt == "table" then
           appendVal(arg, (sfutil.dTable(v, depth - 1, name.." - ["..tostring(k).."]")))
 
       else
@@ -41,8 +41,8 @@ function sfutil.defaultMissing(svtable, defaulttable)
     if svtable == nil then return sfutil.deepCopy(defaulttable) end
 	if type(svtable) ~= 'table' or type(defaulttable) ~= 'table' then return sfutil.safeTable(svtable) end
 
-	for k,v in pairs(defaulttable) do
-		if svtable[k] == nil then 
+	for k in pairs(defaulttable) do
+		if svtable[k] == nil then
 			if type( defaulttable[k] )=='table' then
 				svtable[k] = {}
 				sfutil.defaultMissing( svtable[k], defaulttable[k])
@@ -82,7 +82,7 @@ function sfutil.deepCopy(orig, seen)
     seen[orig] = tcopy
     local dcpy = sfutil.deepCopy        -- alias
 	for orig_key, orig_value in pairs(orig) do
-        if orig_key then 
+        if orig_key then
 		    tcopy[dcpy(orig_key, seen)] = dcpy(orig_value, seen)
         end
 	end
@@ -120,7 +120,7 @@ function sfutil.safeClearTable(tbl)
     if tbl == nil or type(tbl) ~= "table" then
         return {}
     end
-    for k,v in pairs(tbl) do
+    for k in pairs(tbl) do
         tbl[k] = nil
     end
     return tbl
@@ -153,8 +153,8 @@ function sfutil.GetSize(tbl)
 		return 0
 	end
 	local count = 0
-	for _ in pairs(tbl) do 
-		count = count + 1 
+	for _ in pairs(tbl) do
+		count = count + 1
 	end
 	return count
 end

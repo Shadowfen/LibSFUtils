@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]64[/COLOR]:
+[LIST]
+[*] Correcting self references in the logger.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]63[/COLOR]:
 [LIST]
 [*] Added an iterargs() iterator to go through "..." args.

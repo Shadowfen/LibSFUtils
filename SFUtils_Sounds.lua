@@ -19,7 +19,10 @@ local soundReverse = {}     -- contains [SOUNDS.xxx] index
 -- run once, it does not do so again.
 --
 function sfutil.initSounds(force)
-    if force == true then soundChoices={} end
+    if force == true then
+        soundChoices={}
+        soundReverse={}
+    end
     -- load sound keys to table
     if next(soundChoices) == nil then
         for k,_ in pairs(SOUNDS) do
@@ -74,20 +77,21 @@ end
 function sfutil.PlaySound(index)
     if not index then return end
 
-    if type(index) == "number" then
-    	-- we have an index into our soundChoices array
-    	-- so, make sure it exists (once).
-    	sfutil.initSounds()
+    local typ = type(index)
+    if typ == "number" then
+        -- we have an index into our soundChoices array
+        -- so, make sure it exists (once).
+        sfutil.initSounds()
         if soundChoices[index] == nil then return end
         PlaySound(soundChoices[index])
 
-    elseif type(index) == "string" then
+    elseif typ == "string" then
         if SOUNDS[index] ~= nil then
-        	-- we got a sound name (index into the SOUNDS array)
+            -- we got a sound name (index into the SOUNDS array)
             PlaySound(SOUNDS[index])
 
         else
-        	-- presume we have a string that was stored in a SOUNDS.xxx
+            -- presume we have a string that was stored in a SOUNDS.xxx
             PlaySound(index)
         end
     end
