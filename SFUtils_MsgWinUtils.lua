@@ -12,7 +12,7 @@ function sfutil.CreateMsgWin(name, title, width, height, visible)
 	if LibMsgWin then
 		local win = LibMsgWin:CreateMsgWindow(name, title)
 		if width and height then
-			win.SetDimensions(width, height)
+			win:SetDimensions(width, height)
 		end
 		----- CLOSE BUTTON -----
 		local msgWinCloseButton = WINDOW_MANAGER:CreateControl(name.."Close", win, CT_BUTTON)

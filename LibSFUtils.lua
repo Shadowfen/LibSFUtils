@@ -101,14 +101,15 @@ end
 -- without using the 5.2 table.pack()
 -- returns index, value, total with each iteration. (total does not change until ... does)
 function sfutil.iter_args(...)
-  local t = {...}
+  local args = {...}
   local n = select("#", ...)
   local i = 0
 
   return function()
         i=i+1
         if i<=n then
-            return i,t[i], n
+            return i,args[i], n
+            --return i, select(i,...),(i == 1 and n or nil)
         else
             return nil, nil, n
         end
@@ -154,7 +155,7 @@ local function tcstr(rslt, ...)
                   return tcstr(rslt, v1)
                 end
             end
-        elseif t_v ~= "function" then
+        else
             appendVal(v)
         end
     end

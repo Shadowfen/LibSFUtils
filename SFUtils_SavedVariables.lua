@@ -40,10 +40,11 @@ end
 --
 -- SavedVars are retrieved for the current server that you are on.
 function sfutil.getAllSavedVars(saveFileName, saveVer, saveAWDefaults, saveToonDefaults)
+    local worldName = GetWorldName()
     if saveAWDefaults == nil and saveToonDefaults == nil then
-        local aw = ZO_SavedVars:NewAccountWide(saveFileName, saveVer, GetWorldName())
+        local aw = ZO_SavedVars:NewAccountWide(saveFileName, saveVer, worldName)
         local toon = ZO_SavedVars:NewCharacterIdSettings(saveFileName, saveVer, 
-						GetWorldName())
+						worldName)
         toon.accountWide = sfutil.nilDefault(toon.accountWide, true)
         return aw, toon
     end
@@ -55,9 +56,9 @@ function sfutil.getAllSavedVars(saveFileName, saveVer, saveAWDefaults, saveToonD
         saveToonDefaults = saveAWDefaults
     end
     local aw = ZO_SavedVars:NewAccountWide(saveFileName, saveVer, 
-					GetWorldName(), saveAWDefaults)
+					worldName, saveAWDefaults)
     local toon = ZO_SavedVars:NewCharacterIdSettings(saveFileName, saveVer, 
-					GetWorldName(), saveToonDefaults)
+					worldName, saveToonDefaults)
     sfutil.defaultMissing(aw, saveAWDefaults)
     sfutil.defaultMissing(toon, saveToonDefaults)
 	toon.accountWide = sfutil.nilDefault(toon.accountWide, true)
