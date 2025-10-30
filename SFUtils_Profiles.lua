@@ -2,9 +2,15 @@ local SF = LibSFUtils
 
 --local L = GetString
 
+-------------------------------------------------
+-- Constants
+-------------------------------------------------
+local ACCOUNT_WIDE = "Account-Wide"
+local DEFAULT      = "Default"
+
 -- default structure for addon savedtbl variables
 local default = {
-	--profile = "Account-Wide",
+	--profile = ACCOUNT_WIDE,
 }
 
 -- default structure for saved variables profile tables
@@ -17,7 +23,7 @@ local default_profiles = {
 
 -- defaults of values that would be saved in a profile
 local default_profile = {
-	profileName = "Account-Wide",
+	profileName = ACCOUNT_WIDE,
 
 	-- addon-specific vars
 	general = {
@@ -96,13 +102,13 @@ end
 -- get a list of current user-created defined profile names
 function ProfMgmt:getUserProfileNames()
     return self:_iterProfileNames(function(name)
-        return name ~= "Account-Wide" and name ~= "Default"
+        return name ~= "Account-Wide" and name ~= DEFAULT
     end)
 end
 
 --[[
 -- get a list of currently defined profile names
--- Includes "Account-Wide"
+-- Includes ACCOUNT_WIDE
 function profMgmt:getProfileNames()
 	local nameList = {}
 	for name in pairs(self.profTbl.profiles) do
@@ -112,9 +118,9 @@ function profMgmt:getProfileNames()
 end
 
 -- Creates a list of names of existing profiles which
--- also includes "Default" and "Account-Wide"
+-- also includes DEFAULT and ACCOUNT_WIDE
 function profMgmt:getCopyableProfileNames()
-	local nameList = {"Default", "Account-Wide"}
+	local nameList = {DEFAULT, ACCOUNT_WIDE}
 	for name in pairs(self.profTbl.profiles) do
 		table.insert(nameList,name)
 	end
@@ -125,7 +131,7 @@ end
 function profMgmt:getUserProfileNames()
 	local nameList = {}
 	for name in pairs(self.profTbl.profiles) do
-		if not (name == "Account-Wide" or name == "Default") then
+		if not (name == ACCOUNT_WIDE or name == DEFAULT) then
 			table.insert(nameList,name)
 		end
 	end
@@ -147,14 +153,14 @@ function profMgmt:createProfile(name, from)
     self.logger:Info("createProfile(): creating profile "..name)
     local profiles = self.profTbl.profiles
 	local fromprof
-	if from == nil or from == "Default" then
-		from = "Default"
+	if from == nil or from == DEFAULT then
+		from = DEFAULT
 		fromprof = default_profile
 
 	else
 		fromprof = profiles[from]
 		if not fromprof then
-			from = "Default"
+			from = DEFAULT
 			fromprof = default_profile
 		end
 	end
@@ -175,7 +181,7 @@ function profMgmt:loadProfile(name, fromtbl)
 
     self:_log("Info", "Loaded profile %s from supplied table", name)
 
-    name = name or "Default"
+    name = name or DEFAULT
 	if profiles[name] ~= nil then
 		assert(profiles[name] ~= nil, "loadProfile(): trying to REload "..name)
 	end
@@ -218,9 +224,9 @@ function profMgmt:loadsv()
 	-- (and set it to the current profile for the character loaded in).
 	if not next(self.profTbl.profiles) then
 		self.logger:Warn("empty profiles table - creating a profile 'Account-Wide'")
-		self:createProfile("Account-Wide")
-		SF.saved.profileName = "Account-Wide"
-		SF.currentProfile = profiles["Account-Wide"]
+		self:createProfile(ACCOUNT_WIDE)
+		SF.saved.profileName = ACCOUNT_WIDE
+		SF.currentProfile = profiles[ACCOUNT_WIDE]
 		return
 
 	-- if the character does not have an assigned profile then
@@ -228,12 +234,12 @@ function profMgmt:loadsv()
 	-- Should probably check first if "Account-Wide" already exists!
 	elseif SF.saved.profileName == nil then
 		self.logger:Warn("empty acct profile for character - looking for 'Account-Wide'")
-		if not profiles["Account-Wide"] then
+		if not profiles[ACCOUNT_WIDE] then
 			-- Create the Account-Wide profile
-			self:createProfile("Account-Wide")
+			self:createProfile(ACCOUNT_WIDE)
 		end
-		SF.saved.profileName = "Account-Wide"
-		SF.currentProfile = profMgmt.profTbl.profiles["Account-Wide"]
+		SF.saved.profileName = ACCOUNT_WIDE
+		SF.currentProfile = profMgmt.profTbl.profiles[ACCOUNT_WIDE]
 		return
 
 	-- character assigned profile no longer exists, create it

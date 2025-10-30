@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]65[/COLOR]:
+[LIST]
+[*] Splitting strings functions into a separate file.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]64[/COLOR]:
 [LIST]
 [*] Correcting self references in the logger.

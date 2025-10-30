@@ -8,6 +8,7 @@ function sfutil.dTable(vtable, depth, name)
 	if type(vtable) ~= "table" then
 		return sfutil.str(vtable)
 	end
+    depth = math.max(0, tonumber(depth) or 0)
     local function appendVal(tbl, val)
         tbl[#tbl+1] = val
         return tbl
@@ -36,9 +37,10 @@ end
 	Recursively initialize missing values in a table from
 	a defaults table. Existing values in the svtable will
 	remain unchanged.
+    Fills missing keys in svtable in‑place.
 --]]
 function sfutil.defaultMissing(svtable, defaulttable)
-    if svtable == nil then return sfutil.deepCopy(defaulttable) end
+    if svtable == nil then return sfutil.safeTable(sfutil.deepCopy(defaulttable)) end
 	if type(svtable) ~= 'table' or type(defaulttable) ~= 'table' then return sfutil.safeTable(svtable) end
 
 	for k in pairs(defaulttable) do
