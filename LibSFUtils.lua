@@ -116,6 +116,43 @@ function sfutil.iter_args(...)
     end
 end
 
+-- Executes `fn` safely. If an error occurs, it logs the message and returns false.
+-- Otherwise it returns true and then all the other return values from the function call.
+--- Executes a function safely and returns *all* of its results.
+--- @param fn function The function to protect.
+--- @param ... any Arguments forwarded to `fn`.
+--- @return boolean ok   True if the call succeeded.
+--- @return ...          All values returned by `fn` (or the error object on failure).
+function sfutil.safeCall1(fn, ...)
+    -- pcall returns: statusFlag, <all results from fn>
+    local ok, r1, r2, r3, r4, r5,
+          r6, r7, r8, r9, r10 = pcall(fn, ...)
+    if not ok then
+        return false, r1
+    end
+
+    -- Re‑emit the status flag followed by every returned value.
+    return true,
+           r1, r2, r3, r4, r5,
+           r6, r7, r8, r9, r10
+end
+
+function sfutil.safeCall(fn, ...)
+    -- Call the function once and keep the whole multivalued result in a temporary variable
+    local results = { pcall(fn, ...) }      -- results[1] = ok, results[2..] = fn's returns
+
+    local ok = results[1]
+
+    if not ok then
+        -- The error message is the first value after the status flag
+        local err = results[2]
+        return false, err
+    end
+
+    -- Success path – return true followed by everything that came after the status flag
+    -- `select(2, ...)` would give us the same thing, but we already have the table.
+    return true, unpack(results, 2)   -- unpack from index 2 to the end
+end
 
 
 --[[

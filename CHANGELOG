@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]66[/COLOR]:
+[LIST]
+[*] Adding a safeCall function to do pcalls
+[/LIST]
+
 [COLOR="DeepSkyBlue"]65[/COLOR]:
 [LIST]
 [*] Splitting strings functions into a separate file.
