@@ -1,6 +1,8 @@
 [COLOR="DeepSkyBlue"]66[/COLOR]:
 [LIST]
-[*] Adding a safeCall function to do pcalls
+[*] Bump API version and dependencies.
+[*] Adding a [COLOR="MediumSeaGreen"]safeCall[/color] function to do pcalls
+[*] Adding a [COLOR="MediumSeaGreen"]TimedQueue[/color] utility.
 [/LIST]
 
 [COLOR="DeepSkyBlue"]65[/COLOR]:
@@ -15,7 +17,7 @@
 
 [COLOR="DeepSkyBlue"]63[/COLOR]:
 [LIST]
-[*] Added an iterargs() iterator to go through "..." args.
+[*] Added an [COLOR="MediumSeaGreen"]iterargs()[/color] iterator to go through "..." args.
 [*] More testing of string functions.
 [/LIST]
 

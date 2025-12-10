@@ -103,7 +103,7 @@ end
 		or return a new empty table if the table variable was nil
 --]]
 function sfutil.safeTable(tbl)
-    if tbl == nil or type(tbl) ~= "table" then
+    if type(tbl) ~= "table" then
         return {}
     end
     return tbl
@@ -119,9 +119,10 @@ end
 		the parameter was not a proper table).
 --]]
 function sfutil.safeClearTable(tbl)
-    if tbl == nil or type(tbl) ~= "table" then
+    if type(tbl) ~= "table" then
         return {}
     end
+    -- the loop is equal to ZO_ClearTable(tbl)
     for k in pairs(tbl) do
         tbl[k] = nil
     end
@@ -135,7 +136,7 @@ end
 function sfutil.RemainsInList(listA, listB)
 	local newList = {}
 
-	if listA == nil then return newList end
+	if listA == nil or listB == nil then return newList end
 	for _, v in pairs(listA) do
 		if not listB[v] then
 			newList[v] = 1
@@ -147,17 +148,25 @@ end
 
 --[[ ---------------------
 	Return a count of the number of items in the table.
-	Return nil if the supposed "table" is not a table
+	Return 0 if the supposed "table" is not a table
 	Handles non-contiguous. More safe version of ZOS's NonContiguousCount()
 --]]
 function sfutil.GetSize(tbl)
-    if tbl == nil or type(tbl) ~= "table" then
+    if type(tbl) ~= "table" then
 		return 0
 	end
 	local count = 0
-	for _ in pairs(tbl) do
+    local k = next(tbl, nil)   -- first key
+    while k do
+		count = count + 1
+        k = next(tbl, k)       -- subsequent keys
+    end
+
+	--[[
+    for _ in pairs(tbl) do
 		count = count + 1
 	end
+    --]]
 	return count
 end
 
