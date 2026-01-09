@@ -116,14 +116,14 @@ function sfutil.iter_args(...)
     end
 end
 
--- Executes `fn` safely. If an error occurs, it logs the message and returns false.
--- Otherwise it returns true and then all the other return values from the function call.
---- Executes a function safely and returns *all* of its results.
+-- Executes `fn` safely. If an error occurs, it returns false and the error message.
+-- Otherwise it returns true and then up to 10 the other return values from the function call.
+--- Executes a function safely and returns 10 of its results.
 --- @param fn function The function to protect.
 --- @param ... any Arguments forwarded to `fn`.
 --- @return boolean ok   True if the call succeeded.
 --- @return ...          All values returned by `fn` (or the error object on failure).
-function sfutil.safeCall1(fn, ...)
+function sfutil.safeCall10(fn, ...)
     -- pcall returns: statusFlag, <all results from fn>
     local ok, r1, r2, r3, r4, r5,
           r6, r7, r8, r9, r10 = pcall(fn, ...)
@@ -137,6 +137,13 @@ function sfutil.safeCall1(fn, ...)
            r6, r7, r8, r9, r10
 end
 
+-- Executes `fn` safely. If an error occurs, it returns false and the error message.
+-- Otherwise it returns true and then all of the other return values from the function call.
+--- Executes a function safely and returns *all* of its results.
+--- @param fn function The function to protect.
+--- @param ... any Arguments forwarded to `fn`.
+--- @return boolean ok   True if the call succeeded.
+--- @return ...          All values returned by `fn` (or the error object on failure).
 function sfutil.safeCall(fn, ...)
     -- Call the function once and keep the whole multivalued result in a temporary variable
     local results = { pcall(fn, ...) }      -- results[1] = ok, results[2..] = fn's returns
@@ -163,6 +170,7 @@ end
 	ifTrue and ifFalse can be functions
 
 --]]
+
 
 --[[ ---------------------
   Used to be able to wrap an existing function with another so that subsequent
