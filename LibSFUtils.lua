@@ -101,19 +101,18 @@ end
 -- without using the 5.2 table.pack()
 -- returns index, value, total with each iteration. (total does not change until ... does)
 function sfutil.iter_args(...)
-  local args = {...}
-  local n = select("#", ...)
-  local i = 0
+    local args = {...}
+    local n = select("#", ...)
+    local i = 0
 
-  return function()
-        i=i+1
-        if i<=n then
-            return i,args[i], n
-            --return i, select(i,...),(i == 1 and n or nil)
-        else
-            return nil, nil, n
+    return function()
+            i=i+1
+            if i<=n then
+                return i,args[i], n
+            else
+                return nil, nil, n
+            end
         end
-    end
 end
 
 -- Executes `fn` safely. If an error occurs, it returns false and the error message.
