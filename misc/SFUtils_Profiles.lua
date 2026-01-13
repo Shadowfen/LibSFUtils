@@ -1,7 +1,5 @@
 local SF = LibSFUtils
 
---local L = GetString
-
 -------------------------------------------------
 -- Constants
 -------------------------------------------------
@@ -33,10 +31,32 @@ local default_profile = {
 	},
 }
 
-local profMgmt = ZO_Object:Subclass()
-SF.ProfileMgmt = profMgmt
+local ProfMgmt = ZO_Object:Subclass()
+SF.ProfileMgmt = ProfMgmt
 
-function profMgmt:New(...)
+-- convenience function for a call to Logger():Debug(SF.str(...))
+-- only done for Debug() because there is no special handling for the other message levels
+-- always returns nil
+function ProfMgmt:logDebug(...)
+    local n = select("#", ...)
+    if n == 0 then return end
+
+    local logger = self.Logger
+    if not logger then return end
+    -- skip parameter processing if they are not going to be used.
+    if not logger.enabled or not logger.SFenableDebug then return end
+
+    if n == 1 then
+        logger:Debug(...)
+
+    else
+        logger:Debug(SF.str(...))
+   end
+end
+
+
+
+function ProfMgmt:New(...)
     local obj = ZO_Object.New(self)
     obj:Initialize(...)
     return obj
@@ -47,22 +67,22 @@ end
 -- saved - the table for the addon's saved variables (used to save current profile name)
 -- profSVname - the name for the profile saved variables (must add to parent .addon manifest)
 -- default_profile - defaults of values that would be saved in a profile
-function profMgmt:Initialize(addontbl, savedtbl, profSVname, default_profile, logger)
+function ProfMgmt:Initialize(addontbl, savedtbl, profSVname, def_profile, logger)
 	self.parentns = addontbl
 	self.parentsv = savedtbl
 	self.profSVnm = profSVname
-	self.default_profile = default_profile
+	self.default_profile = def_profile
     if not logger then logger = SF.logger end
     self.logger = logger
 	return self
 end
 
--- allows you to change the logger to be used by the profile EVENT_MANAGER
+-- allows you to change the logger to be used by the profile
 -- logger can be a function (a la the SF.SafeLoggerFunction()) where it will use the
 -- provided function to create (or reference an already created) logger
 -- if the logger is a table, we presume a well-formed logger class with the
 -- standard methods. (See SFUtils_Logger.lua)
-function profMgmt:SetLogger(logger)
+function ProfMgmt:SetLogger(logger)
     if type(logger) == "function" then
         self.logger = logger()
         return self.logger
@@ -76,7 +96,7 @@ function profMgmt:SetLogger(logger)
     return self.logger
 end
 
--- Iterate through the list of profile names according to 
+-- Iterate through the list of profile names according to
 -- a particular filter-function and collect the names of
 -- the profiles that applies.
 function ProfMgmt:_iterProfileNames(filterFn)
@@ -106,47 +126,14 @@ function ProfMgmt:getUserProfileNames()
     end)
 end
 
---[[
--- get a list of currently defined profile names
--- Includes ACCOUNT_WIDE
-function profMgmt:getProfileNames()
-	local nameList = {}
-	for name in pairs(self.profTbl.profiles) do
-		table.insert(nameList,name)
-	end
-	return nameList
-end
-
--- Creates a list of names of existing profiles which
--- also includes DEFAULT and ACCOUNT_WIDE
-function profMgmt:getCopyableProfileNames()
-	local nameList = {DEFAULT, ACCOUNT_WIDE}
-	for name in pairs(self.profTbl.profiles) do
-		table.insert(nameList,name)
-	end
-	return nameList
-end
-
--- get a list of current user-created defined profile names
-function profMgmt:getUserProfileNames()
-	local nameList = {}
-	for name in pairs(self.profTbl.profiles) do
-		if not (name == ACCOUNT_WIDE or name == DEFAULT) then
-			table.insert(nameList,name)
-		end
-	end
-	return nameList
-end
---]]
-
 
 -- is the profile name already in use?
-function profMgmt:isNewProfileName(name)
+function ProfMgmt:isNewProfileName(name)
     return self.profTbl.profiles[name] == nil
 end
 
 -- create a profile with the specified name and default values
-function profMgmt:createProfile(name, from)
+function ProfMgmt:createProfile(name, from)
     assert(self:isNewProfileName(name),
            ("Profile %q already exists"):format(name))
 
@@ -166,16 +153,16 @@ function profMgmt:createProfile(name, from)
 	end
 	profiles[name] = SF.deepCopy(fromprof)
 	if profiles[name] then
-		self.logger:Debug("profTbl.profiles["..name.."] set to values from ",from)
+		self.logDebug("profTbl.profiles[", name, "] set to values from ", from)
 		profiles[name].profileName = name
 
 	else
-		self.logger:Debug("profTbl.profiles["..name.."] set to nil")
+		self.logDebug("profTbl.profiles[", name, "] set to nil")
 	end
 end
 
 -- create a profile with the specified name and default values
-function profMgmt:loadProfile(name, fromtbl)
+function ProfMgmt:loadProfile(name, fromtbl)
     self.logger:Info("loadProfile(): loading profile "..name)
     local profiles = self.profTbl.profiles
 
@@ -188,7 +175,7 @@ function profMgmt:loadProfile(name, fromtbl)
 
     profiles[name] = SF.deepCopy(fromtbl)
 	if profiles[name] then
-		self.logger:Debug("profTbl.profiles["..name.."] set to values from ",fromtbl)
+		self.logger:Debug(SF.str("profTbl.profiles[", name, "] set to values from ", fromtbl))
 		profiles[name].profileName = name
 
 	else
@@ -197,7 +184,7 @@ function profMgmt:loadProfile(name, fromtbl)
 end
 
 -- delete the profile with the specified name
-function profMgmt:deleteProfile(name)
+function ProfMgmt:deleteProfile(name)
 	self.profTbl.profiles[name] = nil
 	self.logger:Info("deleteProfile(): deleted profile "..name)
 end
@@ -205,8 +192,8 @@ end
 -- load saved variables
 --    saved = character settings
 --    profTbl = profiles settings
-function profMgmt:loadsv()
-    self.logger:Info("Starting profMgmt.loadsv")
+function ProfMgmt:loadsv()
+    self.logger:Info("Starting ProfMgmt.loadsv")
 
 
     -- load our saved variables
@@ -239,7 +226,7 @@ function profMgmt:loadsv()
 			self:createProfile(ACCOUNT_WIDE)
 		end
 		SF.saved.profileName = ACCOUNT_WIDE
-		SF.currentProfile = profMgmt.profTbl.profiles[ACCOUNT_WIDE]
+		SF.currentProfile = ProfMgmt.profTbl.profiles[ACCOUNT_WIDE]
 		return
 
 	-- character assigned profile no longer exists, create it
