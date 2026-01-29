@@ -1,6 +1,7 @@
 -- LibSFUtils is already defined in prior loaded file
 local sfutil = LibSFUtils or {}
 
+local zo_floor = zo_floor
 ---------------------
 --[[
     Color conversion functions
@@ -8,7 +9,7 @@ local sfutil = LibSFUtils or {}
 -- Turn a ([0,1])^3 RGB colour to "ABCDEF" form.
 function sfutil.colorRGBToHex(r, g, b)
 	if not r or not g or not b then return nil end
-  return string.format("%.2x%.2x%.2x", zo_floor((tonumber(r) or 1) * 255), 
+  return string.format("%.2x%.2x%.2x", zo_floor((tonumber(r) or 1) * 255),
                 zo_floor((tonumber(g) or 1) * 255), zo_floor((tonumber(b) or 1) * 255))
 end
 
@@ -78,6 +79,12 @@ end
 
 -- ------------------------------------------
 SF_Color = ZO_Object:Subclass()
+-- Give the SF_Color class a callable for :New()
+local mt = getmetatable(SF_Color)
+mt.__call = function(self, pr, pg, pb, pa)
+        return self:New(pr, pg, pb, pa)
+    end
+
 
 --[[
 	Don't want to make this public because it can leave
@@ -119,11 +126,22 @@ end
 --]]
 function SF_Color:New(pr, pg, pb, pa)
     local c = ZO_Object.New(self)
-	c.rgb = {r=1, g=1, b=1, a=1}
 
-	c:SetColor(pr, pg, pb, pa)
+    local mt = getmetatable(c)
+    mt.__call = function(self, text)
+            return self:Colorize(text)
+        end
+
+	--c.rgb = {r=1, g=1, b=1, a=1}
+	--c:SetColor(pr, pg, pb, pa)
+    c:Initialize(pr, pg, pb, pa)
 
     return c
+end
+
+function SF_Color:Initialize(pr, pg, pb, pa)
+    self.rgb = {r=1, g=1, b=1, a=1}
+	self:SetColor(pr, pg, pb, pa)
 end
 
 --[[ ---------------------
