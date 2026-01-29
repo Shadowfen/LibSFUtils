@@ -22,5 +22,8 @@ SFUtils_Sounds.lua
 SFUtils_MsgWinUtils.lua
 SFUtils_Events.lua
 ;;SFUtils_TimedQueue.lua
+SFUtils_CallLater.lua
+SFUtils_SingleHookArgs.lua
+SFUtils_HookManager.lua
 
 SFUtils_VersionChecker.lua
