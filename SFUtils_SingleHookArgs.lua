@@ -40,13 +40,13 @@ end
 
 
 --- Creates a new hook object.
---- @param target   table    The object that owns the method (e.g. MAIL_INBOX)
+--- @param target   table|string    The object that owns the method (e.g. MAIL_INBOX)
 --- @param method   string   Name of the method to hook (case‑sensitive)
---- @param kind     string   "pre", "post", or "secure"
---- @param fn       function Your callback. Signature depends on the kind:
+--- @param kind     string|function   "pre", "post", or "secure"
+--- @param fn       function? Your callback. Signature depends on the kind:
 ---                     * pre‑hook:          (self, extra..., …) → return true to cancel original
 ---                     * post‑hook / secure: (self, extra..., …, originalRet…) → return new values
---- @param extraArgs ...     *(optional)* Extra arguments you want the hook to receive.
+--- @param ... any     *(optional)* Extra arguments you want the hook to receive.
 ---                         Can be a single table or a vararg list.
 --- @return table   A SingleHook instance.
 function SingleHookArgs:New(target, method, kind, fn, ...)

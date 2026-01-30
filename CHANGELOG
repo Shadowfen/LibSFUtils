@@ -1,12 +1,15 @@
 [COLOR="DeepSkyBlue"]67[/COLOR]:
 [LIST]
-[*] 
+[*] Add callable class and instance functions for SF_Color.
+[*] Added HookManager and SingleHookArgs to manage Prehooks, PostHooks, and SecurePostHooks.
+[*] Added CallLater to manage callbacks.
+[*] Adding a [COLOR="MediumSeaGreen"]safeCall10[/color] function to do pcalls. Unlike safeCall, it only returns ok and up to 10 return values, but does not create temporary tables
 [/LIST]
 
 [COLOR="DeepSkyBlue"]66[/COLOR]:
 [LIST]
 [*] Bump API version and dependencies.
-[*] Adding a [COLOR="MediumSeaGreen"]safeCall[/color] function to do pcalls
+[*] Adding a [COLOR="MediumSeaGreen"]safeCall[/color] function to do pcalls. It returns ok and all return values.
 [*] Adding a [COLOR="MediumSeaGreen"]TimedQueue[/color] utility.
 [/LIST]
 
