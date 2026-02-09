@@ -1,126 +1,186 @@
 local SF = LibSFUtils
+
+
 --=====================================================================
--- HookManager – a tiny registry that owns many SingleHook objects.
+-- HookManager – a tiny registry that owns many hooks.
 --=====================================================================
 
 local HookManager = {}
 HookManager.__index = HookManager
 SF.HookManager = HookManager
 
-local SingleHookArgs = SF.SingleHookArgs    -- local alias
-
 --- Creates a fresh manager instance.
 --- @return table  A new HookManager.
-function HookManager:New()
+function HookManager:New(basenm)
     local o = {
-        hooks = {},          -- id → SingleHook instance
+        base = basenm or "HookManager",
+        cnt = 1,
+        hooks = {},          -- id → hooktable instance
     }
     setmetatable(o, self)
     return o
 end
 
------------------------------------------------------------------------
--- INTERNAL HELPERS
------------------------------------------------------------------------
+-- ---------------------------------------------------------------------
+-- PUBLIC API
+-- ---------------------------------------------------------------------
+--- @param target      table      Object that owns the method (e.g. MAIL_INBOX)
+--- @param method      string     Name of the method to hook
+--- @param fn          function   Your callback
+--- @return hooktable  table      contains the id, the target, the method, the function, the type ("pre", "post", "secure") and if enabled
+function HookManager:PreHook(target, method, fn)
+    local id = SF.str(self.base, self.cnt)
+    if self.hooks[id] then return nil end
 
---- Normalises the identifier (allows numbers, strings, or any hashable value).
-local function normId(id)
-    assert(id ~= nil, "HookManager: id cannot be nil")
-    return id
+
+    -- create hook object
+    local o = {
+        id       = id,
+        target   = target,    -- The object that owns the method (e.g. MAIL_INBOX)
+        method   = method,    -- Name of the method to hook (case‑sensitive)
+        fn       = fn,        -- Function signature depends on the kind
+        kind     = "pre",
+        enabled  = false,     -- has the hook been registered?
+    }
+    setmetatable(o, self)
+
+    --wrap the callback function with a disable
+    ZO_PreHook(target, method,
+        function(...)
+            local enabled = o.enabled
+            if not enabled then return end   -- guard against race‑conditions
+            return fn(...)               -- true → cancel original
+        end)
+    self.hooks[id] = o
+    self.cnt = self.cnt + 1
+    o.enabled  = true       -- has the hook been registered?
+
+    return o
 end
 
------------------------------------------------------------------------
--- PUBLIC API
------------------------------------------------------------------------
-
---- Adds a new SingleHook and stores it under *id*.
---- @param id          any        Identifier you will use later (string is typical)
---- @param kind        string     "pre", "post", or "secure"
 --- @param target      table      Object that owns the method (e.g. MAIL_INBOX)
 --- @param method      string     Name of the method to hook
 --- @param fn          function   Your callback (signature follows SingleHookArg docs)
---- @param ...         any        *(optional)* Extra arguments you want the hook to receive
----
---- @return id         The id assigned to the created SingleHookArg (also stored internally)
---- @return table      The created SingleHookArg (also stored internally)
-function HookManager:add(id, kind, target, method, fn, ...)
-    id = normId(id)
+--- @return hooktable  table      contains the id, the target, the method, the function, the type ("pre", "post", "secure") and if enabled
+function HookManager:PostHook(target, method, fn)
+    local id = SF.str(self.base, self.cnt)
+    if self.hooks[id] then return nil end
+    self.cnt = self.cnt + 1
 
-    assert(not self.hooks[id], ("HookManager: Hook with id '%s' already exists"):format(tostring(id)))
 
-    local hook = SingleHookArgs:New(target, method, kind, fn, ...)
-    self.hooks[id] = hook
-    return id, hook
+    -- create hook object
+    local o = {
+        id       = id,
+        target   = target,        -- The object that owns the method (e.g. MAIL_INBOX)
+        method   = method,        -- Name of the method to hook (case‑sensitive)
+        fn       = fn,        -- Function signature depends on the kind
+        kind     = "post",
+        enabled  = false,       -- has the hook been registered?
+    }
+    setmetatable(o, self)
+
+    if self.hooks[id] then return nil end
+    --wrap the callback function with a disable
+    ZO_PostHook(target, method,
+        function(...)
+            if not o.enabled then return end   -- guard against race‑conditions
+            return fn(...)               -- true → cancel original
+        end)
+    self.hooks[id] = o
+    o.enabled = true
+    return o
 end
 
---- Adds a new SingleHook and stores it under *id*.
---- @param id          any        Identifier you will use later (string is typical)
---- @param singlehook  table      Instance of a pre-created SingleHookArgs
----
---- @return id         The id assigned to the stored SingleHookArg (also stored internally)
---- @return table      The provided SingleHookArg (also stored internally)
-function HookManager:addHook(id, singlehook)
-    id = normId(id)
+--- @param target      table      Object that owns the method (e.g. MAIL_INBOX)
+--- @param method      string     Name of the method to hook
+--- @param fn          function   Your callback (signature follows SingleHookArg docs)
+--- @return hooktable  table      contains the id, the target, the method, the function, the type ("pre", "post", "secure") and if enabled
+function HookManager:SecurePostHook(target, method, fn)
+    local id = SF.str(self.base, self.cnt)
+    --if self.hooks[id] then return nil end
+    self.cnt = self.cnt + 1
 
-    assert(not self.hooks[id], ("HookManager: Hook with id '%s' already exists"):format(tostring(id)))
 
-    self.hooks[id] = singlehook
-    return id, singlehook
+    -- create hook object
+    local o = {
+        id       = id,
+        target   = target,        -- The object that owns the method (e.g. MAIL_INBOX or _G)
+        method   = method,        -- Name of the method to hook (case‑sensitive)
+        fn       = fn,            -- Function signature depends on the method being trailed
+        kind     = "secure",
+        enabled  = false,       -- has the hook been registered?
+    }
+    setmetatable(o, self)
+
+    --if self.hooks[id] then return nil end
+    --wrap the callback function with a disable
+    SecurePostHook(target, method, 
+        function(...)
+            if not o.enabled then return end
+
+            -- Use safeCall to swallow errors
+            SF.safeCall10(fn, ...)
+        end)--]]
+    self.hooks[id] = o
+    o.enabled  = true
+
+    return o
 end
 
 --- Retrieves a stored hook (or nil if it doesn't exist).
 --- @param id any
---- 
+---
 --- @return table|nil
 function HookManager:get(id)
-    return self.hooks[normId(id)]
+    --if not id then return nil end
+    return self.hooks[id] or nil
 end
 
 --- Enables a single hook by *id*.
 function HookManager:enable(id)
-    local h = self:Get(id)
-    if h then h:enable() end
+    local h = self:get(id)
+    if h then h.enabled = true end
 end
 
 --- Disables a single hook by *id*.
 function HookManager:disable(id)
-    local h = self:Get(id)
-    if h then h:disable() end
+    local h = self:get(id)
+    if h then h.enabled = false end
 end
 
 --- Toggles a single hook by *id* (registered ↔ unregistered).
 function HookManager:toggle(id)
-    local h = self:Get(id)
-    if h then h:toggle() end
+    local h = self:get(id)
+    if h then h.enabled = not h.enabled end
 end
 
 --- Removes a hook completely. If it is active it will be disabled first.
 --- After removal the *id* is free to be reused.
 function HookManager:remove(id)
-    local h = self:Get(id)
+    local h = self:get(id)
     if not h then return end
-    if h:isActive() then h:disable() end
+    if h.enabled then h.enabled = false end
     self.hooks[id] = nil
 end
 
 --- Registers **all** collected hooks.
 function HookManager:enableAll()
     for _, h in pairs(self.hooks) do
-        h:enable()
+        h.enabled = true
     end
 end
 
 --- Disables **all** registered hooks.
 function HookManager:disableAll()
     for _, h in pairs(self.hooks) do
-        h:disable()
+        h.enabled = false
     end
 end
 
 --- Toggles **all** hooks (registered → unregistered, unregistered → registered).
 function HookManager:toggleAll()
     for _, h in pairs(self.hooks) do
-        h:toggle()
+        h.enabled = not h.enabled
     end
 end
 
@@ -128,7 +188,7 @@ end
 --- Useful for debugging or confirming that hooks are correctly registered.
 function HookManager:describeAll()
     for id, h in pairs(self.hooks) do
-        local status = h:isActive() and "ACTIVE" or "INACTIVE"
-        d(string.format("[HookManager] %s – %s.%s (%s)", tostring(id), tostring(h.target), h.method, status))
+        local status = h.enabled and "ACTIVE" or "INACTIVE"
+        AutoCategory.logDebug(string.format("[HookManager] %s – %s.%s (%s)", tostring(id), tostring(h.kind), h.method, status))
     end
 end

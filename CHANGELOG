@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]68[/COLOR]:
+[LIST]
+[*] Radically changed HookManager and removed SingleHookArgs.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]67[/COLOR]:
 [LIST]
 [*] Add callable class and instance functions for SF_Color.
