@@ -1,5 +1,6 @@
 [COLOR="DeepSkyBlue"]68[/COLOR]:
 [LIST]
+[*] Added a max tries and a periodic version to CallLater.
 [*] Radically changed HookManager and removed SingleHookArgs.
 [/LIST]
 
