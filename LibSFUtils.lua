@@ -115,8 +115,21 @@ function sfutil.iter_args(...)
         end
 end
 
--- Executes `fn` safely. If an error occurs, it returns false and the error message.
--- Otherwise it returns true and then up to 10 the other return values from the function call.
+--- Creates a closure that calls `callback` with `tblself` as its first argument,
+--- followed by whatever arguments the returned function receives.
+--- @param callback function  The function to be invoked later.
+--- @param tblself  table|nil  Optional “self” table that will be passed first.
+--- @return function  A new function that you can call with any arguments.
+function sfutil.closure(callback, tblself, ...)
+    return function(...)
+            return callback(tblself, ...)
+        end
+end
+
+
+--- Executes `fn` safely. If an error occurs, it returns false and the error message.
+--- Otherwise it returns true and then up to 10 the other return values from the function call.
+--- (Does not create a table to pass back the returned values!)
 --- Executes a function safely and returns 10 of its results.
 --- @param fn function The function to protect.
 --- @param ... any Arguments forwarded to `fn`.
@@ -138,6 +151,7 @@ end
 
 -- Executes `fn` safely. If an error occurs, it returns false and the error message.
 -- Otherwise it returns true and then all of the other return values from the function call.
+--- (Does create a table to pass back the returned values!)
 --- Executes a function safely and returns *all* of its results.
 --- @param fn function The function to protect.
 --- @param ... any Arguments forwarded to `fn`.

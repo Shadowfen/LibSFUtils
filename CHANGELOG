@@ -1,3 +1,9 @@
+[COLOR="DeepSkyBlue"]69[/COLOR]:
+[LIST]
+[*] Added a closure function to allow additional parameters to be passed into callbacks.
+[*] Updated the comments on the safeCall and safeCall10 functions.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]68[/COLOR]:
 [LIST]
 [*] Added a max tries and a periodic version to CallLater.
