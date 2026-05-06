@@ -3,7 +3,7 @@
 
 LibSFUtils = {
     name = "LibSFUtils",
-    LibVersion = 69,    -- change this with every release!
+    LibVersion = 70,    -- change this with every release!
     author = "Shadowfen",
 }
 --[[

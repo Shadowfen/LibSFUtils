@@ -1,7 +1,14 @@
+[COLOR="DeepSkyBlue"]70[/COLOR]:
+[LIST]
+[*] Removed dependence on ZO_Object from SF_Color.
+[*] Removed dead code.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]69[/COLOR]:
 [LIST]
 [*] Added a closure function to allow additional parameters to be passed into callbacks.
 [*] Updated the comments on the safeCall and safeCall10 functions.
+[*] "Uplifting" table definitions to reduce numbers of table creations.
 [/LIST]
 
 [COLOR="DeepSkyBlue"]68[/COLOR]:

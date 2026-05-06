@@ -78,13 +78,12 @@ end
 
 
 -- ------------------------------------------
-SF_Color = ZO_Object:Subclass()
--- Give the SF_Color class a callable for :New()
-local mt = getmetatable(SF_Color)
-mt.__call = function(self, pr, pg, pb, pa)
-        return self:New(pr, pg, pb, pa)
+--SF_Color = ZO_Object:Subclass()
+SF_Color = {}
+SF_Color.__index = SF_Color
+SF_Color.__call = function(self, text)
+        return self:Colorize(text)
     end
-
 
 --[[
 	Don't want to make this public because it can leave
@@ -125,16 +124,9 @@ end
 		pr - A ZO_ColorDef to copy/calculate values from.
 --]]
 function SF_Color:New(pr, pg, pb, pa)
-    local c = ZO_Object.New(self)
-
-    local mt = getmetatable(c)
-    mt.__call = function(self, text)
-            return self:Colorize(text)
-        end
-
-	--c.rgb = {r=1, g=1, b=1, a=1}
-	--c:SetColor(pr, pg, pb, pa)
-    c:Initialize(pr, pg, pb, pa)
+	local c = setmetatable({},SF_Color)
+    c.rgb = {r=1, g=1, b=1, a=1}
+	SF_Color.SetColor(c, pr, pg, pb, pa)
 
     return c
 end

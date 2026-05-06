@@ -51,52 +51,23 @@ local function tcstr_tail(pending, rslt, seen)
     end
 end
 
--- Public wrapper – builds the initial pending list from the varargs.
---[[
-local function tcstr(rslt, ...)
-    local pending = {...}               -- start with the arguments themselves
-    return tcstr_tail(pending, rslt)   -- tail‑call entry point
-end
---]]
--- create a table of strings to concatenate togeether from the input params
---[[
-local function tcstr(rslt, ...)
-
-    -- append another value to the result table
-    local function appendVal(val)
-        rslt[#rslt+1] = tostring(val)
-    end
-
-    for _, v in sfutil.iter_args(...) do
-        local t_v = type(v)
-        if (v == nil) then
-            appendVal( "(nil)" )
-
-        elseif (t_v == "table") then
-            for k, v1 in pairs(v) do
-                appendVal(k)
-                if type(v1) ~= "table" then
-                  appendVal(v1)
-                else
-                  return tcstr(rslt, v1)
-                end
-            end
-        else
-            appendVal(v)
-        end
-    end
-end
---]]
 -- all of the strings that are passed in are concatenated
 -- the contents of tables passed in are concatenated with their keys
 -- a nil arg is converted to "(nil)"
 -- numbers are converted with tostring()
+local rslt_pool = {}        -- Allocate the table ONCE at module load
 function sfutil.str(...)
-    local rslt = {}
-    --tcstr(rslt, ...)
-    local pending = {...}               -- start with the arguments themselves
-    tcstr_tail(pending, rslt, {})   -- tail‑call entry point
-    return table.concat(rslt)
+    -- Manually clear the reused table
+    for k in pairs(rslt_pool) do
+        rslt_pool[k] = nil
+    end
+
+    local pending = {...}
+
+    -- Pass the cleared table to the tail-call helper
+    tcstr_tail(pending, rslt_pool, {})
+
+    return table.concat(rslt_pool)
 end
 
 -- old non-tail call version
@@ -146,8 +117,6 @@ local function tclstr(rslt, ...)
         rslt[#rslt+1] = tostring(val)
     end
 
-    --local nargs = select("#", ...)
-    --for i = 1, nargs do
     for _, v in sfutil.iter_args(...) do
         local t_v = type(v)
         if not v then
@@ -172,9 +141,15 @@ local function tclstr(rslt, ...)
 end
 
 function sfutil.lstr(...)
-    local rslt = {}
-    tclstr(rslt, ...)
-    return table.concat(rslt)
+    -- Manually clear the reused table (no table.wipe)
+    for k in pairs(rslt_pool) do
+        rslt_pool[k] = nil
+    end
+
+    -- Pass the cleared table to the helper function
+    tclstr(rslt_pool, ...)
+
+    return table.concat(rslt_pool)
 end
 
 --[[ ---------------------
@@ -253,65 +228,21 @@ local function tcdstr_tail(pending, delim, rslt, seen)
     return tcdstr_tail(pending, delim, rslt, seen)
 end
 
--- create a table of strings to concatenate togeether from the input params
---[[
-local function tcdstr(delim, rslt, ...)
-    -- append another value to the result table
-    local function appendVal(val)
-        rslt[#rslt+1] = tostring(val)
-    end
-
-    for _, v in sfutil.iter_args(...) do
-        local t_v = type(v)
-        if (v == nil) then
-            appendVal( "(nil)" )
-
-        elseif (t_v == "table") then
-            for k, v1 in pairs(v) do
-                appendVal(k)
-                if type(v1) ~= "table" then
-                  appendVal(v1)
-                else
-                  return tcdstr(delim, rslt, v1)
-                end
-            end
-        elseif t_v ~= "function" then
-            appendVal(v)
-        end
-    end
-end
---]]
 
 function sfutil.dstr(delim, ...)
-    --local arg = {}
-    --tcdstr(delim, arg, ...)
-    local pending = {...}
-    local flat = tcdstr_tail(pending, delim, {}, {})
-    return table.concat(flat, delim)
-end
-
--- old version
-function sfutil.dstr1(delim, ...)
-    local nargs = select("#", ...)
-    local arg = {}
-    local sf_str = sfutil.dstr
-
-    for i = 1, nargs do
-        local v = select(i, ...)
-        local t = type(v)
-        if (v == nil) then
-            arg[#arg + 1] = "(nil)"
-        elseif (t == "table") then
-            for k, v1 in pairs(v) do
-                arg[#arg + 1] = k
-                arg[#arg + 1] = sf_str(delim, v1)
-            end
-        else
-            arg[#arg + 1] = tostring(v)
-        end
+    -- Manually clear the reused table
+    for k in pairs(rslt_pool) do
+        rslt_pool[k] = nil
     end
-    return table.concat(arg, delim)
+
+    local pending = {...}
+
+    -- Pass the cleared table to the tail-call helper
+    rslt_pool = tcdstr_tail(pending, delim, rslt_pool, {})
+
+    return table.concat(rslt_pool, delim)
 end
+
 
 --[[ ---------------------
     Get the appropriate text string based on a variety
