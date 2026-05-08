@@ -78,7 +78,6 @@ end
 
 
 -- ------------------------------------------
---SF_Color = ZO_Object:Subclass()
 SF_Color = {}
 SF_Color.__index = SF_Color
 SF_Color.__call = function(self, text)
