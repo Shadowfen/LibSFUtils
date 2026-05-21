@@ -1,5 +1,29 @@
--- LibSFUtils is already defined in prior loaded file
+--[[
+    TimedQueue is a specialized data structure that maintains a fixed-size history of entries, 
+    each tagged with a timestamp (GetGameTimeMilliseconds()). It implements a circular buffer 
+    algorithm, allowing for constant-time insertion and efficient memory usage. When the queue 
+    reaches its capacity, the oldest entry is automatically overwritten by the newest.
 
+    Key Features:
+        Timestamped Entries: Every item pushed is automatically paired with the current game time.
+        Circular Buffer: Prevents memory leaks by reusing array slots; no shifting of elements required on push.
+        Dynamic Resizing: Adjust the active limit (setMax) at runtime without recreating the queue.
+        Advanced Removal: Supports removal by reference, payload value, or custom predicate.
+        Order Preservation: list() returns entries sorted from newest to oldest.
+
+    Dependencies: Requires LibSFUtils (for ZO_ClearTable) and the ESO API function GetGameTimeMilliseconds.
+
+    Technical Implementation Details
+
+    Circular Buffer: Uses _head and _tail indices wrapping around _maxPossible. This ensures O(1) insertion.
+    Entry Structure: Every stored item is a table { ts = number, payload = any }.
+    Rebuilding: Removal methods (remove, removeByPayload, removeIf) convert the circular buffer to a linear 
+            array, perform the removal, and rebuild the buffer. This is O(N) but necessary to maintain the 
+            circular structure integrity after arbitrary deletions.
+    Thread Safety: Not explicitly thread-safe (Lua is single-threaded in ESO, so this is not an issue).
+--]]
+
+-- LibSFUtils is already defined in prior loaded file
 LibSFUtils = LibSFUtils or {}
 local sfutil = LibSFUtils
 
@@ -33,9 +57,23 @@ local function dec(idx, limit)
     return idx
 end
 
+--[[
+    TimedQueue:New(initialMax, maxPossible)
+
+    Creates a new TimedQueue instance.
+
+        Parameters:
+            initialMax (number): The starting maximum number of entries the queue can hold. Must be ≥ 1.
+            maxPossible (number, optional): The absolute hard ceiling for the queue size. 
+                            If omitted, defaults to initialMax. Must be ≥ initialMax.
+        Returns: A new TimedQueue object.
+
+    Example:
+        local SF = LibSFUtils
+        -- Create a queue that starts with 10 entries but can grow to 50
+        local myQueue = SF.TimedQueue:New(10, 50)
+--]]
 --- Constructor
---- @param initialMax   number  Starting active limit (≥1)
---- @param maxPossible  number|nil  Hard ceiling for the limit (≥initialMax). If nil, defaults to initialMax.
 function TimedQueue:New(initialMax, maxPossible)
     assert(type(initialMax) == "number" and initialMax >= 1,
            "initialMax must be a positive integer")
@@ -56,11 +94,18 @@ function TimedQueue:New(initialMax, maxPossible)
     return obj
 end
 
---- Adjust the active limit (`maxEntries`) at runtime.
---- The new limit is clamped to [1, _maxPossible].
---- If the new limit is smaller than the current count, the oldest
---- entries are discarded immediately.
---- @param newMax number
+--[[
+    queue:setMax(newMax)
+
+    Dynamically adjusts the active size limit of the queue.
+
+    Behavior:
+        Clamps newMax between 1 and _maxPossible.
+        Shrinking: If newMax is smaller than the current count, the oldest entries are immediately
+             discarded until the count matches newMax.
+        Growing: If newMax is larger, the queue simply allows more entries before overwriting begins.
+    Parameters: newMax (number).
+--]]
 function TimedQueue:setMax(newMax)
     assert(type(newMax) == "number", "newMax must be a number")
 
@@ -78,14 +123,29 @@ function TimedQueue:setMax(newMax)
     self._max = newMax
 end
 
+--[[
+    queue:getMax()
+
+    Returns the current active limit (not necessarily the hard ceiling).
+
+    Returns: Number.
+--]]
 function TimedQueue:getMax()
     return self._max
 end
 
---- Push a new payload onto the queue.
---- Stores `{ ts = GetGameTimeMilliseconds(), payload = payload }`.
---- If the queue is already at its active limit, the oldest entry is overwritten.
---- @param payload any
+--[[
+    queue:push(payload)
+
+    Adds a new entry to the queue.
+
+    Behavior:
+        Creates an entry table: { ts = GetGameTimeMilliseconds(), payload = payload }.
+        Places the entry at the tail (newest position).
+        Overflow Handling: If the queue is at its active limit (_max), the oldest entry (at head) 
+                is overwritten, and the head pointer advances.
+    Parameters: payload (any): The data to store.
+--]]
 function TimedQueue:push(payload)
     local entry = {
         ts      = GetGameTimeMilliseconds(),
@@ -104,14 +164,24 @@ function TimedQueue:push(payload)
     end
 end
 
---- Return the newest entry (or nil if empty).
+--[[
+    queue:peek()
+
+    Returns the newest entry table { ts, payload } without removing it or nil if empty.
+--]]
 function TimedQueue:peek()
     if self._count == 0 then return nil end
     return self._data[self._tail]
 end
 
---- Return **all** entries as a plain array, sorted newest → oldest.
---- The returned array is a copy; mutating it does not affect the queue.
+--[[
+    queue:list()
+
+    Returns a snapshot of all entries as a standard Lua array.
+
+        Order: Sorted newest → oldest.
+        Returns: Table of entry tables.
+--]]
 function TimedQueue:list()
     local out = {}
     if self._count == 0 then return out end
@@ -124,9 +194,22 @@ function TimedQueue:list()
     return out
 end
 
+--[[
+    queue:size()
+
+    Returns the current number of entries in the queue.
+
+    Returns: Number.
+--]]
 function TimedQueue:size() return self._count end
 
---- Clear the whole queue.
+--[[
+    queue:clear()
+
+    Empties the queue completely.
+
+    Behavior: Resets pointers and clears the internal data table using ZO_ClearTable.
+--]]
 function TimedQueue:clear()
     self._head  = 1
     self._tail  = 0
@@ -137,6 +220,10 @@ end
 -----------------------------------------------------------------------
 -- ★★ Removal API ★★
 -----------------------------------------------------------------------
+--[[
+    The queue offers flexible ways to remove specific entries. Note that removal operations 
+    involve rebuilding the internal buffer, which is slightly more expensive than push or pop.
+--]]
 
 --- Internal helper: rebuild the circular buffer from a plain array.
 --- The array must be ordered **newest → oldest**.
@@ -159,9 +246,14 @@ local function rebuildFromArray(q, arr)
     end
 end
 
---- Remove a specific entry **by reference** (the exact table returned by `push` or `list`).
---- Returns `true` if something was removed, `false` otherwise.
---- @param entry table
+--[[
+    queue:remove(entry)
+
+    Removes a specific entry by reference.
+
+    Parameters: entry (table): The exact table object **by reference** returned by push or list.
+    Returns: true if removed, false if not found.
+--]]
 function TimedQueue:remove(entry)
     if self._count == 0 then return false end
 
@@ -176,9 +268,14 @@ function TimedQueue:remove(entry)
     return false
 end
 
---- Remove the **first entry whose payload equals** the supplied value.
---- Returns `true` if something was removed.
---- @param payload any
+--[[
+    queue:removeByPayload(payload)
+
+    Removes the first entry whose payload matches the given value.
+
+    Parameters: payload (any): The value to match against entry.payload.
+    Returns: true if removed, false if not found.
+]]
 function TimedQueue:removeByPayload(payload)
     if self._count == 0 then return false end
 
@@ -193,10 +290,15 @@ function TimedQueue:removeByPayload(payload)
     return false
 end
 
---- Remove the **first entry that satisfies a predicate**.
---- `predicate(entry)` should return `true` for the entry you want to delete.
---- Returns `true` if something was removed.
---- @param predicate fun(entry:table):boolean
+--[[
+    queue:removeIf(predicate)
+
+    Removes the first entry that satisfies a custom condition.
+
+    Parameters: predicate (function): A function func(entry) that returns true to delete the entry.
+        entry is a table: { ts = ..., payload = ... }.
+    Returns: true if removed, false if no entry matched.
+--]]
 function TimedQueue:removeIf(predicate)
     if self._count == 0 then return false end
     assert(type(predicate) == "function", "predicate must be a function")
@@ -212,8 +314,14 @@ function TimedQueue:removeIf(predicate)
     return false
 end
 
---- Discard the **oldest** entry (the one at the head of the queue).
---- Returns the removed entry or `nil` if the queue is empty.
+--[[
+    queue:popOldest()
+
+    Discards and returns the oldest entry (FIFO).
+
+    Returns: The entry table or nil if empty.
+    Use Case: Standard queue processing.
+--]]
 function TimedQueue:popOldest()
     if self._count == 0 then return nil end
     local oldest = self._data[self._head]
@@ -222,8 +330,14 @@ function TimedQueue:popOldest()
     return oldest
 end
 
---- Discard the **newest** entry (the one at the tail of the queue).
---- Returns the removed entry or `nil` if the queue is empty.
+--[[
+    queue:popNewest()
+
+    Discards and returns the newest entry (LIFO).
+
+    Returns: The entry table or nil if empty.
+    Use Case: Undo stacks or reverting the last action.
+]]
 function TimedQueue:popNewest()
     if self._count == 0 then return nil end
     local newest = self._data[self._tail]
