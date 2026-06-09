@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]71[/COLOR]:
+[LIST]
+[*] API bump.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]70[/COLOR]:
 [LIST]
 [*] Removed dependence on ZO_Object from SF_Color.
