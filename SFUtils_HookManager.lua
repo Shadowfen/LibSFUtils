@@ -55,13 +55,16 @@ end
 --[[
     manager:PreHook(target, method, fn)
 
-    Registers a Pre-Hook. The callback runs before the original function. Returning true from the callback cancels the original function execution.
+    Registers a Pre-Hook. The callback runs before the original function. 
+        Returning true from the callback cancels the original function execution.
 
     Parameters:
         target (table): The object containing the method (e.g., MAIL_INBOX, _G).
         method (string): The name of the method to hook (case-sensitive).
-        fn (function): The callback function. Signature matches the original function.
-    Returns: A hooktable object with properties: id, target, method, fn, kind ("pre"), enabled.
+        fn (function): The callback function. Signature matches the original 
+            function.
+    Returns: A hooktable object with properties: id, target, method, fn, 
+        kind ("pre"), enabled.
 --]]
 function HookManager:PreHook(target, method, fn)
     local id = SF.str(self.base, self.cnt)
@@ -96,7 +99,8 @@ end
 --[[
     manager:PostHook(target, method, fn)
 
-    Registers a Post-Hook. The callback runs after the original function. The return value of the callback is ignored (cannot cancel the original).
+    Registers a Post-Hook. The callback runs after the original function. 
+        The return value of the callback is ignored (cannot cancel the original).
 
     Parameters: Same as PreHook.
     Returns: A hooktable object with kind ("post").

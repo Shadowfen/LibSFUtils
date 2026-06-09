@@ -1,5 +1,27 @@
--- LibSFUtils is already defined in prior loaded file
+--[[
+    This module provides high-performance string construction and formatting tools. It 
+    addresses common ESO addon challenges such as:
 
+        Performance: Avoiding slow string concatenation loops by using table.concat.
+        Localization: Automatically resolving numeric string IDs via GetString.
+        Safety: Handling nil values, circular table references, and oversized strings.
+        Rich Text: Easily generating ESO color tags (|c...|r) and icon tags (|t...|t).
+
+    Technical Notes
+
+    Pooled Memory: Functions like sfutil.str, sfutil.lstr, and sfutil.dstr use a global rslt_pool 
+        table to reduce allocations. They manually clear this table before use. This is safe in 
+        single-threaded Lua but requires care if used in a multi-threaded environment (not applicable to ESO).
+    Circular Reference Handling: sfutil.str and sfutil.dstr track visited tables in a seen table. 
+        If a cycle is detected, it outputs "<cycle>" instead of crashing or looping infinitely.
+    Table Expansion: When a table is passed to str/lstr/dstr, it is flattened. Keys and values 
+        are appended sequentially.
+        { a = 1, b = 2 } becomes "a1b2".
+    Function Ignoring: Functions are never executed in str/lstr/dstr. If you need to execute a 
+        function, use sfutil.GetText or call it manually before passing to str.
+--]]
+
+-- LibSFUtils is already defined in prior loaded file
 LibSFUtils = LibSFUtils or {}
 local sfutil = LibSFUtils
 
@@ -51,10 +73,34 @@ local function tcstr_tail(pending, rslt, seen)
     end
 end
 
--- all of the strings that are passed in are concatenated
--- the contents of tables passed in are concatenated with their keys
--- a nil arg is converted to "(nil)"
--- numbers are converted with tostring()
+--[[
+    sfutil.str(...)
+
+    Concatenates multiple arguments into a single string efficiently.
+
+        Behavior:
+            Numbers: Converted to strings via tostring.
+            Tables: Recursively expanded. Keys and values are added to the output.
+            Nil: Converted to the literal string "(nil)".
+            Functions: Ignored (not executed).
+            Circular References: Detected and replaced with "<cycle>" to prevent infinite loops.
+        Optimization: Uses a tail-recursive helper and a pooled result table to minimize garbage collection.
+        Returns: A single concatenated string.
+---
+	Similar to sfutil.str except that it will try to convert the
+	numeric arguments in the argument list into strings using the
+	GetString() function.
+
+	To improve on the speed of ".." concatenation, we add the
+	arguments to a table and do a concat on the table.
+
+	Value conversions:
+	* Numeric arguments are run through the GetString function:
+	  i.e 16 -> GetString(16).
+	* The elements of table arguments are recursively added.
+	* nil is converted to "(nil)"
+	* Everything else is run through tostring()
+--]]
 local rslt_pool = {}        -- Allocate the table ONCE at module load
 function sfutil.str(...)
     -- Manually clear the reused table
@@ -70,7 +116,13 @@ function sfutil.str(...)
     return table.concat(rslt_pool)
 end
 
--- old non-tail call version
+--[[
+    sfutil.str1(...)
+
+    Legacy version of sfutil.str. Uses a standard loop instead of tail recursion.
+
+    Note: Prefer sfutil.str for better performance and circular reference safety.
+--]]
 function sfutil.str1(...)
     local nargs = select("#", ...)
     local arg = {}
@@ -95,21 +147,6 @@ function sfutil.str1(...)
 end
 
 
---[[ ---------------------
-	Similar to sfutil.str except that it will try to convert the
-	numeric arguments in the argument list into strings using the
-	GetString() function.
-
-	To improve on the speed of ".." concatenation, we add the
-	arguments to a table and do a concat on the table.
-
-	Value conversions:
-	* Numeric arguments are run through the GetString function:
-	  i.e 16 -> GetString(16).
-	* The elements of table arguments are recursively added.
-	* nil is converted to "(nil)"
-	* Everything else is run through tostring()
-]]
 local function tclstr(rslt, ...)
 
     -- append another value to the result table
@@ -140,19 +177,18 @@ local function tclstr(rslt, ...)
     end
 end
 
-function sfutil.lstr(...)
-    -- Manually clear the reused table (no table.wipe)
-    for k in pairs(rslt_pool) do
-        rslt_pool[k] = nil
-    end
+--[[
+    sfutil.lstr(...)
 
-    -- Pass the cleared table to the helper function
-    tclstr(rslt_pool, ...)
+    Concatenates arguments, treating numbers as Localization IDs.
 
-    return table.concat(rslt_pool)
-end
-
---[[ ---------------------
+    Behavior:
+        Numbers: Passed to GetString() to retrieve localized text.
+        Tables: Recursively expanded (keys and values).
+        Nil: Converted to "(nil)".
+        Functions: Ignored.
+    Use Case: Building debug logs or UI text where you want to mix raw strings and localized string IDs seamlessly.
+---
 	Similar to sfutil.str except that it will try to convert the
 	numeric arguments in the argument list into strings using the
 	GetString() function.
@@ -166,6 +202,23 @@ end
 	* The elements of table arguments are recursively added.
 	* nil is converted to "(nil)"
 	* Everything else is run through tostring()
+--]]
+function sfutil.lstr(...)
+    -- Manually clear the reused table (no table.wipe)
+    for k in pairs(rslt_pool) do
+        rslt_pool[k] = nil
+    end
+
+    -- Pass the cleared table to the helper function
+    tclstr(rslt_pool, ...)
+
+    return table.concat(rslt_pool)
+end
+
+--[[ ---------------------
+    sfutil.lstr1(...)
+
+    Legacy version of sfutil.lstr.
 ]]
 function sfutil.lstr1(...)
     local nargs = select("#", ...)
@@ -228,7 +281,21 @@ local function tcdstr_tail(pending, delim, rslt, seen)
     return tcdstr_tail(pending, delim, rslt, seen)
 end
 
+--[[
+    sfutil.dstr(delim, ...)
 
+    Concatenates arguments with a delimiter inserted between every element.
+
+    Parameters:
+        delim (string): The separator (e.g., ", ", "|", "\n").
+        ...: Variable arguments.
+    Behavior:
+        Similar to sfutil.str but inserts delim between every processed item.
+        Nil: Converted to "(nil)".
+        Tables: Expanded recursively; delimiters are placed between keys and values as well.
+        Functions: Ignored.
+    Returns: A single string with delimiters.
+--]]
 function sfutil.dstr(delim, ...)
     -- Manually clear the reused table
     for k in pairs(rslt_pool) do
@@ -245,15 +312,23 @@ end
 
 
 --[[ ---------------------
+    sfutil.GetText(textEntry, ...)
+
+    Retrieves text based on the input type.
     Get the appropriate text string based on a variety
 	of input types.
 	    Type		Returns
 		nil			empty string ""
 		string 		textEntry
 		number		returns GetString(textEntry)
-		function    returns the return value of the textEntry function
-		               with whatever args were provided
-	(Note that any args after textEntry are ignored unless textEntry is a function.)
+		function    Executes textEntry(...) and returns the result.
+
+    Parameters:
+        textEntry: Can be a string, number (ID), or function.
+        ...: Arguments passed to textEntry if it is a function.
+    
+    Use Case: A unified helper for UI labels that might come from constants, 
+        string IDs, or dynamic generators.
 --]]
 function sfutil.GetText(textEntry, ...)
     if textEntry == nil then return "" end
@@ -272,11 +347,17 @@ function sfutil.GetText(textEntry, ...)
 end
 
 --[[ ---------------------
-	Split a string into smaller chunks if necessary.
-	If maxlen is not provided, it defaults to 1800 bytes.
+    sfutil.strSplitLen(str, maxlen)
 
-	Returns the string (if less than the maxlen), or a table of strings (less than maxlen)
-	that would concatenate into the original string.
+    Splits a long string into chunks that do not exceed maxlen bytes.
+
+    Parameters:
+        str: The input string.
+        maxlen (number, optional): Max length per chunk. Defaults to 1800.
+    Behavior:
+        If str is shorter than maxlen, returns the string itself.
+        Otherwise, returns a table of substrings that would concatenate into the original string.
+    Use Case: ESO chat messages have a length limit (~2000 chars). Use this to split long logs before sending.
 --]]
 function sfutil.strSplitLen(str, maxlen)
     if type(str) ~= "string" then
@@ -306,11 +387,18 @@ function sfutil.strSplitLen(str, maxlen)
 end
 
 --[[ ---------------------
-	Concatenate a table of strings of any length into a string (or table of strings) that are
-	no longer than maxlen.
-	If maxlen is not provided, this function will always return a single string.
-	If maxlen is provided, this function may return another table of strings which are not
-	to exceed maxlen bytes in length or a single string that's length <= maxlen
+    sfutil.tblJoinLen(tbl, maxlen)
+
+    Joins a table of strings, splitting the result if it exceeds maxlen.
+
+    Parameters:
+        tbl: Table of strings (or convertible values).
+        maxlen (number, optional): Max length. If nil, returns a single joined string.
+    Behavior:
+        Converts all table elements to strings.
+        Joins them.
+        If maxlen is set and the result is too long, calls sfutil.strSplitLen and returns the table of chunks.
+    Returns: String (if short) or Table of strings (if long).
 --]]
 function sfutil.tblJoinLen(tbl, maxlen)
     if not tbl then return nil end
@@ -353,10 +441,22 @@ function sfutil.tblJoinLen(tbl, maxlen)
 end
 
 --[[ ---------------------
-	Create a string containing an optional icon (of optional color) followed by a text
+    sfutil.GetIconized(prompt, promptcolor, texturefile, texturecolor)
+
+    Create a string containing an optional icon (of optional color) followed by a text
 	prompt (specified either as a string itself or as a localization string id)
 	(Without the  parameters, it simply prepares and optionally colorizes text.)
-	The color parameters are all hex colors.
+
+    Parameters:
+        prompt: String or number (ID).
+        promptcolor: Hex color string for the text.
+        texturefile: Path to the texture (e.g., "Interface\\Icons\\Ability_Warrior_BattleRoar").
+        texturecolor: Hex color for the icon (optional).
+    Output Format:
+        With Icon & Color: |c<texturecolor>|t24:24:<texturefile>:inheritColor|t|r<c<promptcolor><prompt>|r
+        With Icon only: |t24:24:<texturefile>|t<prompt>
+        With Color only: |c<promptcolor><prompt>|r
+    Use Case: Creating chat messages or tooltip headers with icons.
 --]]
 function sfutil.GetIconized(prompt, promptcolor, texturefile, texturecolor)
     local strprompt
@@ -387,10 +487,19 @@ function sfutil.GetIconized(prompt, promptcolor, texturefile, texturecolor)
 end
 
 --[[ ---------------------
-	Create a string containing a text prompt (specified either as a string itself
+    sfutil.ColorText(prompt, promptcolor)
+
+    Create a string containing a text prompt (specified either as a string itself
 	or as a localization string id) and a text color. The text color is optional, but
 	if you do not provide it, you just get the same text back that you put in.
-	The color parameters are all hex colors.
+
+    Parameters:
+        prompt: String, number (ID), or nil.
+        promptcolor: Hex color string (e.g., "FF0000").
+    Behavior:
+        Resolves prompt (via GetString if numeric).
+        Wraps in |c<promptcolor>...|r if color is provided.
+    Returns: Colorized string.
 --]]
 function sfutil.ColorText(prompt, promptcolor)
     local strprompt
