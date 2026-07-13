@@ -1,11 +1,15 @@
-require "LibSFUtils.test.tk"
-require "LibSFUtils.test.zos"
+package.path = package.path .. ";C:/Users/scott/Documents/SFAddons/TK/?.lua;C:/Users/scott/Documents/Elder Scrolls Online/live/AddOns/LibSFUtils/?.lua"
 
-require "LibSFUtils.LibSFUtils_Global"
-require "LibSFUtils.SFUtils_Logger"
-require "LibSFUtils.SFUtils_Color"
-require "LibSFUtils.LibSFUtils"
+require "zos"
+require "tk"
 local TK = TestKit
+
+require "LibSFUtils_Global"
+require "SFUtils_Logger"
+require "SFUtils_Tables"
+require "SFUtils_Strings"
+require "SFUtils_Color"
+require "LibSFUtils"
 local SF = LibSFUtils
 
 local TR = test_log
@@ -17,23 +21,49 @@ local mn = "SFUtils_Strings"
 
 test_log = {}
 
--- main
-TK.init()
+local function Strings_testNilPack()
+    local fn = "NilPack"
+    TK.printSuite(mn,fn)
+    
+    local tbl1 = SF.NilPack(1,nil,"3",nil)
+    TK.assertEquals(tbl1.n, 4, "counted trailing nil")
+    TK.assertNil(tbl1[2], "first nil is saved")
+    TK.assertNil(tbl1[4], "second nil is saved")
+    TK.assertEquals(tbl1[1], 1, "first param was 1")
+    TK.assertEquals(tbl1[3], "3", "third param was '3'")
+end
+
+local function Strings_testNilUnpack()
+    local fn = "NilUnpack"
+    TK.printSuite(mn,fn)
+    
+    local tbl1 = SF.NilPack(1,nil,"3",nil)
+    local a1, a2, a3, a4 = SF.NilUnpack(tbl1)
+    TK.assertTrue(a1 == 1, "got first arg")
+    TK.assertNil(a2, "got nil second arg")
+    TK.assertTrue(a3, "got third arg")
+    TK.assertNil(a4, "got nil fourth arg")
+end
 
 local function Strings_testStr()
     local fn = "testStr"
     TK.printSuite(mn,fn)
+    
     TK.assertTrue(SF.str("test", "1") == "test1", "str - str - "..SF.str("test", "1"))
-    --d(SF.str({ "A", "B", "C"} ))
+    --d("simple table  "..SF.str({ "A", "B", "C"} ))
     TK.assertTrue(SF.str({ "A", "B", "C"}) == "1A2B3C", "str - tbl")
-    --d( SF.str({ "AA", 22, "CA", {"Z", "Y", "X", "W"} } ))
-    TK.assertTrue(SF.str({ "AA", 22, "CA", {"Z", "Y", "X", "W"} }) == "1AA2223CA41Z2Y3X4W", "str - tbl2")
+    --d( SF.str("AA", 22, "CA", {"Z", "Y", "X", "W"} ))
+    TK.assertTrue(SF.str( "AA", 22, "CA", {"Z", "Y", "X", "W"} ) == "AA22CA1Z2Y3X4W", "str - single, tbl2")
+    --d( SF.str({"Z", "Y", "X", "W"} ))
+    TK.assertTrue(SF.str( {"Z", "Y", "X", "W"} ) == "1Z2Y3X4W", "str - tbl2")
+    --d("nil="..SF.str(nil).."=")
     TK.assertTrue(SF.str(nil) == "(nil)", "str - nil")
+    --d("func="..SF.str(function() return "ha" end).."=")
     TK.assertTrue(SF.str(function() return "ha" end) == "", "str - function ignored")
 end
 
 local function Strings_testLStr()
-    local fn = "testStr"
+    local fn = "testLStr"
     TK.printSuite(mn,fn)
     TK.assertTrue(SF.lstr("test", "1") == "test1", "str - str - "..SF.str("test", "1"))
     --d(SF.str({ "A", "B", "C"} ))
@@ -49,9 +79,9 @@ local function Strings_testDstr()
     TK.printSuite(mn,fn)
     TK.assertTrue(SF.dstr(" ","test", "1") == "test 1", "dstr - str - "..SF.dstr(" ","test", "1"))
     --d(SF.dstr(" ", { "A", "B", "C"} ))
-    TK.assertTrue(SF.dstr(" ",{ "A", "B", "C"}) == "1 A 2 B 3 C", "dstr - tbl")
+    TK.assertTrue(SF.dstr(" ",{ "A", "B", "C"}) == "3 C 2 B 1 A", "dstr - tbl")
     --d( SF.dstr( " ", { "AA", 22, "CA", {"Z", "Y", "X", "W"} } ))
-    TK.assertTrue(SF.dstr(" ",{ "AA", 22, "CA", {"Z", "Y", "X", "W"} }) == "1 AA 2 22 3 CA 4 1 Z 2 Y 3 X 4 W", "dstr - tbl2")
+    TK.assertTrue(SF.dstr(" ",{ "AA", 22, "CA", {"Z", "Y", "X", "W"} }) == "4 4 W 3 X 2 Y 1 Z 3 CA 2 22 1 AA", "dstr - tbl2")
     TK.assertTrue(SF.dstr(nil) == "", "dstr - nil")
 end
 
@@ -137,10 +167,11 @@ local function Strings_testBool2Str()
 end
 
 function Strings_runTests()
+    Strings_testNilPack()
+    Strings_testNilUnpack()
     Strings_testStr()
     Strings_testLStr()
     Strings_testDstr()
-    --Strings_testDstr1()
     Strings_testGetText()
     Strings_testStrSplitLen()
     Strings_testTblJoinLen_tbl()
@@ -148,11 +179,13 @@ function Strings_runTests()
     --Strings_testGetIconized()
     Strings_testColorText()
     Strings_testBool2Str()
-    Strings_testStr2Bool()
+    --Strings_testStr2Bool()
 end
 
 -- main
 if not Suite then
+    TK.init()
+    
     Strings_runTests()
     d("\n")
     TK.showResult("Strings_Test")

@@ -1,12 +1,15 @@
-require "LibSFUtils.test.tk"
-require "LibSFUtils.test.zos"
+package.path = package.path .. ";C:/Users/scott/Documents/SFAddons/TK/?.lua;C:/Users/scott/Documents/Elder Scrolls Online/live/AddOns/LibSFUtils/?.lua"
 
-require "LibSFUtils.LibSFUtils_Global"
-require "LibSFUtils.SFUtils_Logger"
-require "LibSFUtils.SFUtils_Tables"
-require "LibSFUtils.SFUtils_Color"
-require "LibSFUtils.LibSFUtils"
+require "zos"
+require "tk"
 local TK = TestKit
+
+require "LibSFUtils_Global"
+require "SFUtils_Logger"
+require "SFUtils_Tables"
+require "SFUtils_Strings"
+require "SFUtils_Color"
+require "LibSFUtils"
 local SF = LibSFUtils
 
 local TR = test_log
@@ -83,13 +86,16 @@ end
 local function Tables_testSafeClearTable()
     local fn = "testSafeClearTable"
     TK.printSuite(mn,fn)
+    
     local tbl
     TK.assertNotNil(SF.safeClearTable(tbl), "non-table gets created")
     TK.assertNil(next(SF.safeClearTable(tbl)), "created table is empty")
+    
     tbl = {}
     local atbl = SF.safeClearTable(tbl)
     TK.assertTrue(tbl == atbl, "tbl ref remains the same")
     TK.assertTrue(SF.isEmpty(atbl), "atbl table is empty")
+    
     tbl = { "monday" }
     atbl = SF.safeClearTable(tbl)
     TK.assertTrue(tbl == atbl, "tbl == atbl")
@@ -99,12 +105,13 @@ end
 local function Tables_testRemainsInList()
     local fn = "testRemainsInList"
     TK.printSuite(mn,fn)
+    
     local listA = {[1]=1,[2]=2,[3]=4,[4]=5,[5]=3}
     local listB = {[2]=1, [4]=1, [5] = 1}
     local remains = SF.RemainsInList(listA, listB)
     TK.assertTrue(type(remains) == "table", "remains is a table")
     TK.assertTrue(SF.GetSize(remains) == 2, "remains has 2 elements")
-    d(SF.dTable(remains,5,"remains"))
+    --d(SF.dTable(remains,5,"remains"))
     TK.assertTrue(remains[1] == 1, "first element is 1")
     TK.assertNil(remains[2], "second element is nil")
     TK.assertTrue(remains[3] == 1, "third element is 1")
@@ -113,11 +120,12 @@ end
 local function Tables_testGetSize()
     local fn = "testGetSize"
     TK.printSuite(mn,fn)
+    
     local tbl
     TK.assertTrue(SF.GetSize(tbl) == 0, "non-table has 0 size")
     tbl = {}
     TK.assertTrue(SF.isEmpty(tbl), "tbl is empty")
-    TK.assertTrue(SF.GetSize(tbl) == 0, "tbl has 0 size")
+    TK.assertTrue(SF.GetSize(tbl) == 0, "empty tbl has 0 size")
     tbl = { 1,2,3,4,5}
     TK.assertTrue(SF.GetSize(tbl) == 5, "tbl has 5 size")
 end
@@ -125,6 +133,7 @@ end
 local function Tables_testIsEmpty()
     local fn = "testIsEmpty"
     TK.printSuite(mn,fn)
+    
     local tbl
     TK.assertNil(SF.isEmpty(tbl), "non-table isEmpty returns nil")
     tbl = {}

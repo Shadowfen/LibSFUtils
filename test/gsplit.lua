@@ -1,10 +1,17 @@
-require "LibSFUtils.test.tk"
-require "LibSFUtils.LibSFUtils"
+package.path = package.path .. ";C:/Users/scott/Documents/SFAddons/TK/?.lua;C:/Users/scott/Documents/Elder Scrolls Online/live/AddOns/LibSFUtils/?.lua"
+
+require "zos"
+require "tk"
 local TK = TestKit
+
+require "LibSFUtils_Global"
+require "SFUtils_Logger"
+require "SFUtils_Strings"
+require "SFUtils_Color"
+require "LibSFUtils"
 local SF = LibSFUtils
 
 local TR = test_run
-local d = print
 
 local moduleName = "gsplit"
 local mn = "gsplit"
@@ -90,7 +97,9 @@ local function teststrip(nm, s, expect)
 end
 
 TK.init()
-
+d("------------------------")
+mn="ReformatSysMessages - "
+TK.printSuite(mn,"requires visual confermation")
 d(ReformatSysMessages("aaaa|c454545blahblah|r std colorized string"))
 d(ReformatSysMessages("|c454545blahblah|r|cfefefeserial|r serial colorized string"))
 d(ReformatSysMessages("|c454545cola|h0|98|blahblah|hpepsi|h|rtail"))

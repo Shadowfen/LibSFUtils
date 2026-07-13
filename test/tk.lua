@@ -40,9 +40,9 @@ end
 
 function TK.showResult(suitename)
   if( suitename ) then
-    d(suitename..GetString(ls.SUITE_RESULTS))
+    d(suitename..ls.SUITE_RESULTS)
   else
-    d(GetString(ls.TK_RESULTS))
+    d(ls.TK_RESULTS)
   end
   d(string.format("  %-25s %d",ls.TESTS_RUN, TK.num_tests))
   d(string.format("  %-25s %d",ls.PASS, TK.pass))

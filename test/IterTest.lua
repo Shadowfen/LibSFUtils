@@ -1,12 +1,15 @@
-require "LibSFUtils.test.tk"
-require "LibSFUtils.test.zos"
+package.path = package.path .. ";C:/Users/scott/Documents/SFAddons/TK/?.lua;C:/Users/scott/Documents/Elder Scrolls Online/live/AddOns/LibSFUtils/?.lua"
 
---require "LibSFUtils.LibSFUtils_Global"
---require "LibSFUtils.SFUtils_Logger"
---require "LibSFUtils.SFUtils_Tables"
---require "LibSFUtils.SFUtils_Color"
---require "LibSFUtils.LibSFUtils"
+require "zos"
+require "tk"
 local TK = TestKit
+
+require "LibSFUtils_Global"
+require "SFUtils_Logger"
+require "SFUtils_Tables"
+require "SFUtils_Color"
+require "SFUtils_VersionChecker"
+require "LibSFUtils"
 local SF = LibSFUtils
 
 local TR = test_log
@@ -65,10 +68,10 @@ local function iter_args1(...)
 
              ax = ax + 1
              print()
-             print( "iter called with ax = "..ax..", ac = "..ac)
+             print( "\titer called with ax = "..ax..", ac = "..ac)
              if ax <= ac then
                 local v1 = select(ax, ...)
-                print( "ax = "..tostring(ax).." select("..tostring(ax)..", ...) returns "..tostring(v1))
+                print( "\tax = "..tostring(ax).." select("..tostring(ax)..", ...) returns "..tostring(v1))
                 return ax, v1, ac
             end
         end
@@ -81,9 +84,9 @@ local function f0(...)
     local ax1, arg1, ac1 = 0, nil, 0
     for ax, arg, ac in iter_args(...) do
         ac1, ax1, arg1 = ac, ax, arg
-        print ("ax="..tostring(ax1)..", arg="..tostring(arg1), ", type="..type(arg1)..", total = "..tostring(ac1))
+        print ("\tax="..tostring(ax1)..", arg="..tostring(arg1), ", type="..type(arg1)..", total = "..tostring(ac1))
     end
-    --print ("ax1="..tostring(ax1).." arg1="..tostring(arg1))
+    --print ("\tax1="..tostring(ax1).." arg1="..tostring(arg1))
     if not ac1 then return 0 end
     return ac1
 end
@@ -94,7 +97,6 @@ local function Iter_testEmpty()
 
     local ac = f0()
     TK.assertTrue(ac < 1, "have no args")
-    print()
 end
 
 local function Iter_testSingle()
@@ -102,7 +104,6 @@ local function Iter_testSingle()
     TK.printSuite(mn,fn)
     --print ("f0 returns "..tostring(f0(1)))
     TK.assertTrue(f0(1) == 1, "f0 has 1 args")
-    print()
 end
 
 local function Iter_testMulti()
@@ -110,7 +111,6 @@ local function Iter_testMulti()
     TK.printSuite(mn,fn)
 
     TK.assertTrue(f0(1,2,"aa", "bb") == 4, "f0 has 4 args")
-    print()
 end
 
 local function Iter_testMultiNil()
@@ -118,7 +118,6 @@ local function Iter_testMultiNil()
     TK.printSuite(mn,fn)
 
     TK.assertTrue(f0(1,2,nil,"aa", "bb") == 5, "f0 has 5 args")
-    print()
 end
 
 

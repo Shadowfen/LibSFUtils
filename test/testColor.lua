@@ -1,20 +1,20 @@
-local zo_floor = math.floor
+package.path = package.path .. ";C:/Users/scott/Documents/SFAddons/TK/?.lua;C:/Users/scott/Documents/Elder Scrolls Online/live/AddOns/LibSFUtils/?.lua"
 
-require "LibSFUtils.test.tk"
-require "LibSFUtils.test.zos"
-
-require "LibSFUtils.LibSFUtils_Global"
-require "LibSFUtils.SFUtils_Color"
-require "LibSFUtils.LibSFUtils"
+require "zos"
+require "tk"
 local TK = TestKit
+
+require "LibSFUtils_Global"
+require "SFUtils_Logger"
+require "SFUtils_Color"
+require "LibSFUtils"
 local SF = LibSFUtils
 
 local TR = test_run
-local d = print
 
 
---local moduleName = "SF_Color"
---local mn = "SF_Color"
+local moduleName = "SF_Color"
+local mn = "SF_Color"
 
 local function setRGB(sfcolor, r, g, b, a)
 	r = r>1 and r/255 or r
@@ -79,37 +79,46 @@ local lsfc = {
   hex = ""
 }
 
-d("testing local setRGB...")
-d("-----------------------")
-setRGB(lsfc, 255,255,255,255)
-TK.assertTrue(lsfc.rgb.r == 1,"red set 1")
-TK.assertTrue(lsfc.rgb.g == 1,"green set 1")
-TK.assertTrue(lsfc.rgb.b == 1,"blue set 1")
-TK.assertTrue(lsfc.rgb.a == 1,"a set 1")
-d("hex = "..lsfc.hex)
-d("\n")
-clear_lsfc(lsfc)
-
-setRGB(lsfc, 0.1,0.20,0.3,0.4)
-TK.assertTrue(lsfc.rgb.r == 0.1,"red set "..lsfc.rgb.r)
-TK.assertTrue(lsfc.rgb.g == 0.2,"green set "..lsfc.rgb.g)
-TK.assertTrue(lsfc.rgb.b == 0.3,"blue set "..lsfc.rgb.b)
-TK.assertTrue(lsfc.rgb.a == 0.4,"a set "..lsfc.rgb.a)
-d("hex = "..lsfc.hex)
-d("\n")
-clear_lsfc(lsfc)
-
-d("testing ConvertHexToRGBA...")
-d("-----------------------")
 do
+    local fn = "testing local setRGB...1"
+    TK.printSuite(mn,fn)
+    setRGB(lsfc, 255,255,255,255)
+    TK.assertTrue(lsfc.rgb.r == 1,"red set 1")
+    TK.assertTrue(lsfc.rgb.g == 1,"green set 1")
+    TK.assertTrue(lsfc.rgb.b == 1,"blue set 1")
+    TK.assertTrue(lsfc.rgb.a == 1,"a set 1")
+    d("hex = "..lsfc.hex)
+    d("\n")
+    clear_lsfc(lsfc)
+    d("-----------------------")
+end
+
+do
+    local fn = "testing local setRGB...2"
+    TK.printSuite(mn,fn)
+    setRGB(lsfc, 0.1,0.20,0.3,0.4)
+    TK.assertTrue(lsfc.rgb.r == 0.1,"red set "..lsfc.rgb.r)
+    TK.assertTrue(lsfc.rgb.g == 0.2,"green set "..lsfc.rgb.g)
+    TK.assertTrue(lsfc.rgb.b == 0.3,"blue set "..lsfc.rgb.b)
+    TK.assertTrue(lsfc.rgb.a == 0.4,"a set "..lsfc.rgb.a)
+    d("hex = "..lsfc.hex)
+    d("\n")
+    clear_lsfc(lsfc)
+    d("-----------------------")
+end
+
+do
+    local fn = "testing ConvertHexToRGBA..."
+    TK.printSuite(mn,fn)
     local fr, fg, fb,fa,r,g,b,a = ConvertHexToRGBA("AABBCCDD")
     d("\n")
+    d("-----------------------")
 end
 
 
-d("testing SF_Color:New...")
-d("-----------------------")
 do
+    local fn = "testing SF_Color:New...1"
+    TK.printSuite(mn,fn)
     local sfc = SF.SF_Color:New(255,255,255,255)
     TK.assertNotNil(sfc,"SFC call create [2,255]")
     TK.assertTrue(sfc.rgb.r == 1,"red set "..sfc.rgb.r)
@@ -117,9 +126,12 @@ do
     TK.assertTrue(sfc.rgb.b == 1,"blue set "..sfc.rgb.b)
     TK.assertTrue(sfc.rgb.a == 1,"a set "..sfc.rgb.a)
     d("\n")
+    d("-----------------------")
 end
 
 do
+    local fn = "testing SF_Color:New...2"
+    TK.printSuite(mn,fn)
     local sfc = SF.SF_Color:New(.1,.2,.3,.4)
     TK.assertNotNil(sfc,"SFC call create [0,1]")
     local r, g, b, a = sfc:UnpackRGBA()
@@ -128,9 +140,12 @@ do
     TK.assertTrue(sfc.rgb.b == b,"blue set "..sfc.rgb.b.." "..b)
     TK.assertTrue(sfc.rgb.a == a,"a set "..sfc.rgb.a.." "..a)
     d("\n")
+    d("-----------------------")
 end
 
 do
+    local fn = "testing SF_Color:New...3"
+    TK.printSuite(mn,fn)
     local sfc = SF.SF_Color:New("AABBCCDD") -- remember format is aarrggbb
     TK.assertNotNil(sfc,"SFC call create hex")
     local r, b, g, a = sfc:UnpackRGBA()
@@ -140,6 +155,7 @@ do
     TK.assertTrue(sfc.rgb.b == tonumber("DD",16)/255,"blue  set CC "..sfc.rgb.b.." "..b.." DD="..tonumber("DD",16)/255)
     TK.assertTrue(sfc.rgb.a == tonumber("AA",16)/255,"a     set DD "..sfc.rgb.a.." "..a.." AA="..tonumber("AA",16)/255)
     d("\n")
+    d("-----------------------")
 end
 
 

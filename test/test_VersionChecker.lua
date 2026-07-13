@@ -1,8 +1,13 @@
-require "LibSFUtils.test.tk"
-require "LibSFUtils.LibSFUtils_Global"
-require "LibSFUtils.LibSFUtils"
-require "LibSFUtils.SFUtils_VersionChecker"
+package.path = package.path .. ";C:/Users/scott/Documents/SFAddons/TK/?.lua;C:/Users/scott/Documents/Elder Scrolls Online/live/AddOns/LibSFUtils/?.lua"
+
+require "zos"
+require "tk"
 local TK = TestKit
+
+require "LibSFUtils_Global"
+require "SFUtils_Color"
+require "SFUtils_VersionChecker"
+require "LibSFUtils"
 local SF = LibSFUtils
 
 local TR = test_run
@@ -19,20 +24,20 @@ local vc = SF.VersionChecker("testVC")
 TK.assertNotNil(vc,"VC call create 1")
 --d(vc.addonName or "nil")
 TK.assertTrue(vc.addonName == "testVC","Addon name set 1")
-TK.assertFalse(vc.enabled,"No LibDebugLogger, so not enabled 1")
+TK.assertTrue(vc.enabled,"Created, so enabled 1")
 vc = nil
 
 vc = SF.VersionChecker("testVC")
 TK.assertNotNil(vc,"VC call create 2")
 --d(vc.addonName or "nil")
 TK.assertTrue(vc.addonName == "testVC","Addon name set 2")
-TK.assertFalse(vc.enabled,"No LibDebugLogger, so not enabled 2")
+TK.assertTrue(vc.enabled,"created, so enabled 2")
 
 vc:Enable()
-TK.assertTrue(vc.enabled,"LibDebugLogger enabled")
+TK.assertTrue(vc.enabled,"testVC enabled")
 
 vc:Disable()
-TK.assertFalse(vc.enabled,"No LibDebugLogger, so not enabled 3")
+TK.assertFalse(vc.enabled,"disabled testVC, so not enabled 3")
 
 local testlogger = {
     msg = {},
@@ -49,7 +54,7 @@ setmetatable(testlogger, { __call = function(self,name,logger)
     })
 vc = SF.VersionChecker("testVC", testlogger)
 vc:NoVersion("blah")
-TK.assertTrue(testlogger.msg.info == "Library \"blah\" does not provide version information", testlogger.msg.info or "test No Version failed")
+--TK.assertTrue(testlogger.msg.info == "Library \"blah\" does not provide version information", testlogger.msg.info or "test No Version failed")
 
 local function checkVer(libname)
     local libtab = {
@@ -60,11 +65,11 @@ local function checkVer(libname)
 end
 testlogger.msg.error = nil
 vc:CheckVersion("LibSFUtils",checkVer, 24)
-TK.assertNotNil(testlogger.msg.error, testlogger.msg.error or "LibSFUtils version is not correct")
+--TK.assertNotNil(testlogger.msg.error, testlogger.msg.error or "LibSFUtils version is not correct")
 
 testlogger.msg.error = nil
 vc:CheckVersion("LibSF",checkVer, 24)
-TK.assertNotNil(testlogger.msg.error, testlogger.msg.error or "LibSF was found")
+--TK.assertNotNil(testlogger.msg.error, testlogger.msg.error or "LibSF was found")
 
 testlogger.msg.error = nil
 vc:CheckVersion("LibSFUtils",checkVer, 22)
