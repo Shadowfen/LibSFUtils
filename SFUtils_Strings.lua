@@ -25,6 +25,15 @@
 LibSFUtils = LibSFUtils or {}
 local sfutil = LibSFUtils
 
+function sfutil.NilPack(...) 
+    return {n=select('#', ...), ...}
+end
+
+function sfutil.NilUnpack(t) 
+    return unpack(t, 1, t.n)
+end
+
+
 --[[ ---------------------
     Concatenate varargs to a string
 
@@ -44,10 +53,11 @@ local sfutil = LibSFUtils
 -- Tail‑recursive worker: `pending` is a list of values still to process.
 local function tcstr_tail(pending, rslt, seen)
     -- If there is nothing left, we are done.
-    if #pending == 0 then return rslt end
+    if pending.n == 0 then return rslt end
 
     -- Pull the first element (Lua tables are 1‑based).
     local v = table.remove(pending, 1)
+    pending.n = pending.n - 1
 
     if v == nil then
         rslt[#rslt + 1] = "(nil)"
@@ -62,9 +72,12 @@ local function tcstr_tail(pending, rslt, seen)
         -- Enqueue the table’s contents (key, value pairs) *after* the
         -- current pending items so they are processed depth‑first.
         for k, v1 in pairs(v) do
-            table.insert(pending, 1, k)    -- then the key
-            table.insert(pending, 1, v1)   -- then value
+            table.insert(rslt, k)    -- then the key
+            table.insert(rslt, v1)   -- then value
         end
+        return tcstr_tail(pending, rslt, seen)               -- tail call
+        
+    elseif type(v) == "function" then
         return tcstr_tail(pending, rslt, seen)               -- tail call
 
     else
@@ -108,7 +121,7 @@ function sfutil.str(...)
         rslt_pool[k] = nil
     end
 
-    local pending = {...}
+    local pending = sfutil.NilPack(...)
 
     -- Pass the cleared table to the tail-call helper
     tcstr_tail(pending, rslt_pool, {})
