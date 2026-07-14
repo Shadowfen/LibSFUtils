@@ -1,3 +1,9 @@
+[COLOR="DeepSkyBlue"]72[/COLOR]:
+[LIST]
+[*] Add NilPack/NilUnpack functions to preserve nil arguments in varargs. Fix problems with sfutil.str() nil handling, and ordering with table arguments.
+[*] Fixed and updated unit tests.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]71[/COLOR]:
 [LIST]
 [*] API bump.
