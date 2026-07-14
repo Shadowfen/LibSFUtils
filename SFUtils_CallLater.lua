@@ -100,16 +100,20 @@ local function invokeLater(self)
     local ok, err = SF.safeCall(self.callback, unpack(args))
 
     if not ok then
+        -- Increment attempts FIRST, THEN check if we can retry
+        self.attemptsMade = self.attemptsMade + 1
         if self.maxTries and self.attemptsMade < self.maxTries then
-            self.attemptsMade = self.attemptsMade + 1
+            -- Still have retries left, schedule next attempt
             self.timerId = zo_callLater(function() invokeLater(self) end,
                                          self.delay)
             self.active = true
         else
+            -- Exhausted all retries, clear retry tracking
             self.maxTries     = nil
             self.attemptsMade = nil
         end
     else
+        -- Success, clear retry tracking
         self.maxTries     = nil
         self.attemptsMade = nil
     end
@@ -154,6 +158,7 @@ CallLater.NewSingle = CallLater.New
     Returns: A new CallLater instance configured for retries.
 --]]
 function CallLater:NewMaxTries(callback, delayMs, maxTries)
+    if type(maxTries) ~= "number" or maxTries < 0 then maxTries = 0 end
     return setmetatable({
         callback      = callback,
         delay         = delayMs or 0,
@@ -332,7 +337,9 @@ end
     Returns: The timer instance.
 --]]
 function CallLater:SetDelay(newDelayMs)
-    self.delay = newDelayMs
+    if type(newDelayMs) == "number" then
+        self.delay = newDelayMs
+    end
     -- Note: changing the delay does not affect a running periodic timer.
     return self
 end
