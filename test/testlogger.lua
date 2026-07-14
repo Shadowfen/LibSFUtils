@@ -13,14 +13,12 @@ local SF = LibSFUtils
 local TR = test_log
 
 local moduleName = "SF_Logger"
-local mn = "SF_Logger"
+local mn = moduleName
 
 test_log = {}
 
--- main
-TK.init()
 
-do
+function testLogger_Env()
     local fn = "testing environment..."
     TK.printSuite(mn,fn)
     TK.assertTrue(type(SF) == "table","verify SF")
@@ -28,7 +26,7 @@ do
     d("-----------------------")
 end
 
-do
+function testLogger_Creation()
     local fn = "testing logger creation..."
     TK.printSuite(mn,fn)
     --_G["test_log"] = {}
@@ -40,7 +38,7 @@ do
     d("-----------------------")
 end
 
-do
+function testLogger_LogFunc()
     local fn = "testing logger function creation..."
     TK.printSuite(mn,fn)
     _G["test_log1"] = nil
@@ -48,7 +46,7 @@ do
     d("-----------------------")
 end
 
-do
+function testLogger_SafeFunction1()
     local fn = "testing safe logger function creation...1"
     TK.printSuite(mn,fn)
     local lgfn = SF.SafeLoggerFunction("test_log1","logger1")
@@ -59,7 +57,7 @@ do
     d("-----------------------")
 end
 
-do
+function testLogger_SafeFunction2()
     local fn = "testing safe logger function creation...2"
     TK.printSuite(mn,fn)
     local lgfn = SF.SafeLoggerFunction("test_log1","logger1")
@@ -72,7 +70,7 @@ do
     d("-----------------------")
 end
 
-do
+function testLogger_DebugFiltering()
     local fn = "testing debug filtering"
     TK.printSuite(mn,fn)
     local lgfn = SF.SafeLoggerFunction("test_log1","logger1")
@@ -89,6 +87,19 @@ do
     d("-----------------------")
 end
 
-d("\n")
-TK.showResult()
-d()
+function Logger_runTests()
+    TK.init()
+    
+    testLogger_Env()
+    testLogger_Creation()
+    testLogger_LogFunc()
+    testLogger_SafeFunction1()
+    testLogger_SafeFunction2()
+    testLogger_DebugFiltering()
+    
+    TK.showResult()
+end
+
+if not Suite then
+    Logger_runTests()
+end

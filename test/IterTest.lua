@@ -21,9 +21,6 @@ local mn = "IteratorTest"
 
 test_log = {}
 
--- main
-TK.init()
-
 -- create a varargs iterator function
 -- without using the 5.2 table.pack()
 -- returns index, value, total with each iteration. (total does not change)
@@ -122,15 +119,18 @@ end
 
 
 function Iter_runTests()
+    TK.init()
+
     Iter_testEmpty()
     Iter_testSingle()
     Iter_testMulti()
     Iter_testMultiNil()
+    
+    d("\n")
+    TK.showResult("Iter_Test")
 end
 
 -- main
 if not Suite then
     Iter_runTests()
-    d("\n")
-    TK.showResult("Iter_Test")
 end

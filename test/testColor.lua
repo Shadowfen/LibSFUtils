@@ -66,8 +66,6 @@ local function ConvertHexToRGBA(colourString)
 end
 
 
--- main
-TK.init()
 
 
 local function clear_lsfc(sfc)
@@ -79,7 +77,7 @@ local lsfc = {
   hex = ""
 }
 
-do
+function test_setRGB1()
     local fn = "testing local setRGB...1"
     TK.printSuite(mn,fn)
     setRGB(lsfc, 255,255,255,255)
@@ -93,7 +91,7 @@ do
     d("-----------------------")
 end
 
-do
+function test_setRGB2()
     local fn = "testing local setRGB...2"
     TK.printSuite(mn,fn)
     setRGB(lsfc, 0.1,0.20,0.3,0.4)
@@ -107,7 +105,7 @@ do
     d("-----------------------")
 end
 
-do
+function test_ConvertHexToRGBA()
     local fn = "testing ConvertHexToRGBA..."
     TK.printSuite(mn,fn)
     local fr, fg, fb,fa,r,g,b,a = ConvertHexToRGBA("AABBCCDD")
@@ -116,7 +114,7 @@ do
 end
 
 
-do
+function test_Constructor1()
     local fn = "testing SF_Color:New...1"
     TK.printSuite(mn,fn)
     local sfc = SF.SF_Color:New(255,255,255,255)
@@ -129,7 +127,7 @@ do
     d("-----------------------")
 end
 
-do
+function test_Constructor2()
     local fn = "testing SF_Color:New...2"
     TK.printSuite(mn,fn)
     local sfc = SF.SF_Color:New(.1,.2,.3,.4)
@@ -143,7 +141,7 @@ do
     d("-----------------------")
 end
 
-do
+function test_Constructor3()
     local fn = "testing SF_Color:New...3"
     TK.printSuite(mn,fn)
     local sfc = SF.SF_Color:New("AABBCCDD") -- remember format is aarrggbb
@@ -159,7 +157,19 @@ do
 end
 
 
+function test_runAllColor()
+    TK.init()
+  
+    test_setRGB1()
+    test_setRGB2()
+    test_ConvertHexToRGBA()
+    test_Constructor1()
+    test_Constructor2()
+    test_Constructor3()
+    
+    TK.showResult()
+end
 
-d("\n")
-TK.showResult()
-d()
+if not Suite then
+    test_runAllColor()
+end

@@ -97,109 +97,136 @@ local function teststrip(nm, s, expect)
 end
 
 TK.init()
-d("------------------------")
-mn="ReformatSysMessages - "
-TK.printSuite(mn,"requires visual confermation")
-d(ReformatSysMessages("aaaa|c454545blahblah|r std colorized string"))
-d(ReformatSysMessages("|c454545blahblah|r|cfefefeserial|r serial colorized string"))
-d(ReformatSysMessages("|c454545cola|h0|98|blahblah|hpepsi|h|rtail"))
-d(ReformatSysMessages("|c454545|r empty colorized string"))
-d(ReformatSysMessages("aaaa|c454545blahblah|c545454 std colorized string"))
+function testGsplit_ReformatSys()
+    d("------------------------")
+    mn="ReformatSysMessages"
+    TK.printSuite(mn,"")
+    TK.assertEqual(ReformatSysMessages("aaaa|c454545blahblah|r std colorized string"),
+        "aaaa|c454545blahblah|r std colorized string", "colorized string")
+    TK.assertEquals(ReformatSysMessages("|c454545blahblah|r|cfefefeserial|r serial colorized string"),
+        "|c454545blahblah|r|cfefefeserial|r serial colorized string", "serial colorized string")
+    TK.assertEqual(ReformatSysMessages("|c454545cola|h0|98|blahblah|hpepsi|h|rtail"),
+        "|c454545cola|h0|98|blahblah|hpepsi|h|rtail", "tail")
+    d(ReformatSysMessages("|c454545|r empty colorized string"))
+    TK.assertEqual(ReformatSysMessages("|c454545|r empty colorized string"),
+        " empty colorized string", "empty colorized")
+    TK.assertEqual(ReformatSysMessages("aaaa|c454545blahblah|c545454 std colorized string"),
+        "aaaa|c454545blahblah|r|c545454 std colorized string|r", "std colorized")
+end
 
-d("------------------------")
+function testGsplit_ColorSplit()
+    d("------------------------")
 
-mn="zo_colorsplit"
+    mn="zo_colorsplit"
 
-testzo("leading non, std colorized string",
-        "aaaa|c454545blahblah|r std colorized string", 
-        {"aaaa","|c454545","blahblah","|r"," std colorized string"})
-testzo("serial colorized string",
-        "|c454545blahblah|r|cfefefeserial|r serial colorized string", 
-        {"|c454545","blahblah","|r", "|cfefefe","serial","|r"," serial colorized string"})
-testzo("colorized hlink",
-        "|c454545cola|h0|98|blahblah|hpepsi|h|rtail", 
-        {"|c454545","cola|h0|98|blahblah|hpepsi|h","|r", "tail"})
-testzo("empty colorized string",
-        "|c454545|r empty colorized string", 
-        {" empty colorized string"})
+    testzo("leading non, std colorized string",
+            "aaaa|c454545blahblah|r std colorized string", 
+            {"aaaa","|c454545","blahblah","|r"," std colorized string"})
+    testzo("serial colorized string",
+            "|c454545blahblah|r|cfefefeserial|r serial colorized string", 
+            {"|c454545","blahblah","|r", "|cfefefe","serial","|r"," serial colorized string"})
+    testzo("colorized hlink",
+            "|c454545cola|h0|98|blahblah|hpepsi|h|rtail", 
+            {"|c454545","cola|h0|98|blahblah|hpepsi|h","|r", "tail"})
+    testzo("empty colorized string",
+            "|c454545|r empty colorized string", 
+            {" empty colorized string"})
 
-testzo("leading non, serial bad colorized string",
-        "aaaa|c454545blahblah|c545454 std colorized string", 
-        {"aaaa","|c454545","blahblah","|r","|c545454"," std colorized string","|r"})
-testzo("forbidden nested colorized string",
-        "|c454545|cfefefeblahblah|r|r nested colorized string", 
-        {"|cfefefe","blahblah","|r"," nested colorized string"})
+    testzo("leading non, serial bad colorized string",
+            "aaaa|c454545blahblah|c545454 std colorized string", 
+            {"aaaa","|c454545","blahblah","|r","|c545454"," std colorized string","|r"})
+    testzo("forbidden nested colorized string",
+            "|c454545|cfefefeblahblah|r|r nested colorized string", 
+            {"|cfefefe","blahblah","|r"," nested colorized string"})
 
-testzo("forbidden double pipe c",
-        "||c454545||cfefefeblahblah|r|r nested colorized string", 
-        {"|cfefefe","blahblah","|r"," nested colorized string"})
-testzo("forbidden double pipe r",
-        "|c454545|cfefefeblahblah||r||r nested colorized string", 
-        {"|cfefefe","blahblah","|r"," nested colorized string"})
-testzo("forbidden double every marker",
-        "||c454545|||cfefefeblahblah||r||r nested colorized string", 
-        {"|cfefefe","blahblah","|r"," nested colorized string"})
+    testzo("forbidden double pipe c",
+            "||c454545||cfefefeblahblah|r|r nested colorized string", 
+            {"|cfefefe","blahblah","|r"," nested colorized string"})
+    testzo("forbidden double pipe r",
+            "|c454545|cfefefeblahblah||r||r nested colorized string", 
+            {"|cfefefe","blahblah","|r"," nested colorized string"})
+    testzo("forbidden double every marker",
+            "||c454545|||cfefefeblahblah||r||r nested colorized string", 
+            {"|cfefefe","blahblah","|r"," nested colorized string"})
+end
 
 
-d("------------------------")
+function testGsplit_stripColors()
+    d("------------------------")
 
-mn="stripColors"
+    mn="stripColors"
 
-teststrip("leading non, std colorized string",
-        "aaaa|c454545blahblah|r std colorized string", 
-        "aaaablahblah std colorized string")
-teststrip("serial colorized string",
-        "|c454545blahblah|r|cfefefeserial|r serial colorized string", 
-        "blahblahserial serial colorized string")
-teststrip("colorized hlink",
-        "|c454545cola|h0|98|blahblah|hpepsi|h|rtail", 
-        "cola|h0|98|blahblah|hpepsi|htail")
-teststrip("empty colorized string",
-        "|c454545|r empty colorized string", 
-        " empty colorized string")
+    teststrip("leading non, std colorized string",
+            "aaaa|c454545blahblah|r std colorized string", 
+            "aaaablahblah std colorized string")
+    teststrip("serial colorized string",
+            "|c454545blahblah|r|cfefefeserial|r serial colorized string", 
+            "blahblahserial serial colorized string")
+    teststrip("colorized hlink",
+            "|c454545cola|h0|98|blahblah|hpepsi|h|rtail", 
+            "cola|h0|98|blahblah|hpepsi|htail")
+    teststrip("empty colorized string",
+            "|c454545|r empty colorized string", 
+            " empty colorized string")
 
-teststrip("leading non, serial bad colorized string",
-        "aaaa|c454545blahblah|c545454 std colorized string", 
-        "aaaablahblah std colorized string")
-teststrip("forbidden nested colorized string",
-        "|c454545|cfefefeblahblah|r|r nested colorized string", 
-        "blahblah nested colorized string")
-teststrip("forbidden double every marker",
-        "||c454545|||cfefefeblahblah||r||r nested colorized string", 
-        "blahblah nested colorized string")
+    teststrip("leading non, serial bad colorized string",
+            "aaaa|c454545blahblah|c545454 std colorized string", 
+            "aaaablahblah std colorized string")
+    teststrip("forbidden nested colorized string",
+            "|c454545|cfefefeblahblah|r|r nested colorized string", 
+            "blahblah nested colorized string")
+    teststrip("forbidden double every marker",
+            "||c454545|||cfefefeblahblah||r||r nested colorized string", 
+            "blahblah nested colorized string")
+end
 
-d("------------------------")
+function testGsplit_gsplit()
+    d("------------------------")
 
-mn="gsplit"
+    mn="gsplit"
 
-test("empty string - empty sep",
-    '','',{''}) 
-test("empty string - multi sep",
-    '','asdf',{''})    
-test("string - empty",
-    'asdf','',{'asdf'})
-test("empty string - comma sep",
-    '', ',', {''}) 
+    test("empty string - empty sep",
+        '','',{''}) 
+    test("empty string - multi sep",
+        '','asdf',{''})    
+    test("string - empty",
+        'asdf','',{'asdf'})
+    test("empty string - comma sep",
+        '', ',', {''}) 
 
-test("comma string - comma sep",
-    ',', ',', {'',''}) 
-test("single elem - comma sep",
-    'a', ',', {'a'})
-test("double elem - comma sep",
-    'a,b', ',', {'a','b'})
-test("trailing comma - comma sep",
-    'a,b,', ',', {'a','b',''})
-test("leading comma - comma sep",
-    ',a,b', ',', {'','a','b'})
-test("enclosing commas - comma sep",
-    ',a,b,', ',', {'','a','b',''})
-test("enclosing and embedded - comma sep",
-    ',a,,b,', ',', {'','a','','b',''})
-test("embedded sep - comma sep",
-    'a,,b', ',', {'a','','b'}) 
-test("spacing - ,.; sep",
-    'asd  ,   fgh  ,;  qwe, rty.   ,jkl', '%s*[,.;]%s*', {'asd','fgh','','qwe','rty','','jkl'})
-test("python - spam", 
-    'Spam eggs spam spam and ham', '[Ss]pam', {'',' eggs ',' ',' and ham'})
---]]
-TK.showResult()
+    test("comma string - comma sep",
+        ',', ',', {'',''}) 
+    test("single elem - comma sep",
+        'a', ',', {'a'})
+    test("double elem - comma sep",
+        'a,b', ',', {'a','b'})
+    test("trailing comma - comma sep",
+        'a,b,', ',', {'a','b',''})
+    test("leading comma - comma sep",
+        ',a,b', ',', {'','a','b'})
+    test("enclosing commas - comma sep",
+        ',a,b,', ',', {'','a','b',''})
+    test("enclosing and embedded - comma sep",
+        ',a,,b,', ',', {'','a','','b',''})
+    test("embedded sep - comma sep",
+        'a,,b', ',', {'a','','b'}) 
+    test("spacing - ,.; sep",
+        'asd  ,   fgh  ,;  qwe, rty.   ,jkl', '%s*[,.;]%s*', {'asd','fgh','','qwe','rty','','jkl'})
+    test("python - spam", 
+        'Spam eggs spam spam and ham', '[Ss]pam', {'',' eggs ',' ',' and ham'})
+end
+
+function testGsplit_runAll()
+    TK.init()
+    
+    testGsplit_ReformatSys()
+    testGsplit_ColorSplit()
+    testGsplit_stripColors()
+    testGsplit_gsplit()
+    
+    TK.showResult()
+end
+
+if not Suite then
+    testGsplit_runAll()
+end

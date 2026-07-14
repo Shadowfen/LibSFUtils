@@ -155,7 +155,7 @@ local function Strings_testColorText()
 
     local rslt1 = SF.ColorText("red",SF.hex.red)
     TK.assertNotNil(rslt1,"got good rslt1")
-    TK.assertTrue(rslt1 == "|c<<1>> <<2>>|r FF0000 red", "red - "..rslt1)
+    TK.assertTrue(rslt1 == "|cFF0000 red|r", "red - "..rslt1)
 end
 
 local function Strings_testBool2Str()
@@ -167,6 +167,8 @@ local function Strings_testBool2Str()
 end
 
 function Strings_runTests()
+    TK.init()
+    
     Strings_testNilPack()
     Strings_testNilUnpack()
     Strings_testStr()
@@ -176,17 +178,13 @@ function Strings_runTests()
     Strings_testStrSplitLen()
     Strings_testTblJoinLen_tbl()
     Strings_testTblJoinLen_str()
-    --Strings_testGetIconized()
     Strings_testColorText()
     Strings_testBool2Str()
-    --Strings_testStr2Bool()
+
+    TK.showResult("Strings_Test")
 end
 
 -- main
 if not Suite then
-    TK.init()
-    
     Strings_runTests()
-    d("\n")
-    TK.showResult("Strings_Test")
 end

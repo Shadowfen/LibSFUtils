@@ -21,9 +21,6 @@ local mn = "SFUtils_Tables"
 
 test_log = {}
 
--- main
-TK.init()
-
 local function Tables_testdTable()
     local fn = "testdTable"
     TK.printSuite(mn,fn)
@@ -70,7 +67,22 @@ end
 local function Tables_testDeepCopy()
     local fn = "testDeepCopy"
     TK.printSuite(mn,fn)
-    --TK.assertTrue(true == SF.str2bool("true"), "returns true")
+    
+    -- Test 1: Basic copy
+    local orig = {a=1, b={c=2}}
+    local copy = SF.deepCopy(orig)
+    TK.assertTrue(copy.a == 1 and copy.b.c == 2 and copy ~= orig, "Basic Copy")
+
+    -- Test 2: Circular reference
+    orig.self = orig
+    local copy = SF.deepCopy(orig)
+    TK.assertTrue(copy.self == copy, "Circular reference")  -- Should point to copy, not original
+
+    -- Test 3: Metatable preservation
+    local mt = {__tostring = function(t) return "custom" end}
+    setmetatable(orig, mt)
+    local copy = SF.deepCopy(orig)
+    TK.assertTrue(getmetatable(copy) == mt, "Preserves metatable")
 end
 
 local function Tables_testSafeTable()
@@ -142,20 +154,37 @@ local function Tables_testIsEmpty()
     TK.assertFalse(SF.isEmpty(tbl), "non-empty table isEmpty returns false")
 end
 
+local function Tables_testDeepCopyError()
+    local fn = "testDeepCopyError"
+    TK.printSuite(mn,fn)
+    
+    -- Nil input
+    local copy = SF.deepCopy(nil)
+    TK.assertTrue(copy == nil)
+    
+    -- Non-table values
+    local copy = SF.deepCopy("string")
+    TK.assertTrue(copy == "string")
+end
+
 function Tables_runTests()
+    TK.init()
+  
     Tables_testdTable()
     Tables_testDefaultMissing()
-    --Tables_testDeepCopy()
+    Tables_testDeepCopy()
+    Tables_testDeepCopyError()
     Tables_testSafeTable()
     Tables_testSafeClearTable()
     Tables_testRemainsInList()
     Tables_testGetSize()
     Tables_testIsEmpty()
+    
+    TK.showResult("Tables_Test")
+
 end
 
 -- main
 if not Suite then
     Tables_runTests()
-    d("\n")
-    TK.showResult("Tables_Test")
 end
