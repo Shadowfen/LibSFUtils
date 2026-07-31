@@ -179,17 +179,21 @@ end
 		Behavior:
 			If tbl is not a table, returns a new empty table {}.
 			If tbl is a table, iterates through keys and sets them to nil (similar to ZO_ClearTable).
-			Returns the cleared (or new) table.
+			Returns the original table after clearing it, or a new empty table if the input 
+				was not a table. The original table reference is preserved when clearing succeeds.
+
 
 	The difference between this and ZO_ClearTable is the initial safety check
 		and that we return the empty table (which might have been created if
 		the parameter was not a proper table). ZO_ClearTable will error if passed nil.
+	Returns the original table after clearing it, or a new empty table if the input 
+		was not a table. The original table reference is preserved when clearing succeeds.
 --]]
 function sfutil.safeClearTable(tbl)
     if type(tbl) ~= "table" then
         return {}
     end
-    -- the loop is equal to ZO_ClearTable(tbl)
+    -- Equivalent behavior to ZO_ClearTable for valid tables.
     for k in pairs(tbl) do
         tbl[k] = nil
     end
@@ -216,7 +220,7 @@ function sfutil.RemainsInList(listA, listB)
 
 	if listA == nil or listB == nil then return newList end
 	for _, v in pairs(listA) do
-		if not listB[v] then
+		if listB[v] == nil then
 			newList[v] = 1
 		end
 	end
@@ -267,14 +271,71 @@ end
         Returns true if the table has no keys.
         Returns false if the table has keys.
         Returns nil if tbl is nil or not a table.
+
     Note: Unlike ZO_IsTableEmpty, this explicitly returns nil for non-table inputs. Also, I regard a 
 		nil "tbl" to be not an "empty" table as it is not a table at all. ZOS seems to disagree.
 --]]
 function sfutil.isEmpty(tbl)
-    if tbl == nil or type(tbl) ~= "table" then
+    if type(tbl) ~= "table" then
 		return nil
 	end
 	return next(tbl) == nil
+end
+
+--[[ Gets a new merged table with all keys from table1 and table2. If the same key exists in both tables, 
+     table1's value is used. Performs shallow copies to fill the merged table.
+
+	 Does not copy metatables from either original table!
+--]]
+function sfutil.tableMerge(table1, table2)
+    -- Early exit optimization: if table2 is invalid, only copy table1
+    if not table2 or type(table2) ~= "table" then
+        if type(table1) ~= "table" then return {} end
+        return ZO_ShallowTableCopy(table1)
+    end
+
+    local merged
+    if type(table1) ~= "table" then
+        merged = {}
+    else
+        merged = ZO_ShallowTableCopy(table1)
+    end
+
+    for key2, value2 in pairs(table2) do
+        if merged[key2] == nil then
+            merged[key2] = value2
+        end
+    end
+    return merged
+end
+
+--[[ Gets a new merged array table with all values from table1 and table2.
+     The table2 values will be appended to table1 values with keys = #merged + key2.
+     Performs shallow copies to fill the merged array.
+
+	 Notes:
+		- `arrayMerge()` expects sequential numeric arrays.
+		- The returned table is a shallow copy.
+		- Nested tables are shared between the original and merged arrays.
+		- The original tables are not modified.
+		- Values from `table2` are always appended after values from `table1`.
+--]]
+function sfutil.arrayMerge(table1, table2)
+    local merged
+    if type(table1) ~= "table" then
+        merged = {}
+    else
+        merged = ZO_ShallowTableCopy(table1)
+    end
+
+    if type(table2) == "table" then
+        local cnt = #merged
+        -- Use ipairs for better performance on sequential arrays
+        for idx, value2 in ipairs(table2) do
+            merged[cnt + idx] = value2
+        end
+    end
+    return merged
 end
 
 
