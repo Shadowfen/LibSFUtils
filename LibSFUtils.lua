@@ -121,11 +121,25 @@ end
 --- @param tblself  table|nil  Optional “self” table that will be passed first.
 --- @return function  A new function that you can call with any arguments.
 function sfutil.closure(callback, tblself, ...)
-    return function(...)
-            return callback(tblself, ...)
-        end
-end
+    local bound = {...}
+    local boundCount = select("#", ...)
 
+    return function(...)
+        local args = {}
+
+        local n = boundCount
+        for i=1,n do
+            args[i] = bound[i]
+        end
+
+        local m = select("#", ...)
+        for i=1,m do
+            args[n+i] = select(i,...)
+        end
+
+        return callback(tblself, unpack(args))
+    end
+end
 
 --- Executes `fn` safely. If an error occurs, it returns false and the error message.
 --- Otherwise it returns true and then up to 10 the other return values from the function call.
@@ -224,6 +238,7 @@ function sfutil.WrapFunction(namespace, functionName, wrapper)
         -- invalid parameters
         return nil
     end
+    assert(type(namespace[functionName])=="function")
     local originalFunction = namespace[functionName]
     namespace[functionName] = function(...)
         return wrapper(originalFunction, ...)
@@ -242,10 +257,12 @@ end
 
 -- turn a string (hopefully containing a boolean value) into a boolean
 function sfutil.str2bool(str)
-    if (string.lower(str) == "true" or str == "1") then
-        return true
+    if type(str) ~= "string" then
+        return false
     end
-    return false
+
+    str = string.lower(str)
+    return str=="true" or str=="1"
 end
 
 ---------------------
@@ -255,7 +272,7 @@ end
 -- Any other value will return false
 function sfutil.isTrue(val)
     -- must be a variety of true value
-    if (val == 1 or val == "1" or val == true or val == "true") then
+    if val == 1 or val == "1" or val == true or val == "true" then
         return true
     end
     return false
@@ -316,7 +333,7 @@ end
 -- Convert a number of seconds into an
 -- HH:MM:SS string.
 function sfutil.secondsToClock(seconds)
-    seconds = tonumber(seconds)
+    seconds = tonumber(seconds) or 0
 
     if seconds <= 0 then
         return "00:00:00"
@@ -352,6 +369,7 @@ function sfutil.addonChatter:New(addon_name)
     setmetatable(o, self)
     self.__index = self
 
+    o.addonName = addon_name
     o.namecolor = sfutil.hex.goldenrod
     o.normalcolor = sfutil.hex.mocassin
     o.debugcolor = sfutil.hex.ltskyblue
@@ -370,6 +388,11 @@ function sfutil.addonChatter:setDebugColor(hexcolor)
     self.debugcolor = hexcolor
 end
 
+function sfutil.addonChatter:setNameColor(hexcolor)
+    self.namecolor = hexcolor
+    self.prefix = sfutil.initSystemMsgPrefix(self.addonName, self.namecolor)
+end
+
 function sfutil.addonChatter:disableDebug()
     self.isdbgon = false
     self.d = function(...)
@@ -383,10 +406,7 @@ end
 
 -- print debug messages to chat
 function sfutil.addonChatter:debugMsg(...)
-    if (self.isdbgon == true) then
-        local msg = sfutil.ColorText(sfutil.dstr(" ", ...), self.debugcolor)
-        ZOS_addSystemMsg(self.prefix .. msg)
-    end
+    self.d(...)
 end
 
 function sfutil.addonChatter:enableDebug()
