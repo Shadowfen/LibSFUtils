@@ -3,3 +3,6 @@
 .buildpath
 SF-dgsd-281.html
 *.old
+SFUtils_LoadLanguage1.lua
+*.bak
+*Copy.lua
