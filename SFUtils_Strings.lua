@@ -25,6 +25,21 @@
 LibSFUtils = LibSFUtils or {}
 local sfutil = LibSFUtils
 
+--[[ sfutil.NilPack() packs a variable number of arguments into a table while preserving 
+    both the number of arguments and any nil values.
+
+    Unlike a simple table constructor ({...}), which loses trailing nil values and cannot 
+    distinguish between omitted arguments and explicit nil arguments, NilPack() records the 
+    original argument count so the values can later be restored exactly using protected.NilUnpack().
+
+    Returns a table containing:
+        Field	Description
+        n	    The original number of arguments passed.
+        1...n	The packed argument values.
+
+    The n field is essential because Lua's length operator (#) cannot reliably determine the 
+    length of tables containing nil values.
+--]]
 function sfutil.NilPack(...) 
     return {n=select('#', ...), ...}
 end
@@ -169,8 +184,11 @@ local function tclstr(rslt, ...)
 
     for _, v in sfutil.iter_args(...) do
         local t_v = type(v)
-        if not v then
+        if v == nil then
             appendVal( "(nil)" )
+
+        elseif t_v == "boolean" then
+            appendVal(v)
 
         elseif t_v == "number" then
             appendVal(GetString(v))
@@ -178,12 +196,13 @@ local function tclstr(rslt, ...)
         elseif t_v == "table" then
             for k, v1 in pairs(v) do
                 appendVal(k)
-                if type(v1) ~= "table" then
-                  appendVal(v1)
+                if type(v1) == "table" then
+                    tclstr(rslt, v1)
                 else
-                  return tclstr(rslt, v1)
+                    appendVal(v1)
                 end
             end
+
         elseif t_v ~= "function" then
             appendVal(v)
         end
@@ -351,8 +370,10 @@ function sfutil.GetText(textEntry, ...)
 
     if teType == "string" then
         text = textEntry
+
     elseif teType == "function" then
         text = textEntry(...)
+
     else
         text = GetString(textEntry)
     end
