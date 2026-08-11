@@ -1,6 +1,14 @@
 [COLOR="DeepSkyBlue"]73[/COLOR]:
 [LIST]
+[*] Modified sfutils.closure() into an sfutils.closure that does not expect a self parameter and a sfutils.methodClosure that does to indicate intention and promote easier code-correctness.
+[*] Added a FIFO Queue implementation that takes a unique key and value (both non-nil) and provides normal queue methods such as enqueue and dequeue as well as the ability to remove entries by key.
+[*] Added a TimedQueue implementation that is actually a bounded history/ring buffer that maintains a fixed-size history of entries, each tagged with a timestamp. Wrote tests. Corrected max values to be only integers.
+[*] Optimized HookManager.
+[*] Created unit tests for the color marker detection, splitting, and normalization function and then fixed the functions that failed those tests.
+[*] Updated and added tests for the sfutils.addonChatter class.
+[*] Separated CallLater:Cancel from CallLater:Destroy so that a cancelled CallLater can be reused, while destroyed ones cannot.
 [*] Massively updated the wiki documentation for the library at [url=http://github.com/Shadowfen/LibSFUtils/wiki]LibSFUtils Wiki[/url].
+[*] Split the closure function into a closure function with args for pure functions and into a methodClosure function for self and args for methods to be passed into callbacks.
 [*] Added a SetNameColor() to the addonChatter.
 [*] Fixed nil crash in str2bool()
 [*] Protect secondsToClock() from nil parameter.
