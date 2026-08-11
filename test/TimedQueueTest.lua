@@ -178,7 +178,14 @@ local function TimedQueue_testSetMaxClamp()
     
     q:setMax(0)
     TK.assertEqual(q:getMax(), 1, "zero clamped to 1")
+    
+    q:setMax(0.6)
+    TK.assertEqual(q:getMax(), 1, "0.6 clamped to 1")
+
+    q:setMax(2.6)
+    TK.assertEqual(q:getMax(), 2, "2.6 clamped to 2")
 end
+
 
 local function TimedQueue_testClear()
     local fn = "testClear"
@@ -529,8 +536,6 @@ end
 --------------------------------------------------------------------------------
 -- Run all TimedQueue test suites
 function Test_TimedQueue_All()
-    TK.init()
-    
     TimedQueue_testInstanceCreation()
     TimedQueue_testPushAndPeek()
     TimedQueue_testTimestampPreservation()
@@ -554,11 +559,13 @@ function Test_TimedQueue_All()
     TimedQueue_testMixedOperations()
     TimedQueue_testEdgeCases()
     TimedQueue_testLargeCapacity()
-    
-    TK.showResult("TimedQueue Unit Tests")
 end
 
 
 if not Suite then
+    TK.init()
+    
     Test_TimedQueue_All()
+    
+    TK.showResult("TimedQueue Unit Tests")
 end

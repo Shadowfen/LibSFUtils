@@ -1,5 +1,4 @@
---[[
-    TimedQueue is a specialized data structure that maintains a fixed-size history of entries, 
+--[[ TimedQueue is a bounded history/ring buffer that maintains a fixed-size history of entries, 
     each tagged with a timestamp (GetGameTimeMilliseconds()). It implements a circular buffer 
     algorithm, allowing for constant-time insertion and efficient memory usage. When the queue 
     reaches its capacity, the oldest entry is automatically overwritten by the newest.
@@ -27,16 +26,22 @@
 LibSFUtils = LibSFUtils or {}
 local sfutil = LibSFUtils
 
+local function isPositiveInteger(value)
+    return type(value) == "number"
+       and value >= 1
+       and value == math.floor(value)
+end
+
 --[[=====================================================================
-    TimedQueue – Fixed‑size FIFO with timestamps.
+    TimedQueue – Fixed-size FIFO with timestamps.
     Includes features:
       • Dynamic resizing (setMax / getMax)
       • Removal of entries:
           – remove(entry)               – exact table reference
           – removeByPayload(payload)    – first entry whose payload matches
           – removeIf(predicate)         – first entry satisfying a predicate
-          – popOldest() / popNewest()  – discard the oldest / newest entry
-=====================================================================]]--
+          – popOldest() / popNewest()   – discard the oldest / newest entry
+=====================================================================--]]
 
 local TimedQueue = {}
 TimedQueue.__index = TimedQueue
@@ -57,10 +62,7 @@ local function dec(idx, limit)
     return idx
 end
 
---[[
-    TimedQueue:New(initialMax, maxPossible)
-
-    Creates a new TimedQueue instance.
+--[[ TimedQueue:New(initialMax, maxPossible) - Creates a new TimedQueue instance.
 
         Parameters:
             initialMax (number): The starting maximum number of entries the queue can hold. Must be ≥ 1.
@@ -75,12 +77,15 @@ end
 --]]
 --- Constructor
 function TimedQueue:New(initialMax, maxPossible)
-    assert(type(initialMax) == "number" and initialMax >= 1,
-           "initialMax must be a positive integer")
+    assert(isPositiveInteger(initialMax),
+        "initialMax must be a positive integer")
 
-    if maxPossible == nil then maxPossible = initialMax end
-    assert(type(maxPossible) == "number" and maxPossible >= initialMax,
-           "maxPossible must be ≥ initialMax")
+    if maxPossible == nil then
+        maxPossible = initialMax
+    end
+
+    assert(isPositiveInteger(maxPossible) and maxPossible >= initialMax,
+        "maxPossible must be a positive integer >= initialMax")
 
     local obj = {
         _maxPossible = maxPossible,   -- absolute ceiling (never exceeded)
@@ -94,10 +99,7 @@ function TimedQueue:New(initialMax, maxPossible)
     return obj
 end
 
---[[
-    queue:setMax(newMax)
-
-    Dynamically adjusts the active size limit of the queue.
+--[[ queue:setMax(newMax) - Dynamically adjusts the active size limit of the queue.
 
     Behavior:
         Clamps newMax between 1 and _maxPossible.
@@ -109,24 +111,24 @@ end
 function TimedQueue:setMax(newMax)
     assert(type(newMax) == "number", "newMax must be a number")
 
+    newMax = math.floor(newMax)
     if newMax < 1 then newMax = 1 end
     if newMax > self._maxPossible then newMax = self._maxPossible end
 
     if newMax < self._count then
         local excess = self._count - newMax
+
         for _ = 1, excess do
+            self._data[self._head] = nil
             self._head = inc(self._head, self._maxPossible)
         end
+
         self._count = newMax
     end
-
     self._max = newMax
 end
 
---[[
-    queue:getMax()
-
-    Returns the current active limit (not necessarily the hard ceiling).
+--[[ queue:getMax() - Returns the current active limit (not necessarily the hard ceiling).
 
     Returns: Number.
 --]]
@@ -134,10 +136,7 @@ function TimedQueue:getMax()
     return self._max
 end
 
---[[
-    queue:push(payload)
-
-    Adds a new entry to the queue.
+--[[ queue:push(payload) - Adds a new entry to the queue.
 
     Behavior:
         Creates an entry table: { ts = GetGameTimeMilliseconds(), payload = payload }.
@@ -164,23 +163,34 @@ function TimedQueue:push(payload)
     end
 end
 
---[[
-    queue:peek()
-
-    Returns the newest entry table { ts, payload } without removing it or nil if empty.
+--[[ queue:peekOldest() - Returns the oldest entry table { ts, payload } without removing it or nil if empty.
 --]]
-function TimedQueue:peek()
-    if self._count == 0 then return nil end
-    return self._data[self._tail]
+function TimedQueue:peekOldest()
+    if self._count == 0 then
+        return nil
+    end
+
+    return self._data[self._head]
 end
 
---[[
-    queue:list()
+--[[ queue:peekNewest() - Returns the newest entry table { ts, payload } without removing it or nil if empty.
+--]]
+function TimedQueue:peekNewest()
+    if self._count == 0 then
+        return nil
+    end
 
-    Returns a snapshot of all entries as a standard Lua array.
+    return self._data[self._tail]
+end
+TimedQueue.peek = TimedQueue.peekNewest
 
-        Order: Sorted newest → oldest.
+--[[ queue:list() - Returns a snapshot of all entries as a standard Lua array.
+
+        Order: newest → oldest.
         Returns: Table of entry tables.
+        
+      Entries are ordered by insertion order. The timestamp records the game time 
+      at which the entry was pushed; it is not used to order entries.
 --]]
 function TimedQueue:list()
     local out = {}
@@ -194,19 +204,13 @@ function TimedQueue:list()
     return out
 end
 
---[[
-    queue:size()
-
-    Returns the current number of entries in the queue.
+--[[ queue:size() - Returns the current number of entries in the queue.
 
     Returns: Number.
 --]]
 function TimedQueue:size() return self._count end
 
---[[
-    queue:clear()
-
-    Empties the queue completely.
+--[[ queue:clear() - Empties the queue completely.
 
     Behavior: Resets pointers and clears the internal data table using ZO_ClearTable.
 --]]
@@ -220,8 +224,7 @@ end
 -----------------------------------------------------------------------
 -- ★★ Removal API ★★
 -----------------------------------------------------------------------
---[[
-    The queue offers flexible ways to remove specific entries. Note that removal operations 
+--[[ The queue offers flexible ways to remove specific entries. Note that removal operations 
     involve rebuilding the internal buffer, which is slightly more expensive than push or pop.
 --]]
 
@@ -246,10 +249,7 @@ local function rebuildFromArray(q, arr)
     end
 end
 
---[[
-    queue:remove(entry)
-
-    Removes a specific entry by reference.
+--[[ queue:remove(entry) - Removes a specific entry by reference.
 
     Parameters: entry (table): The exact table object **by reference** returned by push or list.
     Returns: true if removed, false if not found.
@@ -268,10 +268,7 @@ function TimedQueue:remove(entry)
     return false
 end
 
---[[
-    queue:removeByPayload(payload)
-
-    Removes the first entry whose payload matches the given value.
+--[[ queue:removeByPayload(payload) - Removes the first entry whose payload matches the given value.
 
     Parameters: payload (any): The value to match against entry.payload.
     Returns: true if removed, false if not found.
@@ -290,10 +287,7 @@ function TimedQueue:removeByPayload(payload)
     return false
 end
 
---[[
-    queue:removeIf(predicate)
-
-    Removes the first entry that satisfies a custom condition.
+--[[ queue:removeIf(predicate) - Removes the first entry that satisfies a custom condition.
 
     Parameters: predicate (function): A function func(entry) that returns true to delete the entry.
         entry is a table: { ts = ..., payload = ... }.
@@ -314,36 +308,42 @@ function TimedQueue:removeIf(predicate)
     return false
 end
 
---[[
-    queue:popOldest()
-
-    Discards and returns the oldest entry (FIFO).
+--[[ queue:popOldest() - Discards and returns the oldest entry (FIFO).
 
     Returns: The entry table or nil if empty.
     Use Case: Standard queue processing.
 --]]
 function TimedQueue:popOldest()
-    if self._count == 0 then return nil end
-    local oldest = self._data[self._head]
-    self._head = inc(self._head, self._maxPossible)
+    if self._count == 0 then
+        return nil
+    end
+
+    local head = self._head
+    local oldest = self._data[head]
+
+    self._data[head] = nil
+    self._head = inc(head, self._maxPossible)
     self._count = self._count - 1
+
     return oldest
 end
 
---[[
-    queue:popNewest()
-
-    Discards and returns the newest entry (LIFO).
+--[[ queue:popNewest() - Discards and returns the newest entry (LIFO).
 
     Returns: The entry table or nil if empty.
     Use Case: Undo stacks or reverting the last action.
 ]]
 function TimedQueue:popNewest()
-    if self._count == 0 then return nil end
-    local newest = self._data[self._tail]
-    self._tail = dec(self._tail, self._maxPossible)
+    if self._count == 0 then
+        return nil
+    end
+
+    local tail = self._tail
+    local newest = self._data[tail]
+
+    self._data[tail] = nil
+    self._tail = dec(tail, self._maxPossible)
     self._count = self._count - 1
+
     return newest
 end
-
------------------------------------------------------------------------
