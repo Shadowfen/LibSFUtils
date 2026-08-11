@@ -93,6 +93,10 @@ sfutil.rgb = {
     mythic = sfutil.colors.mythic.rgb
 }
 
+
+local select = select
+local unpack = unpack
+
 local function ZOS_addSystemMsg(msg)
     CHAT_ROUTER:AddSystemMessage(msg)
 end
@@ -186,6 +190,7 @@ function sfutil.methodClosure(callback, tblself, ...)
         return callback(tblself, unpack(args))
     end
 end
+
 
 --- Executes `fn` safely. If an error occurs, it returns false and the error message.
 --- Otherwise it returns true and then up to 10 the other return values from the function call.
@@ -404,28 +409,34 @@ end
 -- (Standalone function - not part of addonChatter.)
 function sfutil.systemMsg(prefix, text, hexcolor)
     hexcolor = sfutil.nilDefault(hexcolor, sfutil.hex.normal)
-    local msg = prefix .. sfutil.ColorText(text, hexcolor)
+    local msg = sfutil.str(prefix, sfutil.ColorText(text, hexcolor))
     ZOS_addSystemMsg(msg)
 end
 
 sfutil.addonChatter = {}
+sfutil.addonChatter.__index = sfutil.addonChatter
+
+local NOOP = function() end
 
 function sfutil.addonChatter:New(addon_name)
-    local o = {}
-    setmetatable(o, self)
-    self.__index = self
+    local o = setmetatable({}, self)
 
     o.addonName = addon_name
     o.namecolor = sfutil.hex.goldenrod
     o.normalcolor = sfutil.hex.mocassin
     o.debugcolor = sfutil.hex.ltskyblue
     o.prefix = sfutil.initSystemMsgPrefix(addon_name, o.namecolor)
-    o.d = function(...)
-        end -- debug messages off by default
+    o.d = NOOP -- debug messages off by default
     o.isdbgon = false
     return o
 end
 
+-- private version of the d function
+local function _d(self, ...)
+    local msg = sfutil.ColorText(sfutil.dstr(" ", ...), self.debugcolor)
+    ZOS_addSystemMsg(self.prefix .. msg)
+end
+-- ------------- set colors for chat messages
 function sfutil.addonChatter:setNormalColor(hexcolor)
     self.normalcolor = hexcolor
 end
@@ -439,11 +450,36 @@ function sfutil.addonChatter:setNameColor(hexcolor)
     self.prefix = sfutil.initSystemMsgPrefix(self.addonName, self.namecolor)
 end
 
+-- ------------- debug state
 function sfutil.addonChatter:disableDebug()
     self.isdbgon = false
-    self.d = function(...)
-        end
+    self.d = NOOP
 end
+
+function sfutil.addonChatter:enableDebug()
+    self.isdbgon = true
+    self.d = _d
+end
+
+function sfutil.addonChatter:toggleDebug()
+    if self.isdbgon then
+        self:disableDebug()
+    else
+        self:enableDebug()
+    end
+end
+
+function sfutil.addonChatter:isDebugEnabled()
+    return self.isdbgon
+end
+
+function sfutil.addonChatter:getDebugState()
+    -- as a debug function, this returns a string
+    return sfutil.bool2str(self.isdbgon)
+end
+
+-- ------------- send messages to chat
+
 -- print normal messages to chat
 function sfutil.addonChatter:systemMessage(...)
     local msg = sfutil.str(self.prefix, sfutil.ColorText(sfutil.dstr(" ", ...), self.normalcolor))
@@ -452,32 +488,7 @@ end
 
 -- print debug messages to chat
 function sfutil.addonChatter:debugMsg(...)
-    self.d(...)
-end
-
-function sfutil.addonChatter:enableDebug()
-    self.isdbgon = true
-    self.d = function(...)
-            local msg = sfutil.ColorText(sfutil.dstr(" ", ...), self.debugcolor)
-            ZOS_addSystemMsg(self.prefix .. msg)
-        end
-end
-
-function sfutil.addonChatter:toggleDebug()
-    if (self.isdbgon == true) then
-        self:disableDebug()
-    else
-        self:enableDebug()
-    end
-end
-
-function sfutil.addonChatter:getDebugState()
-    -- as a debug function, this returns a string
-    return sfutil.bool2str(self.isdbgon)
-end
-
-function sfutil.addonChatter:isDebugEnabled()
-    return self.isdbgon
+    self.d(self, ...)
 end
 
 -- -------------------------------------------------------
