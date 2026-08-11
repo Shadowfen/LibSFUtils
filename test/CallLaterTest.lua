@@ -489,8 +489,11 @@ local function CallLater_testInternalStateCleanup()
     timer:Cancel()
     
     TK.assertNil(timer.timerId, "timerId cleared")
-    TK.assertNil(timer.callback, "callback cleared after cancel")
     TK.assertNil(timer.pendingArgs, "pendingArgs cleared after cancel")
+    TK.assertNotNil(timer.callback, "callback cleared after cancel")
+    
+    timer:Destroy()
+    TK.assertNil(timer.callback, "callback cleared after destroy")
 end
 
 local function CallLater_testInvalidParameters()
@@ -641,8 +644,6 @@ end
 --------------------------------------------------------------------------------
 -- Run all LSV_Data test suites
 function Test_CallLater_All()
-    TK.init()
-    
     CallLater_testInstanceCreation()
     CallLater_testNewMaxTriesCreation()
     CallLater_testNewTimerPeriodicCreation()
@@ -669,11 +670,13 @@ function Test_CallLater_All()
     CallLater_testInvalidMaxTries()
     CallLater_testInvalidInterval()
     CallLater_testInvalidMethodChaining()
-    
-    TK.showResult("CallLater Unit Tests")
 end
 
 
 if not Suite then
+    TK.init()
+    
     Test_CallLater_All()
+    
+    TK.showResult("CallLater Unit Tests")
 end

@@ -1,7 +1,7 @@
---[[
-    CallLater is a robust timer utility library designed to manage delayed and periodic function execution. 
-        It wraps the native zo_callLater API to provide features like automatic retry on failure, argument passing, 
-        periodic scheduling, and safe cleanup.
+--[[ CallLater is a robust timer utility library designed to manage delayed 
+        and periodic function execution. 
+     It wraps the native zo_callLater API to provide features like automatic 
+        retry on failure, argument passing, periodic scheduling, and safe cleanup.
 
     Key Features:
 
@@ -14,7 +14,6 @@
     
     Usage Examples
         1. Simple One-Shot Timer
-
             Execute a function 2 seconds later.
 
             local timer = CallLater:New(function()
@@ -24,7 +23,6 @@
             timer:Start()
 
         2. Passing Arguments
-
             Pass data to the callback dynamically.
 
             local timer = CallLater:New(function(playerName, score)
@@ -34,7 +32,6 @@
             timer:StartWithArgs("Lumo", 9999)
 
         3. Retry Logic
-
             Attempt to run a risky function up to 3 times if it fails.
 
             local timer = CallLater:NewMaxTries(function()
@@ -46,7 +43,6 @@
             -- This will log the error 3 times, then stop retrying.
 
         4. Periodic Timer
-
             Run a function every 1 second indefinitely.
 
             local timer = CallLater:NewTimer(function()
@@ -94,6 +90,7 @@ local function invokeLater(self)
 
     local args = self.pendingArgs or {}
     self.pendingArgs = nil
+    self.attemptsMade = self.attemptsMade or 0
 
     if not self.callback then return end
 
@@ -210,8 +207,7 @@ end
 --------------------------------------------------------------------
 -- Public start / start‑with‑args
 --------------------------------------------------------------------
---[[
-    timer:Start(delayMs)
+--[[ timer:Start(delayMs)
 
     Starts the timer.
 
@@ -241,8 +237,7 @@ function CallLater:Start(delayMs)
     return self
 end
 
---[[
-    timer:StartWithArgs(...)
+--[[ timer:StartWithArgs(...)
 
     Starts a one-shot timer with specific arguments passed to the callback.
 
@@ -255,6 +250,7 @@ end
 function CallLater:StartWithArgs(...)
     if self.interval then
         d("[CallLater] StartWithArgs is not supported for periodic timers")
+        self.pendingArgs = nil
         return self
     end
     self.pendingArgs = { ... }
@@ -264,18 +260,37 @@ end
 --------------------------------------------------------------------
 -- Cancel / destroy
 --------------------------------------------------------------------
---[[
-    timer:Cancel()
+--[[ timer:Cancel()
 
-    Stops the timer and clears all internal references.
+    Stops the timer. It can still be started again.
 
     Behavior:
         Removes the underlying zo_callLater handle.
-        Clears callback references, pending arguments, and retry counters.
     Returns: true if the timer was active and cancelled; false otherwise.
 --]]
 function CallLater:Cancel()
-    if not self.active then return false end
+    local rval = true
+    if self.active == false then
+        rval = false
+    else
+        self.active = false
+    end
+
+    if self.timerId then
+        zo_removeCallLater(self.timerId)
+    end
+
+    self.timerId      = nil
+    self.pendingArgs  = nil
+    self.attemptsMade = 0
+
+    return rval
+end
+
+--[[ timer:Destroy()
+    Stops the timer and destroys/clears the instance so that it cannot be reused.
+--]]
+function CallLater:Destroy()
     if self.timerId then zo_removeCallLater(self.timerId) end
 
     self.timerId          = nil
@@ -287,18 +302,9 @@ function CallLater:Cancel()
     self.periodicCallback = nil
     self.interval         = nil
     self._tickWrapper     = nil
-    return true
-end
-
---[[
-    timer:Destroy()
-
-    Alias for Cancel(). Returns nil after cleanup.
---]]
-function CallLater:Destroy()
-    self:Cancel()
     return nil
 end
+
 
 --------------------------------------------------------------------
 -- Introspection & convenience
