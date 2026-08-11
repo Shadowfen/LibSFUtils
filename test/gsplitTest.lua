@@ -28,7 +28,7 @@ local function ReformatSysMessages(text)
     end
     
     -- balance and correct color markers
-    SF.regularizeColors(t1, text)
+    t1 = SF.regularizeColors(t1, text)
     
     rawSys = table.concat(SF.colorsplit(t1, text))
     
@@ -73,7 +73,7 @@ local function testzo(nm, s, expect)
     end
     
     -- balance and correct color markers
-    SF.regularizeColors(t1, s)
+    t1 = SF.regularizeColors(t1, s)
     
     local t2 = SF.colorsplit(t1,s)
     
@@ -99,7 +99,7 @@ end
 TK.init()
 function testGsplit_ReformatSys()
     d("------------------------")
-    mn="ReformatSysMessages"
+    mn="Gsplit_ReformatSys"
     TK.printSuite(mn,"")
     TK.assertEqual(ReformatSysMessages("aaaa|c454545blahblah|r std colorized string"),
         "aaaa|c454545blahblah|r std colorized string", "colorized string")
@@ -107,9 +107,9 @@ function testGsplit_ReformatSys()
         "|c454545blahblah|r|cfefefeserial|r serial colorized string", "serial colorized string")
     TK.assertEqual(ReformatSysMessages("|c454545cola|h0|98|blahblah|hpepsi|h|rtail"),
         "|c454545cola|h0|98|blahblah|hpepsi|h|rtail", "tail")
-    d(ReformatSysMessages("|c454545|r empty colorized string"))
     TK.assertEqual(ReformatSysMessages("|c454545|r empty colorized string"),
         " empty colorized string", "empty colorized")
+    d(ReformatSysMessages("aaaa|c454545blahblah|c545454 std colorized string"))
     TK.assertEqual(ReformatSysMessages("aaaa|c454545blahblah|c545454 std colorized string"),
         "aaaa|c454545blahblah|r|c545454 std colorized string|r", "std colorized")
 end
@@ -117,7 +117,7 @@ end
 function testGsplit_ColorSplit()
     d("------------------------")
 
-    mn="zo_colorsplit"
+    mn="Gsplit_ColorSplit"
 
     testzo("leading non, std colorized string",
             "aaaa|c454545blahblah|r std colorized string", 
@@ -154,7 +154,7 @@ end
 function testGsplit_stripColors()
     d("------------------------")
 
-    mn="stripColors"
+    mn="Gsplit_stripColors"
 
     teststrip("leading non, std colorized string",
             "aaaa|c454545blahblah|r std colorized string", 
@@ -183,7 +183,7 @@ end
 function testGsplit_gsplit()
     d("------------------------")
 
-    mn="gsplit"
+    mn="Gsplit_gsplit"
 
     test("empty string - empty sep",
         '','',{''}) 
@@ -217,16 +217,16 @@ function testGsplit_gsplit()
 end
 
 function testGsplit_runAll()
-    TK.init()
-    
     testGsplit_ReformatSys()
     testGsplit_ColorSplit()
     testGsplit_stripColors()
     testGsplit_gsplit()
-    
-    TK.showResult()
 end
 
 if not Suite then
+    TK.init()
+    
     testGsplit_runAll()
+    
+    TK.showResult()
 end
