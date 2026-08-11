@@ -170,7 +170,8 @@ userSettings = sfutil.defaultMissing(savedSettings, defaults)
 Function|Description
 --|--
 sfutil.iter_args(...)|Iterator yielding index, value, total
-sfutil.closure(callback, tblself, ...)|Create closure with pre-bound self
+sfutil.closure(callback, ...)|Create closure function with optional arguments
+sfutil.methodClosure(callback, tblself, ...)|Create closure function with pre-bound self and optional arguments
 sfutil.safeCall(fn, ...)|Protected call returning all results
 sfutil.safeCall10(fn, ...)|Protected call returning max 10 results
 sfutil.WrapFunction(namespace, functionName, wrapper)|Wrap existing function
