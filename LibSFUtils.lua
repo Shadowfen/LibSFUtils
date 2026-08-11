@@ -115,26 +115,72 @@ function sfutil.iter_args(...)
         end
 end
 
---- Creates a closure that calls `callback` with `tblself` as its first argument,
---- followed by whatever arguments the returned function receives.
---- @param callback function  The function to be invoked later.
---- @param tblself  table|nil  Optional “self” table that will be passed first.
---- @return function  A new function that you can call with any arguments.
-function sfutil.closure(callback, tblself, ...)
+--[[ closure for pure functions and varargs 
+        @param callback function - The function to be invoked later.
+        @param ... - any Arguments to bind to the callback.
+
+        @return function - A function that calls callback with the bound arguments,
+                    followed by any arguments supplied when the returned function is invoked.
+        
+    Yes, you can just pass self as the first or only arg, but having closure() and
+    methodClosure() make the code intention clearer to understand.
+--]]
+function sfutil.closure(callback, ...)
     local bound = {...}
     local boundCount = select("#", ...)
 
     return function(...)
+        local providedcnt = select("#", ...)
+        if providedcnt == 0 then
+            -- no additional parameters
+            return callback(unpack(bound, 1, boundCount))
+        end
+
+        -- merge base and additional parameters into single arg list
         local args = {}
 
-        local n = boundCount
-        for i=1,n do
+        for i = 1, boundCount do
             args[i] = bound[i]
         end
 
-        local m = select("#", ...)
-        for i=1,m do
-            args[n+i] = select(i,...)
+        local provided = {...}
+        for i = 1, providedcnt do
+            args[boundCount + i] = provided[i]
+        end
+
+        return callback(unpack(args))
+    end
+end
+
+--[[ closure for method functions, self, and varargs 
+        @param callback function - The function to be invoked later.
+        @param tblself table|nil - Value passed as first argument to callback.
+        @param ... - any Arguments to bind to the callback.
+
+        @return function - A function that calls callback with the bound arguments (including tblself),
+                    followed by any arguments supplied when the returned function is invoked.
+--]]
+function sfutil.methodClosure(callback, tblself, ...)
+    local bound = {...}
+    local boundCount = select("#", ...)
+
+    return function(...)
+        local providedcnt = select("#", ...)
+        if providedcnt == 0 then
+            -- no additional parameters
+            return callback(tblself, unpack(bound, 1, boundCount))
+        end
+
+        -- merge base and additional parameters into single arg list
+        local args = {}
+
+        for i=1,boundCount do
+            args[i] = bound[i]
+        end
+
+        local provided = {...}
+        for i=1, providedcnt do
+            args[boundCount+i] = provided[i]
         end
 
         return callback(tblself, unpack(args))

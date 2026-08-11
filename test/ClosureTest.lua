@@ -28,8 +28,8 @@ local function Closure_testSelfForward()
 
     local selfObj = { value = 42 }
 
-    local function cb(self)
-        return self.value
+    local function cb(selfie)
+        return selfie.value
     end
 
     local f = SF.closure(cb, selfObj)
@@ -42,11 +42,11 @@ local function Closure_testBoundArgs()
     local fn = "testBoundArgs"
     TK.printSuite(mn,fn)
 
-    local function cb(self, a, b)
+    local function cb(a, b)
         return a, b
     end
 
-    local f = SF.closure(cb, nil, "A", "B")
+    local f = SF.closure(cb, "A", "B")
 
     local a, b = f()
 
@@ -63,7 +63,7 @@ local function Closure_testCalltimeArgs()
         return a, b
     end
 
-    local f = SF.closure(cb, nil)
+    local f = SF.methodClosure(cb,nil)
 
     local a, b = f("A", "B")
 
@@ -76,11 +76,11 @@ local function Closure_testBoundCallArgs()
     local fn = "testBoundCallArgs"
     TK.printSuite(mn,fn)
 
-    local function cb(self, ...)
+    local function cb(...)
         return ...
     end
 
-    local f = SF.closure(cb, nil, 1, 2)
+    local f = SF.closure(cb, 1, 2)
 
     local a, b, c, d = f(3, 4)
 
@@ -95,11 +95,11 @@ local function Closure_testSelfBoundCallArgs()
     local fn = "testSelfBoundCallArgs"
     TK.printSuite(mn,fn)
 
-    local function cb(self, ...)
+    local function cb(...)
         return ...
     end
 
-    local f = SF.closure(cb, nil, 1, 2)
+    local f = SF.closure(cb, 1, 2)
 
     local a, b, c, d = f(3, 4)
 
@@ -118,7 +118,7 @@ local function Closure_testNilSelf()
         return self == nil
     end
 
-    local f = SF.closure(cb, nil)
+    local f = SF.methodClosure(cb)
 
     TK.assertTrue(f(), "nil self preserved")
 end
@@ -134,7 +134,7 @@ local function Closure_testNoArgs()
             called = true
         end
 
-        local f = SF.closure(cb, nil)
+        local f = SF.closure(cb)
 
         f()
 
@@ -146,11 +146,11 @@ local function Closure_testBoundArgsRemembered()
     local fn = "testBoundArgsRemembered"
     TK.printSuite(mn,fn)
 
-    local function cb(self, ...)
+    local function cb(...)
         return ...
     end
 
-    local f = SF.closure(cb, nil, "A")
+    local f = SF.closure(cb, "A")
 
     local a1, b1 = f("B")
     local a2, b2 = f("C")
@@ -167,12 +167,12 @@ local function Closure_testIndependent()
     local fn = "testIndependent"
     TK.printSuite(mn,fn)
 
-    local function cb(self, ...)
+    local function cb(...)
         return ...
     end
 
-    local f1 = SF.closure(cb, nil, 1)
-    local f2 = SF.closure(cb, nil, 2)
+    local f1 = SF.closure(cb, 1)
+    local f2 = SF.closure(cb, 2)
 
     local a = f1()
     local b = f2()
@@ -193,7 +193,7 @@ local function Closure_testExactReceiveds()
 
     local selfObj = {}
 
-    local f = SF.closure(cb, selfObj, "A", "B")
+    local f = SF.methodClosure(cb, selfObj, "A", "B")
 
     f("C", "D")
 
@@ -206,8 +206,6 @@ local function Closure_testExactReceiveds()
 end
 
 function Closure_runTests()
-    TK.init()
-
     Closure_testSelfForward()
     Closure_testBoundArgs()
     Closure_testCalltimeArgs()
@@ -218,11 +216,13 @@ function Closure_runTests()
     Closure_testBoundArgsRemembered()
     Closure_testIndependent()
     Closure_testExactReceiveds()
-
-    TK.showResult("Closure_Test")
 end
 
 -- main
 if not Suite then
+    TK.init()
+
     Closure_runTests()
+
+    TK.showResult("Closure_Test")
 end
