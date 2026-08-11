@@ -158,18 +158,18 @@ end
 
 
 function test_runAllColor()
-    TK.init()
-  
     test_setRGB1()
     test_setRGB2()
     test_ConvertHexToRGBA()
     test_Constructor1()
     test_Constructor2()
     test_Constructor3()
-    
-    TK.showResult()
 end
 
 if not Suite then
+    TK.init()
+  
     test_runAllColor()
+    
+    TK.showResult()
 end

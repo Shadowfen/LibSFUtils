@@ -381,8 +381,6 @@ local function LoadLanguage_testComplexLocalization()
 end
 
 function LoadLanguages_runTests()
-    TK.init()
-    
     LoadLanguage_testSafeAddStringWithStringId()
     LoadLanguage_testSafeAddStringWithNumericId()
     LoadLanguage_testSafeAddStringOverwritesLowerVersion()
@@ -400,10 +398,12 @@ function LoadLanguages_runTests()
     LoadLanguage_testDifferentLanguagesReload()
     LoadLanguage_testEmptyLanguageTables()
     LoadLanguage_testComplexLocalization()
-    
-    TK.showResult("LoadLanguages_Test")
 end
 
 if not Suite then
+    TK.init()
+    
     LoadLanguages_runTests()
+    
+    TK.showResult("LoadLanguages_Test")
 end

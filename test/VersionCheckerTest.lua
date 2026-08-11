@@ -83,17 +83,17 @@ function VCTest_CheckVer()
 end
 
 function VCTest_runAll()
-    TK.init()
-
     VCTest_notNil()
     VCTest_CreateEnabled()
     VCTest_EnableDisable()
     --VCTest_NoVersion()
     --VCTest_CheckVer()
-    
-    TK.showResult()
 end
 
 if not Suite then
+    TK.init()
+
     VCTest_runAll()
+    
+    TK.showResult()
 end

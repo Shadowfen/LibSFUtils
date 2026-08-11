@@ -88,18 +88,18 @@ function testLogger_DebugFiltering()
 end
 
 function Logger_runTests()
-    TK.init()
-    
     testLogger_Env()
     testLogger_Creation()
     testLogger_LogFunc()
     testLogger_SafeFunction1()
     testLogger_SafeFunction2()
     testLogger_DebugFiltering()
-    
-    TK.showResult()
 end
 
 if not Suite then
+    TK.init()
+    
     Logger_runTests()
+    
+    TK.showResult()
 end

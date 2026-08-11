@@ -168,8 +168,6 @@ local function Tables_testDeepCopyError()
 end
 
 function Tables_runTests()
-    TK.init()
-  
     Tables_testdTable()
     Tables_testDefaultMissing()
     Tables_testDeepCopy()
@@ -179,12 +177,13 @@ function Tables_runTests()
     Tables_testRemainsInList()
     Tables_testGetSize()
     Tables_testIsEmpty()
-    
-    TK.showResult("Tables_Test")
-
 end
 
 -- main
 if not Suite then
+    TK.init()
+  
     Tables_runTests()
+    
+    TK.showResult("Tables_Test")
 end

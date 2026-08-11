@@ -119,18 +119,18 @@ end
 
 
 function Iter_runTests()
-    TK.init()
-
     Iter_testEmpty()
     Iter_testSingle()
     Iter_testMulti()
     Iter_testMultiNil()
-    
-    d("\n")
-    TK.showResult("Iter_Test")
 end
 
 -- main
 if not Suite then
+    TK.init()
+
     Iter_runTests()
+    
+    d("\n")
+    TK.showResult("Iter_Test")
 end

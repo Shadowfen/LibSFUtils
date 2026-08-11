@@ -167,8 +167,6 @@ local function Strings_testBool2Str()
 end
 
 function Strings_runTests()
-    TK.init()
-    
     Strings_testNilPack()
     Strings_testNilUnpack()
     Strings_testStr()
@@ -180,11 +178,13 @@ function Strings_runTests()
     Strings_testTblJoinLen_str()
     Strings_testColorText()
     Strings_testBool2Str()
-
-    TK.showResult("Strings_Test")
 end
 
 -- main
 if not Suite then
+    TK.init()
+    
     Strings_runTests()
+
+    TK.showResult("Strings_Test")
 end
