@@ -95,6 +95,7 @@ local function HookManager_testPostHookCreation()
     end)
     
     TK.assertNotNil(hook, "post hook created")
+    TK.assertEqual(hm:get(hook.id), hook, "post hook registered")
     TK.assertEqual(hook.kind, "post", "post hook kind is correct")
     TK.assertTrue(hook.enabled == true, "post hook starts enabled")
 end
@@ -110,7 +111,35 @@ local function HookManager_testSecurePostHookCreation()
     end)
     
     TK.assertNotNil(hook, "secure post hook created")
+    TK.assertEqual(hm:get(hook.id), hook, "secure post hook registered")
     TK.assertEqual(hook.kind, "secure", "secure post hook kind is correct")
+end
+
+local function HookManager_testIdIncr()
+  local hm = SF.HookManager:New("Test")
+
+  local h1 = hm:PreHook(HM_TestTarget, "testMethod", function(...)
+        hookCalled = true
+        hookValue = ...
+        -- Return true to cancel original
+        return false  -- Let original run
+    end)
+  local h2 = hm:PreHook(HM_TestTarget, "testMethod", function(...)
+        hookCalled = true
+        hookValue = ...
+        -- Return true to cancel original
+        return false  -- Let original run
+    end)
+  local h3 = hm:PostHook(HM_TestTarget, "testMethod", function(...)
+        hookCalled = true
+        hookValue = ...
+        -- Return true to cancel original
+        return false  -- Let original run
+    end)
+
+  TK.assertEqual(h1.id, "Test1")
+  TK.assertEqual(h2.id, "Test2")
+  TK.assertEqual(h3.id, "Test3")
 end
 
 local function HookManager_testHookEnableDisable()
@@ -229,8 +258,8 @@ local function HookManager_testNonExistentHook()
     TK.assertTrue(true, "operations on non-existent hooks do not crash")
 end
 
-local function HookManager_testDuplicatePrevention()
-    local fn = "testDuplicatePrevention"
+local function HookManager_testUniqueIds()
+    local fn = "testUniqueIds"
     TK.printSuite(mn,fn)
     
     local hm = SF.HookManager:New("TestHM9")
@@ -279,24 +308,25 @@ end
 --------------------------------------------------------------------------------
 -- Run all LSV_Data test suites
 function Test_HookManager_All()
-    TK.init()
-    
     HookManager_testInstanceCreation()
     HookManager_testPreHookCreation()
     HookManager_testPostHookCreation()
     HookManager_testSecurePostHookCreation()
+    HookManager_testIdIncr()
     HookManager_testHookEnableDisable()
     HookManager_testHookToggle()
     HookManager_testHookRemove()
     HookManager_testBulkOperations()
     HookManager_testNonExistentHook()
-    HookManager_testDuplicatePrevention()
+    HookManager_testUniqueIds()
     HookManager_testHookObjectProperties()
-    
-    TK.showResult("HookManager Unit Tests")
 end
 
 
 if not Suite then
+    TK.init()
+    
     Test_HookManager_All()
+    
+    TK.showResult("HookManager Unit Tests")
 end

@@ -12,7 +12,32 @@
 --]]
 local SF = LibSFUtils
 
+local function createHook(manager, kind, target, method, fn)
+    local id = SF.str(manager.base, manager.cnt)
 
+    manager.cnt = manager.cnt + 1
+
+    local hook = {
+        id      = id,
+        target  = target,
+        method  = method,
+        fn      = fn,
+        kind    = kind,
+        enabled = false,
+    }
+
+    manager.hooks[id] = hook
+    return hook
+end
+
+local function wrapFunc(hook, invoke)
+    return function(...)
+        if not hook.enabled then
+            return
+        end
+        return invoke(...)
+    end
+end
 --=====================================================================
 -- HookManager – a tiny registry that owns many hooks.
 --=====================================================================
@@ -52,6 +77,7 @@ end
     Note: All hooks are created with enabled = true by default, meaning they are active immediately 
         after registration.
 --]]
+
 --[[
     manager:PreHook(target, method, fn)
 
@@ -67,33 +93,12 @@ end
         kind ("pre"), enabled.
 --]]
 function HookManager:PreHook(target, method, fn)
-    local id = SF.str(self.base, self.cnt)
-    if self.hooks[id] then return nil end
+    local hook = createHook(self, "pre", target, method, fn)
 
+    ZO_PreHook(target, method, wrapFunc(hook, hook.fn))
 
-    -- create hook object
-    local o = {
-        id       = id,
-        target   = target,    -- The object that owns the method (e.g. MAIL_INBOX)
-        method   = method,    -- Name of the method to hook (case‑sensitive)
-        fn       = fn,        -- Function signature depends on the kind
-        kind     = "pre",
-        enabled  = false,     -- has the hook been registered?
-    }
-    setmetatable(o, self)
-
-    --wrap the callback function with a disable
-    ZO_PreHook(target, method,
-        function(...)
-            local enabled = o.enabled
-            if not enabled then return end   -- guard against race‑conditions
-            return fn(...)               -- true → cancel original
-        end)
-    self.hooks[id] = o
-    self.cnt = self.cnt + 1
-    o.enabled  = true       -- has the hook been registered?
-
-    return o
+    hook.enabled = true
+    return hook
 end
 
 --[[
@@ -106,32 +111,12 @@ end
     Returns: A hooktable object with kind ("post").
 --]]
 function HookManager:PostHook(target, method, fn)
-    local id = SF.str(self.base, self.cnt)
-    if self.hooks[id] then return nil end
-    self.cnt = self.cnt + 1
+    local hook = createHook(self, "post", target, method, fn)
 
+    ZO_PostHook(target, method, wrapFunc(hook, hook.fn))
 
-    -- create hook object
-    local o = {
-        id       = id,
-        target   = target,        -- The object that owns the method (e.g. MAIL_INBOX)
-        method   = method,        -- Name of the method to hook (case‑sensitive)
-        fn       = fn,        -- Function signature depends on the kind
-        kind     = "post",
-        enabled  = false,       -- has the hook been registered?
-    }
-    setmetatable(o, self)
-
-    if self.hooks[id] then return nil end
-    --wrap the callback function with a disable
-    ZO_PostHook(target, method,
-        function(...)
-            if not o.enabled then return end   -- guard against race‑conditions
-            return fn(...)               -- true → cancel original
-        end)
-    self.hooks[id] = o
-    o.enabled = true
-    return o
+    hook.enabled = true
+    return hook
 end
 
 --[[
@@ -143,36 +128,18 @@ end
     Returns: A hooktable object with kind ("secure").
 --]]
 function HookManager:SecurePostHook(target, method, fn)
-    local id = SF.str(self.base, self.cnt)
-    --if self.hooks[id] then return nil end
-    self.cnt = self.cnt + 1
+    local hook = createHook(self, "secure", target, method, fn)
 
-
-    -- create hook object
-    local o = {
-        id       = id,
-        target   = target,        -- The object that owns the method (e.g. MAIL_INBOX or _G)
-        method   = method,        -- Name of the method to hook (case‑sensitive)
-        fn       = fn,            -- Function signature depends on the method being trailed
-        kind     = "secure",
-        enabled  = false,       -- has the hook been registered?
-    }
-    setmetatable(o, self)
-
-    --if self.hooks[id] then return nil end
     --wrap the callback function with a disable
-    SecurePostHook(target, method, 
+    SecurePostHook(target, method, wrapFunc(hook,
         function(...)
-            if not o.enabled then return end
+            SF.safeCall10(hook.fn, ...)
+        end))
 
-            -- Use safeCall to swallow errors
-            SF.safeCall10(fn, ...)
-        end)--]]
-    self.hooks[id] = o
-    o.enabled  = true
-
-    return o
+    hook.enabled = true
+    return hook
 end
+
 --[[
     Hook Table Properties
 
@@ -240,7 +207,6 @@ end
     Completely removes a hook from the registry.
 
     Effect: Disables the hook (if active) and deletes it from the internal hooks table. 
-    The ID becomes available for reuse.
 --]]
 function HookManager:remove(id)
     local h = self:get(id)
