@@ -1,7 +1,7 @@
 -- LibSFUtils is already defined in prior loaded file
 
-LibSFUtils = LibSFUtils or {}
 local sfutil = LibSFUtils
+assert(sfutil, "LibSFUtils_Global must be loaded before this file")
 
 
 
@@ -23,8 +23,11 @@ function sfutil.SafeAddString(stringId, stringValue, stringVersion)
 
     local id = stringId
     if type(stringId) == "string" then
+        -- String name: check if global exists, create if not
         id = _G[stringId]
+
         if not id then
+            -- Create the string name and ID using native ZOS API
             ZO_CreateStringId(stringId, stringValue)
             id = _G[stringId]
             SafeAddVersion(id, stringVersion)
@@ -82,7 +85,7 @@ function sfutil.LoadLanguage(lang_strings, defaultLang)
             sfutil.SafeAddString(stringId, stringValue, 1)
         end
 
-    else
+    --else
         -- default language is not in lang_strings table
         --d("LoadLanguage: Default language ("..defaultLang..") is not in lang_strings table")
     end

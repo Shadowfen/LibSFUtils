@@ -1,4 +1,6 @@
-local sfutil = LibSFUtils or {}
+local sfutil = LibSFUtils
+assert(sfutil, "LibSFUtils_Global must be loaded before this file")
+
 
 -- logger object that prints to chat
 -- Use Create() to create a logger instance of this type

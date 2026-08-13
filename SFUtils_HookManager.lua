@@ -5,15 +5,20 @@
 
         Batch Control: Enable or disable all hooks at once (useful for toggling features).
         Dynamic State: Toggle individual hooks on/off without removing and re-registering them.
-        Safety: Wraps callbacks in LibSFUtils.safeCall (for secure hooks) to prevent errors from breaking the game UI.
+        Safety: Wraps callbacks in LibSFUtils.safeCall10 (for secure hooks) to prevent errors from breaking the game UI.
         Identification: Assigns unique IDs to every hook for easy retrieval and manipulation.
-
-    Dependencies: Requires LibSFUtils (accessed via the global SF variable).
 --]]
+-- Dependencies
 local SF = LibSFUtils
+assert(SF, "LibSFUtils_Global must be loaded before this file")
+
+local SF_safeCall10 = SF.safeCall10 
+assert(SF_safeCall10, "LibSFUtils must be loaded before this file")
+local SF_str = SF.str       -- also loaded with LibSFUtils.lua
+
 
 local function createHook(manager, kind, target, method, fn)
-    local id = SF.str(manager.base, manager.cnt)
+    local id = SF_str(manager.base, manager.cnt)
 
     manager.cnt = manager.cnt + 1
 
@@ -122,7 +127,7 @@ end
 --[[
     manager:SecurePostHook(target, method, fn)
 
-    Registers a Secure Post-Hook. Used for secure functions (often related to combat or UI security). Errors in the callback are swallowed via SF.safeCall10 to prevent script errors.
+    Registers a Secure Post-Hook. Used for secure functions (often related to combat or UI security). Errors in the callback are swallowed via SF_safeCall10 to prevent script errors.
 
     Parameters: Same as PreHook.
     Returns: A hooktable object with kind ("secure").
@@ -133,7 +138,7 @@ function HookManager:SecurePostHook(target, method, fn)
     --wrap the callback function with a disable
     SecurePostHook(target, method, wrapFunc(hook,
         function(...)
-            SF.safeCall10(hook.fn, ...)
+            SF_safeCall10(hook.fn, ...)
         end))
 
     hook.enabled = true

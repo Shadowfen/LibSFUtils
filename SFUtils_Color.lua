@@ -25,7 +25,8 @@
 
 --]]
 -- LibSFUtils should already be defined in prior loaded file
-local sfutil = LibSFUtils or {}
+local sfutil = LibSFUtils
+assert(sfutil, "LibSFUtils_Global must be loaded before this file")
 
 local zo_floor = zo_floor
 ---------------------

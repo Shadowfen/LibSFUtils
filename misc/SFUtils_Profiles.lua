@@ -1,4 +1,12 @@
+
+-- Dependencies
 local SF = LibSFUtils
+assert(SF, "LibSFUtils must be loaded before this file")
+
+local SF_str = SF.str       					-- loaded with LibSFUtils.lua
+local SF_safeTable = SF.safeTable       		-- loaded with SFUtils_Table.lua
+local SF_defaultMissing = SF.defaultMissing     -- loaded with SFUtils_Table.lua
+local SF_deepCopy = SF.deepCopy       			-- loaded with SFUtils_Table.lua
 
 -------------------------------------------------
 -- Constants
@@ -50,7 +58,7 @@ function ProfMgmt:logDebug(...)
         logger:Debug(...)
 
     else
-        logger:Debug(SF.str(...))
+        logger:Debug(SF_str(...))
    end
 end
 
@@ -151,7 +159,7 @@ function ProfMgmt:createProfile(name, from)
 			fromprof = default_profile
 		end
 	end
-	profiles[name] = SF.deepCopy(fromprof)
+	profiles[name] = SF_deepCopy(fromprof)
 	if profiles[name] then
 		self.logDebug("profTbl.profiles[", name, "] set to values from ", from)
 		profiles[name].profileName = name
@@ -173,9 +181,9 @@ function ProfMgmt:loadProfile(name, fromtbl)
 		assert(profiles[name] ~= nil, "loadProfile(): trying to REload "..name)
 	end
 
-    profiles[name] = SF.deepCopy(fromtbl)
+    profiles[name] = SF_deepCopy(fromtbl)
 	if profiles[name] then
-		self.logger:Debug(SF.str("profTbl.profiles[", name, "] set to values from ", fromtbl))
+		self.logger:Debug(SF_str("profTbl.profiles[", name, "] set to values from ", fromtbl))
 		profiles[name].profileName = name
 
 	else
@@ -201,10 +209,10 @@ function ProfMgmt:loadsv()
 	local prfnm = SF.saved.profileName
 
 	self.profTbl = ZO_SavedVars:NewAccountWide(self.profSVnm, 1, nil, default_profiles, GetWorldName())
-	SF.defaultMissing(self.profTbl, default_profiles)
+	SF_defaultMissing(self.profTbl, default_profiles)
 
 	-- create a profTbl.profiles table if it does not exist
-	self.profTbl.profiles = SF.safeTable(self.profTbl.profiles)
+	self.profTbl.profiles = SF_safeTable(self.profTbl.profiles)
     local profiles = self.profTbl.profiles
 
 	-- Create an Account-Wide profile if the profiles table is empty
@@ -231,12 +239,12 @@ function ProfMgmt:loadsv()
 
 	-- character assigned profile no longer exists, create it
 	elseif profiles[SF.saved.profileName] == nil then
-		self.logger:Warn(SF.str("acct profile ",prfnm, " not found - creating a profile ", SF.saved.profile))
+		self.logger:Warn(SF_str("acct profile ",prfnm, " not found - creating a profile ", SF.saved.profile))
 		self:createProfile(prfnm)
 		SF.currentProfile = profiles[prfnm]
 
 	else
-		self.logger:Info(SF.str("loading profile ", prfnm))
+		self.logger:Info(SF_str("loading profile ", prfnm))
 		SF.currentProfile = profiles[prfnm]
 	end
 

@@ -1,5 +1,4 @@
---[[
-    This module provides high-performance string construction and formatting tools. It 
+--[[ This module provides high-performance string construction and formatting tools. It 
     addresses common ESO addon challenges such as:
 
         Performance: Avoiding slow string concatenation loops by using table.concat.
@@ -21,11 +20,10 @@
         function, use sfutil.GetText or call it manually before passing to str.
 --]]
 
--- LibSFUtils is already defined in prior loaded file
-LibSFUtils = LibSFUtils or {}
 local sfutil = LibSFUtils
+assert(sfutil, "LibSFUtils_Global must be loaded before this file")
 
---[[ sfutil.NilPack() packs a variable number of arguments into a table while preserving 
+--[[ --------------------- sfutil.NilPack() packs a variable number of arguments into a table while preserving 
     both the number of arguments and any nil values.
 
     Unlike a simple table constructor ({...}), which loses trailing nil values and cannot 
@@ -49,7 +47,7 @@ function sfutil.NilUnpack(t)
 end
 
 
---[[ ---------------------
+--[[ --------------------- tcstr_tail(pending, rslt, seen)
     Concatenate varargs to a string
 
 	To improve speed of ".." concatenation, we add the
@@ -62,47 +60,52 @@ end
 	* nil is converted to "(nil)"
 	* Everything else is run through tostring()
 ]]
---[[ ---------------------
-    Concatenate varargs to a string.
---]]
 -- Tail‑recursive worker: `pending` is a list of values still to process.
 local function tcstr_tail(pending, rslt, seen)
-    -- If there is nothing left, we are done.
     if pending.n == 0 then return rslt end
 
-    -- Pull the first element (Lua tables are 1‑based).
     local v = table.remove(pending, 1)
     pending.n = pending.n - 1
 
     if v == nil then
         rslt[#rslt + 1] = "(nil)"
-        return tcstr_tail(pending, rslt, seen)               -- tail call
+        return tcstr_tail(pending, rslt, seen)
 
     elseif type(v) == "table" then
         if seen[v] then
             rslt[#rslt + 1] = "<cycle>"
-            return tcstr_tail(pending, rslt, seen)
+        else
+            seen[v] = true
+            for k, v1 in pairs(v) do
+                rslt[#rslt + 1] = tostring(k)   -- Always stringify key
+
+                local vt = type(v1)
+                if vt == "table" then
+                    pending.n = pending.n + 1
+                    pending[pending.n] = v1     -- Recurse on nested tables
+                elseif vt == "nil" then
+                    rslt[#rslt + 1] = "(nil)"
+                elseif vt == "function" then
+                    rslt[#rslt + 1] = "<function>"
+                else
+                    -- Primitives (string, number, boolean) → rslt
+                    -- Functions skipped (contribute "")
+                    rslt[#rslt + 1] = tostring(v1)
+                end
+            end
         end
-        seen[v] = true
-        -- Enqueue the table’s contents (key, value pairs) *after* the
-        -- current pending items so they are processed depth‑first.
-        for k, v1 in pairs(v) do
-            table.insert(rslt, k)    -- then the key
-            table.insert(rslt, v1)   -- then value
-        end
-        return tcstr_tail(pending, rslt, seen)               -- tail call
-        
+        return tcstr_tail(pending, rslt, seen)
+
     elseif type(v) == "function" then
-        return tcstr_tail(pending, rslt, seen)               -- tail call
+        rslt[#rslt + 1] = "<function>"
+        return tcstr_tail(pending, rslt, seen)
 
     else
         rslt[#rslt + 1] = tostring(v)
-        return tcstr_tail(pending, rslt, seen)               -- tail call
+        return tcstr_tail(pending, rslt, seen)
     end
 end
-
---[[
-    sfutil.str(...)
+--[[ --------------------- sfutil.str(...)
 
     Concatenates multiple arguments into a single string efficiently.
 
@@ -144,8 +147,7 @@ function sfutil.str(...)
     return table.concat(rslt_pool)
 end
 
---[[
-    sfutil.str1(...)
+--[[ --------------------- sfutil.str1(...)
 
     Legacy version of sfutil.str. Uses a standard loop instead of tail recursion.
 
@@ -174,7 +176,8 @@ function sfutil.str1(...)
     return s
 end
 
-
+--[[ --------------------- tclstr(rslt, ...)
+--]]
 local function tclstr(rslt, ...)
 
     -- append another value to the result table
@@ -209,8 +212,7 @@ local function tclstr(rslt, ...)
     end
 end
 
---[[
-    sfutil.lstr(...)
+--[[ --------------------- sfutil.lstr(...)
 
     Concatenates arguments, treating numbers as Localization IDs.
 
@@ -247,8 +249,7 @@ function sfutil.lstr(...)
     return table.concat(rslt_pool)
 end
 
---[[ ---------------------
-    sfutil.lstr1(...)
+--[[ --------------------- sfutil.lstr1(...)
 
     Legacy version of sfutil.lstr.
 ]]
@@ -278,7 +279,7 @@ function sfutil.lstr1(...)
     return table.concat(arg)
 end
 
---[[ ---------------------
+--[[ --------------------- tcdstr_tail(pending, delim, rslt, seen)
     Concatenate varargs to a delimited string.
 	Similar to sfutil.str() except that a delimiter is
 	placed between each of the values of the string - the
@@ -291,21 +292,32 @@ end
   other -> tostring
 --]]
 local function tcdstr_tail(pending, delim, rslt, seen)
-    if #pending == 0 then return rslt end
+    if pending.n == 0 then return rslt end
+
     local v = table.remove(pending, 1)
+    pending.n = pending.n - 1
 
     if v == nil then
         rslt[#rslt + 1] = "(nil)"
+
     elseif type(v) == "table" then
         if seen[v] then
             rslt[#rslt + 1] = "<cycle>"
         else
             seen[v] = true
             for k, v1 in pairs(v) do
-                table.insert(pending, 1, v1)
-                table.insert(pending, 1, k)
+                rslt[#rslt + 1] = tostring(k)
+
+                local vt = type(v1)
+                if vt == "table" then
+                    pending[#pending + 1] = v1
+                    pending.n = pending.n + 1  -- ← MUST update count!
+                elseif vt ~= "function" then
+                    rslt[#rslt + 1] = tostring(v1)
+                end
             end
         end
+
     elseif type(v) ~= "function" then
         rslt[#rslt + 1] = tostring(v)
     end
@@ -313,8 +325,7 @@ local function tcdstr_tail(pending, delim, rslt, seen)
     return tcdstr_tail(pending, delim, rslt, seen)
 end
 
---[[
-    sfutil.dstr(delim, ...)
+--[[ --------------------- sfutil.dstr(delim, ...)
 
     Concatenates arguments with a delimiter inserted between every element.
 
@@ -329,22 +340,20 @@ end
     Returns: A single string with delimiters.
 --]]
 function sfutil.dstr(delim, ...)
-    -- Manually clear the reused table
-    for k in pairs(rslt_pool) do
-        rslt_pool[k] = nil
-    end
+    local rslt = {}
+    local pending = sfutil.NilPack(delim, ...)
 
-    local pending = {...}
+    -- Skip the delimiter in processing - just use it for concat
+    pending.n = pending.n - 1  -- Remove delimiter from count
+    table.remove(pending, 1)   -- Remove delimiter from array
 
-    -- Pass the cleared table to the tail-call helper
-    rslt_pool = tcdstr_tail(pending, delim, rslt_pool, {})
+    tcdstr_tail(pending, delim, rslt, {})
 
-    return table.concat(rslt_pool, delim)
+    return table.concat(rslt, delim)
 end
 
 
---[[ ---------------------
-    sfutil.GetText(textEntry, ...)
+--[[ --------------------- sfutil.GetText(textEntry, ...)
 
     Retrieves text based on the input type.
     Get the appropriate text string based on a variety
@@ -380,8 +389,7 @@ function sfutil.GetText(textEntry, ...)
     return text
 end
 
---[[ ---------------------
-    sfutil.strSplitLen(str, maxlen)
+--[[ --------------------- sfutil.strSplitLen(str, maxlen)
 
     Splits a long string into chunks that do not exceed maxlen bytes.
 
@@ -420,8 +428,7 @@ function sfutil.strSplitLen(str, maxlen)
     return result
 end
 
---[[ ---------------------
-    sfutil.tblJoinLen(tbl, maxlen)
+--[[ --------------------- sfutil.tblJoinLen(tbl, maxlen)
 
     Joins a table of strings, splitting the result if it exceeds maxlen.
 
@@ -474,8 +481,7 @@ function sfutil.tblJoinLen(tbl, maxlen)
     return joined
 end
 
---[[ ---------------------
-    sfutil.GetIconized(prompt, promptcolor, texturefile, texturecolor)
+--[[ --------------------- sfutil.GetIconized(prompt, promptcolor, texturefile, texturecolor)
 
     Create a string containing an optional icon (of optional color) followed by a text
 	prompt (specified either as a string itself or as a localization string id)
@@ -520,8 +526,7 @@ function sfutil.GetIconized(prompt, promptcolor, texturefile, texturecolor)
     return strprompt
 end
 
---[[ ---------------------
-    sfutil.ColorText(prompt, promptcolor)
+--[[ --------------------- sfutil.ColorText(prompt, promptcolor)
 
     Create a string containing a text prompt (specified either as a string itself
 	or as a localization string id) and a text color. The text color is optional, but

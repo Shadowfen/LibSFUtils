@@ -22,9 +22,8 @@
     Thread Safety: Not explicitly thread-safe (Lua is single-threaded in ESO, so this is not an issue).
 --]]
 
--- LibSFUtils is already defined in prior loaded file
-LibSFUtils = LibSFUtils or {}
 local sfutil = LibSFUtils
+assert(sfutil, "LibSFUtils_Global must be loaded before this file")
 
 local function isPositiveInteger(value)
     return type(value) == "number"

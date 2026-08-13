@@ -1,4 +1,6 @@
 local SF = LibSFUtils
+assert(SF, "LibSFUtils_Global must be loaded before this file")
+
 
 local Queue = {}
 Queue.__index = Queue

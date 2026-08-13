@@ -1,4 +1,5 @@
 local sfutil = LibSFUtils
+assert(sfutil, "LibSFUtils_Global must be loaded before this file")
 
 
 -- ------------------------------------------------------

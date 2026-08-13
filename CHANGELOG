@@ -1,3 +1,14 @@
+[COLOR="DeepSkyBlue"]75[/COLOR]:
+[LIST]
+[*] Fixed str() and dstr() to properly recurse embedded tables.
+[*] Added file loaded checks by asserts for inter-file dependencies.
+[/LIST]
+
+[COLOR="DeepSkyBlue"]74[/COLOR]:
+[LIST]
+[*] Update manifest.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]73[/COLOR]:
 [LIST]
 [*] Modified sfutils.closure() into an sfutils.closure that does not expect a self parameter and a sfutils.methodClosure that does to indicate intention and promote easier code-correctness.

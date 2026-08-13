@@ -75,7 +75,14 @@
         Standard One-shot: The error is logged, and the timer stops without retrying.
 
 --]]
+-- Dependencies
 local SF = LibSFUtils
+assert(SF, "LibSFUtils_Global must be loaded before this file")
+
+local SF_safeCall = SF.safeCall       -- loaded with LibSFUtils.lua
+assert(SF_safeCall, "LibSFUtils must be loaded before this file")
+
+--
 SF.CallLater = {}
 local CallLater = SF.CallLater
 CallLater.__index = CallLater
@@ -94,7 +101,7 @@ local function invokeLater(self)
 
     if not self.callback then return end
 
-    local ok, err = SF.safeCall(self.callback, unpack(args))
+    local ok, err = SF_safeCall(self.callback, unpack(args))
 
     if not ok then
         -- Increment attempts FIRST, THEN check if we can retry
@@ -194,7 +201,7 @@ function CallLater:_scheduleNext()
 
     self._tickWrapper = function()
         if not self.periodicCallback then return end
-        local ok, err = SF.safeCall(self.periodicCallback)
+        local ok, err = SF_safeCall(self.periodicCallback)
         if not ok then
             d("[PeriodicTimer] callback error: " .. tostring(err))
         end

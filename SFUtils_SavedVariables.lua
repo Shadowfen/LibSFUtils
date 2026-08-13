@@ -1,7 +1,5 @@
--- LibSFUtils is already defined in prior loaded file
-
-LibSFUtils = LibSFUtils or {}
 local sfutil = LibSFUtils
+assert(sfutil, "LibSFUtils_Global must be loaded before this file")
 
 ----------------------------
 -- Saved Variables helpers
