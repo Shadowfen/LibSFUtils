@@ -50,17 +50,17 @@ local function Strings_testStr()
     TK.printSuite(mn,fn)
     
     TK.assertTrue(SF.str("test", "1") == "test1", "str - str - "..SF.str("test", "1"))
-    d("simple table  "..SF.str({ "A", "B", "C"} ))
+    --d("simple table  "..SF.str({ "A", "B", "C"} ))
     TK.assertTrue(SF.str({ "A", "B", "C"}) == "1A2B3C", "str - tbl")
-    d( SF.str("AA", 22, "CA", {"Z", "Y", "X", "W"} ))
+    --d( SF.str("AA", 22, "CA", {"Z", "Y", "X", "W"} ))
     TK.assertTrue(SF.str( "AA", 22, "CA", {"Z", "Y", "X", "W"} ) == "AA22CA1Z2Y3X4W", "str - single, tbl2")
-    d( SF.str({"Z", "Y", "X", "W"} ))
+    --d( SF.str({"Z", "Y", "X", "W"} ))
     TK.assertTrue(SF.str({a = {b = 1}}) == "ab1", "deep table string")
-    d(SF.str({a = {b = 1}}))
+    --d(SF.str({a = {b = 1}}))
     TK.assertTrue(SF.str( {"Z", "Y", "X", "W"} ) == "1Z2Y3X4W", "str - tbl2")
-    d("nil="..SF.str(nil).."=")
+    --d("nil="..SF.str(nil).."=")
     TK.assertTrue(SF.str(nil) == "(nil)", "str - nil")
-    d("func="..SF.str(function() return "ha" end).."=")
+    --d("func="..SF.str(function() return "ha" end).."=")
     TK.assertTrue(SF.str(function() return "ha" end) == "<function>", "str - function acknowledged")
 end
 
@@ -70,8 +70,9 @@ local function Strings_testLStr()
     TK.assertTrue(SF.lstr("test", "1") == "test1", "str - str - "..SF.str("test", "1"))
     --d(SF.str({ "A", "B", "C"} ))
     TK.assertTrue(SF.lstr({ "A", "B", "C"}) == "1A2B3C", "str - tbl")
-    --d( SF.str({ "AA", 22, "CA", {"Z", "Y", "X", "W"} } ))
-    TK.assertTrue(SF.lstr({ "AA", 22, "CA", {"Z", "Y", "X", "W"} }) == "1AA2223CA41Z2Y3X4W", "str - tbl2")
+    --d( SF.lstr({ "AA", 22, "CA", {"Z", "Y", "X", "W"} } ))
+    -- note that GetString(22) returns an empty string ""
+    TK.assertTrue(SF.lstr({ "AA", 22, "CA", {"Z", "Y", "X", "W"} }) == "1AA23CA41Z2Y3X4W", "str - tbl2")
     TK.assertTrue(SF.lstr(nil) == "(nil)", "str - nil")
     TK.assertTrue(SF.lstr(function() return "ha" end) == "", "str - function ignored")
 end
@@ -79,13 +80,132 @@ end
 local function Strings_testDstr()
     local fn = "testDstr"
     TK.printSuite(mn,fn)
-    TK.assertTrue(SF.dstr(" ","test", "1") == "test 1", "dstr - str - "..SF.dstr(" ","test", "1"))
+    --d(SF.dstr(" ","test", "1"))
+    TK.assertTrue(SF.dstr(" ","test", "1") == "test 1", "dstr: "..SF.dstr(" ","test", "1"))
     --d(SF.dstr(" ", { "A", "B", "C"} ))
     TK.assertTrue(SF.dstr(" ",{ "A", "B", "C"}) == "1 A 2 B 3 C", "dstr - tbl")
     --d( SF.dstr( " ", { "AA", 22, "CA", {"Z", "Y", "X", "W"} } ))
     TK.assertTrue(SF.dstr(" ",{ "AA", 22, "CA", {"Z", "Y", "X", "W"} }) == "1 AA 2 22 3 CA 4 1 Z 2 Y 3 X 4 W", "dstr - tbl2")
     TK.assertTrue(SF.dstr(nil) == "", "dstr - nil")
 end
+
+local function Strings_testTblStr()
+    local fn = "testTblStr"
+    TK.printSuite(mn,fn)
+    local t = {"A", "B"}
+    local x = {t, t}
+    --d(SF.tblstr(" ", x))
+    TK.assertTrue( SF.tblstr(" ", x) == "{ 1 - { 1 - A 2 - B } 2 - <seen> }",
+        "tblstr - repeated table")
+end
+
+local function Strings_testOptStr()
+    local fn = "testOptStr"
+    TK.printSuite(mn,fn)
+    local opt = {}
+    TK.assertEquals("hello", SF.optstr(opt, nil, "hello"), "single value")
+    TK.assertEquals("onetwothree", SF.optstr(opt, nil, "one", "two", "three"),
+        "multiple values with no delimiter")
+    TK.assertEquals("one, two, three", SF.optstr(opt, ", ", "one", "two", "three"),
+        "delimiter between values")
+    TK.assertEquals("one, (nil), three", SF.optstr(opt, ", ", "one", nil, "three"),
+        "nil value is formatted")
+    TK.assertEquals("10, 20, 30", SF.optstr(opt, ", ", 10, 20, 30),
+        "numbers are formatted")
+    TK.assertEquals("true, false", SF.optstr(opt, ", ", true, false),
+        "booleans are formatted")
+end
+
+local function Strings_testOptStrTable()
+    TK.printSuite(mn,"testOptStrTable")
+    local opt = {
+        tableOpen = "{",
+        tableClose = "}",
+        keyValueDelim = "=",
+    }
+    --d(SF.optstr(opt, ", ", { a = 1, }))
+    TK.assertEquals("{ a = 1 }", SF.optstr(opt, " ", { a = 1, }),
+        "table is formatted using options")
+    --d(SF.optstr(opt, ", ", {a = 1,}, {b = 2,}))
+    TK.assertEquals("{, a, =, 1, }, {, b, =, 2, }", SF.optstr(opt, ", ", {a = 1,}, {b = 2,}),
+        "delimiter separates formatted tables")
+    --d(SF.optstr(opt, nil, {a = 1,}))
+    TK.assertEquals("{a=1}", SF.optstr(opt, nil, {a = 1,}),
+        "keyValueDelim separates table key and value")
+end
+
+local function Strings_testOptStrShowFunctions()
+    TK.printSuite(mn,"testOptStrShowFunctions")
+    local opt = {
+        showFunctions = true,
+    }
+
+    TK.assertEquals("<function>", SF.optstr(opt, nil, function() return "result" end),
+        "showFunctions formats functions")
+    TK.assertEquals("", SF.optstr({}, nil, function() return "result" end),
+        "functions are omitted by default")
+end
+
+local function Strings_testOptstrRunFunctions()
+    TK.printSuite(mn,"testOptstrRunFunctions")
+    local opt = {
+        runFunctions = true,
+    }
+    --d(SF.optstr(opt, nil, function() return "result", true end))
+    TK.assertEquals("result", SF.optstr(opt, nil, function() return "result", true end),
+        "runFunctions executes and formats function result")
+    --d(SF.optstr(opt, nil, function() return {"result", 5} end))
+    TK.assertEquals("1result25", SF.optstr(opt, nil, function() return {"result", 5} end),
+        "runFunctions executes and formats function result")
+
+end
+
+local function Strings_testOptstrRunFunctionReturnsTable()
+    TK.printSuite(mn,"testOptstrRunFunctionReturnsTable")
+    local opt = {
+        runFunctions = true,
+        tableOpen = "{",
+        tableClose = "}",
+        keyValueDelim = "=",
+    }
+
+   TK.assertEquals("{1=result2=5}", SF.optstr(opt, nil, function() return {"result", 5} end),
+        "runFunctions executes and formats function result")
+    TK.assertEquals("{a=1}", SF.optstr(opt, nil, function() return { a = 1 } end),
+        "runFunctions formats returned table")
+end
+
+local function Strings_testOptstrSeenTable()
+    TK.printSuite(mn,"testOptstrSeenTable")
+    local t = {}
+    t.self = t
+
+    local opt = {
+        tableOpen = "{",
+        tableClose = "}",
+        keyValueDelim = "=",
+    }
+
+    TK.assertEquals("{self=<seen>}", SF.optstr(opt, nil, t),
+        "recursive table reference is detected")
+end
+
+local function Strings_testOptstrSeenText()
+    TK.printSuite(mn,"testOptstrSeenText")
+    local t = {}
+    t.self = t
+
+    local opt = {
+        tableOpen = "{",
+        tableClose = "}",
+        keyValueDelim = "=",
+        seenText = "[recursive]",
+    }
+
+    TK.assertEquals("{self=[recursive]}", SF.optstr(opt, nil, t),
+        "custom seenText is used")
+end
+
 
 local function Strings_testGetText()
     local fn = "testGetText"
@@ -174,6 +294,14 @@ function Strings_runTests()
     Strings_testStr()
     Strings_testLStr()
     Strings_testDstr()
+    Strings_testTblStr()
+    Strings_testOptStr()
+    Strings_testOptStrTable()
+    Strings_testOptStrShowFunctions()
+    Strings_testOptstrRunFunctions()
+    Strings_testOptstrRunFunctionReturnsTable()
+    Strings_testOptstrSeenTable()
+    Strings_testOptstrSeenText()
     Strings_testGetText()
     Strings_testStrSplitLen()
     Strings_testTblJoinLen_tbl()

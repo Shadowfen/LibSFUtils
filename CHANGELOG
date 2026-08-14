@@ -1,3 +1,21 @@
+[COLOR="DeepSkyBlue"]76[/COLOR]:
+[LIST]
+[*] Revised the string functions [COLOR="MediumSeaGreen"]str()[/color], [COLOR="MediumSeaGreen"]dstr()[/color], [COLOR="MediumSeaGreen"]lstr()[/color] to consolidate commonly used string formating code.
+[*] Added a [COLOR="MediumSeaGreen"]tblstr()[/color] string function that recurses into tables to create a string from them where the tables are printed inside {} and a "=" delimiter is inserted between keys and values. This differs from the older string functions which recursed into tables and printed keys and values "flattened" instead of indicating tables or embedded tables.
+[*] Added a [COLOR="MediumSeaGreen"]optstr()[/color] to allow the user to specify various formatting options to create the output string. Options that can be set include:
+         * `showFunctions` — If true, functions are represented as "<function>", and the `runFunctions` option is ignored..
+                            If false, the string "<function>" is NOT added to the result.
+         * `runFunctions` — If true, functions are executed and their output is formatted for addition to the results.
+                            Note: if `showFunctions` is true then this option is ignored.
+                            If false, then functions are not executed.
+         * `localizeNumbers` — If true, numeric values are passed to GetString() instead of tostring().
+         * `seenText` — Text emitted when a table has already been encountered. Defaults to "<seen>".
+         * `tableOpen` — Optional text emitted before the contents of a table.
+         * `tableClose` — Optional text emitted after the contents of a table.
+         * `keyValueDelim` - Optional text emitted between a key and a value in a table
+[*] Added file loading checks by asserts for inter-file dependencies.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]75[/COLOR]:
 [LIST]
 [*] Fixed str() and dstr() to properly recurse embedded tables.

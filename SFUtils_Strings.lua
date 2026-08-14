@@ -47,309 +47,232 @@ function sfutil.NilUnpack(t)
 end
 
 
---[[ --------------------- tcstr_tail(pending, rslt, seen)
-    Concatenate varargs to a string
-
-	To improve speed of ".." concatenation, we add the
-	arguments to a table and do a concat on it.
-
-	Value conversions:
-	* Numeric arguments are converted to string equivalents:
-	  i.e 16 -> "16".
-	* The elements of table arguments are recursively added.
-	* nil is converted to "(nil)"
-	* Everything else is run through tostring()
-]]
--- Tail‑recursive worker: `pending` is a list of values still to process.
-local function tcstr_tail(pending, rslt, seen)
-    if pending.n == 0 then return rslt end
-
-    local v = table.remove(pending, 1)
-    pending.n = pending.n - 1
-
-    if v == nil then
-        rslt[#rslt + 1] = "(nil)"
-        return tcstr_tail(pending, rslt, seen)
-
-    elseif type(v) == "table" then
-        if seen[v] then
-            rslt[#rslt + 1] = "<cycle>"
-        else
-            seen[v] = true
-            for k, v1 in pairs(v) do
-                rslt[#rslt + 1] = tostring(k)   -- Always stringify key
-
-                local vt = type(v1)
-                if vt == "table" then
-                    pending.n = pending.n + 1
-                    pending[pending.n] = v1     -- Recurse on nested tables
-                elseif vt == "nil" then
-                    rslt[#rslt + 1] = "(nil)"
-                elseif vt == "function" then
-                    rslt[#rslt + 1] = "<function>"
-                else
-                    -- Primitives (string, number, boolean) → rslt
-                    -- Functions skipped (contribute "")
-                    rslt[#rslt + 1] = tostring(v1)
-                end
-            end
-        end
-        return tcstr_tail(pending, rslt, seen)
-
-    elseif type(v) == "function" then
-        rslt[#rslt + 1] = "<function>"
-        return tcstr_tail(pending, rslt, seen)
-
-    else
-        rslt[#rslt + 1] = tostring(v)
-        return tcstr_tail(pending, rslt, seen)
-    end
-end
---[[ --------------------- sfutil.str(...)
-
-    Concatenates multiple arguments into a single string efficiently.
-
-        Behavior:
-            Numbers: Converted to strings via tostring.
-            Tables: Recursively expanded. Keys and values are added to the output.
-            Nil: Converted to the literal string "(nil)".
-            Functions: Ignored (not executed).
-            Circular References: Detected and replaced with "<cycle>" to prevent infinite loops.
-        Optimization: Uses a tail-recursive helper and a pooled result table to minimize garbage collection.
-        Returns: A single concatenated string.
----
-	Similar to sfutil.str except that it will try to convert the
-	numeric arguments in the argument list into strings using the
-	GetString() function.
-
-	To improve on the speed of ".." concatenation, we add the
-	arguments to a table and do a concat on the table.
-
-	Value conversions:
-	* Numeric arguments are run through the GetString function:
-	  i.e 16 -> GetString(16).
-	* The elements of table arguments are recursively added.
-	* nil is converted to "(nil)"
-	* Everything else is run through tostring()
---]]
 local rslt_pool = {}        -- Allocate the table ONCE at module load
-function sfutil.str(...)
-    -- Manually clear the reused table
-    for k in pairs(rslt_pool) do
-        rslt_pool[k] = nil
-    end
 
-    local pending = sfutil.NilPack(...)
-
-    -- Pass the cleared table to the tail-call helper
-    tcstr_tail(pending, rslt_pool, {})
-
-    return table.concat(rslt_pool)
-end
-
---[[ --------------------- sfutil.str1(...)
-
-    Legacy version of sfutil.str. Uses a standard loop instead of tail recursion.
-
-    Note: Prefer sfutil.str for better performance and circular reference safety.
---]]
-function sfutil.str1(...)
-    local nargs = select("#", ...)
-    local arg = {}
-    local sf_str = sfutil.str
-
-    for i = 1, nargs do
-        local v = select(i, ...)
-        local t = type(v)
-        if (v == nil) then
-            arg[#arg + 1] = "(nil)"
-        elseif (t == "table") then
-            for k, v1 in pairs(v) do
-                arg[#arg + 1] = k
-                arg[#arg + 1] = sf_str(v1)
-            end
-        else
-            arg[#arg + 1] = tostring(v)
-        end
-    end
-    local s = table.concat(arg)
-    return s
-end
-
---[[ --------------------- tclstr(rslt, ...)
---]]
-local function tclstr(rslt, ...)
-
-    -- append another value to the result table
-    local function appendVal(val)
-        rslt[#rslt+1] = tostring(val)
-    end
-
-    for _, v in sfutil.iter_args(...) do
-        local t_v = type(v)
-        if v == nil then
-            appendVal( "(nil)" )
-
-        elseif t_v == "boolean" then
-            appendVal(v)
-
-        elseif t_v == "number" then
-            appendVal(GetString(v))
-
-        elseif t_v == "table" then
-            for k, v1 in pairs(v) do
-                appendVal(k)
-                if type(v1) == "table" then
-                    tclstr(rslt, v1)
-                else
-                    appendVal(v1)
-                end
-            end
-
-        elseif t_v ~= "function" then
-            appendVal(v)
-        end
-    end
-end
-
---[[ --------------------- sfutil.lstr(...)
-
-    Concatenates arguments, treating numbers as Localization IDs.
-
-    Behavior:
-        Numbers: Passed to GetString() to retrieve localized text.
-        Tables: Recursively expanded (keys and values).
-        Nil: Converted to "(nil)".
-        Functions: Ignored.
-    Use Case: Building debug logs or UI text where you want to mix raw strings and localized string IDs seamlessly.
----
-	Similar to sfutil.str except that it will try to convert the
-	numeric arguments in the argument list into strings using the
-	GetString() function.
-
-	To improve on the speed of ".." concatenation, we add the
-	arguments to a table and do a concat on the table.
-
-	Value conversions:
-	* Numeric arguments are run through the GetString function:
-	  i.e 16 -> GetString(16).
-	* The elements of table arguments are recursively added.
-	* nil is converted to "(nil)"
-	* Everything else is run through tostring()
---]]
-function sfutil.lstr(...)
-    -- Manually clear the reused table (no table.wipe)
-    for k in pairs(rslt_pool) do
-        rslt_pool[k] = nil
-    end
-
-    -- Pass the cleared table to the helper function
-    tclstr(rslt_pool, ...)
-
-    return table.concat(rslt_pool)
-end
-
---[[ --------------------- sfutil.lstr1(...)
-
-    Legacy version of sfutil.lstr.
-]]
-function sfutil.lstr1(...)
-    local nargs = select("#", ...)
-    local arg = {}
-    local sf_str = sfutil.lstr1
-
-    for i = 1, nargs do
-        local v = select(i, ...)
-        local t = type(v)
-        if v == nil then
-            arg[#arg + 1] = "(nil)"
-
-        elseif t == "number" then
-            arg[#arg + 1] = GetString(v)
-
-        elseif t == "table" then
-            for k, v1 in pairs(v) do
-                arg[#arg + 1] = k
-                arg[#arg + 1] = sf_str(v1)
-            end
-        else
-            arg[#arg + 1] = tostring(v)
-        end
-    end
-    return table.concat(arg)
-end
-
---[[ --------------------- tcdstr_tail(pending, delim, rslt, seen)
-    Concatenate varargs to a delimited string.
-	Similar to sfutil.str() except that a delimiter is
-	placed between each of the values of the string - the
-	arguments to the function and also between the items within
-	a table that was passed in.
-
-  nil -> ""
-  table -> k v k v k v...
-  function -> ignored
-  other -> tostring
---]]
-local function tcdstr_tail(pending, delim, rslt, seen)
-    if pending.n == 0 then return rslt end
-
-    local v = table.remove(pending, 1)
-    pending.n = pending.n - 1
-
-    if v == nil then
-        rslt[#rslt + 1] = "(nil)"
-
-    elseif type(v) == "table" then
-        if seen[v] then
-            rslt[#rslt + 1] = "<cycle>"
-        else
-            seen[v] = true
-            for k, v1 in pairs(v) do
-                rslt[#rslt + 1] = tostring(k)
-
-                local vt = type(v1)
-                if vt == "table" then
-                    pending[#pending + 1] = v1
-                    pending.n = pending.n + 1  -- ← MUST update count!
-                elseif vt ~= "function" then
-                    rslt[#rslt + 1] = tostring(v1)
-                end
-            end
-        end
-
-    elseif type(v) ~= "function" then
-        rslt[#rslt + 1] = tostring(v)
-    end
-
-    return tcdstr_tail(pending, delim, rslt, seen)
-end
-
---[[ --------------------- sfutil.dstr(delim, ...)
-
-    Concatenates arguments with a delimiter inserted between every element.
+--[[ formatValue(val, opts, rslt, seen) - Recursively formats a Lua value and appends the resulting text fragments to `rslt`.
 
     Parameters:
-        delim (string): The separator (e.g., ", ", "|", "\n").
-        ...: Variable arguments.
+    * val — Value to format. May be nil, a function, scalar value, or table.
+    * opts — table - Formatting options:
+        * `showFunctions` — If true, functions are represented as "<function>", and the "runFunctions" option is ignored..
+                            If false, the string "<function>" is NOT added to the result.
+        * `runFunctions` — If true, functions are executed and their output is formatted for addition to the results.
+                            Note: if 'showFunctions' is true then this option is ignored.
+                            If false, then functions are not executed.
+        * `localizeNumbers` — If true, numeric values are passed to GetString() instead of tostring().
+        * `seenText` — Text emitted when a table has already been encountered. Defaults to `"<seen>"`.
+        * `tableOpen` — Optional text emitted before the contents of a table.
+        * `tableClose` — Optional text emitted after the contents of a table.
+        * `keyValueDelim - Optional text emitted between a key and a value in a table
+    * `rslt` — Output array. Formatted fragments are appended using numeric indexing.
+    * `seen` — Table used to track tables already visited during recursive traversal. 
+                This prevents infinite recursion when tables contain references to themselves or to an ancestor table.
+
     Behavior:
-        Similar to sfutil.str but inserts delim between every processed item.
-        Nil: Converted to "(nil)".
-        Tables: Expanded recursively; delimiters are placed between keys and values as well.
-        Functions: Ignored.
-    Returns: A single string with delimiters.
+
+    1. `nil` values - Appends `"(nil)"`.
+    2. Functions - 
+        * If `opts.showFunctions` is enabled, appends `"<function>"`.
+        * Otherwise produces no output.
+    3. Non-table values -
+        * Numbers are localized with `GetString()` when `opts.localizeNumbers` is enabled.
+        * All other scalar values are converted with `tostring()`.
+    4. Tables - 
+        * Checks `seen` before recursively processing the table.
+        * If the table has already been visited, appends `opts.seenText` or `"<seen>"`.
+        * Otherwise marks the table as seen and recursively formats each key/value pair.
+        * Table iteration uses `pairs()`, so entry order is not guaranteed.
+        * `tableOpen` and `tableClose` optionally surround the table contents.
+        * `keyValueDelim` optionally separates each key from its corresponding value.
+
+    Important implementation detail:
+        * `seen` is intentionally shared by all recursive calls. Once a table has been encountered, 
+            subsequent references to that same table are represented by the configured `seenText` 
+            rather than being expanded again. This handles both circular references and repeated references 
+            without infinite recursion or duplicate expansion.
+
+    Output:
+        The function does not return a formatted string. It appends fragments to `rslt`; the caller can 
+        subsequently combine them with `table.concat(rslt)`.
+--]]
+local function formatValue(val, opts, rslt, seen)
+    opts = opts or {}
+    if val == nil then
+        rslt[#rslt + 1] = "(nil)"
+        return
+    end
+
+    local t = type(val)
+
+    if t == "function" then
+        if opts.showFunctions then
+            rslt[#rslt + 1] = "<function>"
+        elseif opts.runFunctions then
+            formatValue(val(), opts, rslt, seen)
+        end
+        return
+    end
+
+    -- non-table, non-function values
+    if t ~= "table" then
+        if opts.localizeNumbers and t == "number" then
+            rslt[#rslt + 1] = GetString(val)
+        else
+            rslt[#rslt + 1] = tostring(val)
+        end
+        return
+    end
+
+    -- process tables --
+
+    -- repeated-view table?
+    if seen[val] then
+        rslt[#rslt + 1] = opts.seenText or "<seen>"
+        return
+    end
+    seen[val] = true
+
+    -- start processing the first-view table
+    if opts.tableOpen then
+        rslt[#rslt + 1] = opts.tableOpen
+    end
+
+    for k, value in pairs(val) do
+        -- Key.
+        rslt[#rslt + 1] = tostring(k)
+
+        -- Delimiter between key and value.
+        if opts.keyValueDelim then
+            rslt[#rslt + 1] = opts.keyValueDelim
+        end
+
+        -- Value.
+        formatValue(value, opts, rslt, seen)
+    end
+
+    if opts.tableClose then
+        rslt[#rslt + 1] = opts.tableClose
+    end
+end
+
+local function clear(t)
+    for k in pairs(t) do
+        t[k] = nil
+    end
+end
+
+--[[ sfutil.str(...) - Create a string from the provided values. 
+        Numbers are included as numeric strings, functions are replaced with "<function>"
+        and repeated reference to tables will become "<cycle>" after the first time.
+        No delimiters.
+--]]
+function sfutil.str(...)
+    clear(rslt_pool)
+
+    local opts = {
+        localizeNumbers = false,
+        showFunctions = true,
+        seenText = "<cycle>",
+    }
+
+    local args = sfutil.NilPack(...)
+    for i = 1, args.n do
+        formatValue(args[i], opts, rslt_pool, {})
+    end
+
+    return table.concat(rslt_pool)
+end
+
+--[[ sfutil.optstr(opt, delim, ...) - Create a string from provided values using the provided options and delimiter
+
+    Parameters:
+        opt - table - option values - See formatValues() for recognized options to specify
+        delim - a character or string - to be used as a delimiter between values 
+                or nil for no delimiter
+        ... - any - strings, numbers, booleans, nils, and/or tables of those
+
+--]]
+function sfutil.optstr(opt, delim, ...)
+    clear(rslt_pool)
+
+    local args = sfutil.NilPack(...)
+    local seen = {}
+
+    for i = 1, args.n do
+        formatValue(args[i], opt, rslt_pool, seen)
+    end
+
+    return table.concat(rslt_pool, delim)
+end
+
+--[[ sfutil.lstr(...) - Create a string from the provided values. Numbers are looked up with GetString.
+        Functions are replaced with "<function>" and repeated reference to tables will become "<cycle>" 
+        after the first time. No delimiters.
+--]]
+function sfutil.lstr(...)
+    clear(rslt_pool)
+
+    local opts = {
+        localizeNumbers = true,
+        showFunctions = false,
+        seenText = "<cycle>",
+    }
+
+    local args = sfutil.NilPack(...)
+    for i = 1, args.n do
+        formatValue(args[i], opts, rslt_pool, {})
+    end
+
+    return table.concat(rslt_pool)
+end
+
+--[[ sfutil.dstr(delim, ...) - Create a delimited string from the provided values.
+        Numbers are included as numeric strings, functions are replaced with "<function>" 
+        and repeated reference to tables will become "<cycle>" 
+        after the first time.
+        Delimiters are inserted between each of the values.
 --]]
 function sfutil.dstr(delim, ...)
-    local rslt = {}
-    local pending = sfutil.NilPack(delim, ...)
+    clear(rslt_pool)
 
-    -- Skip the delimiter in processing - just use it for concat
-    pending.n = pending.n - 1  -- Remove delimiter from count
-    table.remove(pending, 1)   -- Remove delimiter from array
+    local opts = {
+        localizeNumbers = false,
+        showFunctions = true,
+        seenText = "<cycle>",
+    }
 
-    tcdstr_tail(pending, delim, rslt, {})
+    local args = sfutil.NilPack(...)
+    for i = 1, args.n do
+        formatValue(args[i], opts, rslt_pool, {})
+    end
 
-    return table.concat(rslt, delim)
+    return table.concat(rslt_pool, delim)
+end
+
+--[[ sfutil.tblstr(delim, ...) - Create a delimited string from the provided values with "{" and "}" characters
+        around the tables, and "-" delimiters between the keys and values.
+        Numbers are included as numeric strings, functions are replaced with "<function>" 
+        and repeated reference to tables will become "<cycle>" after the first time.
+        Delimiters are inserted between each of the values.
+--]]
+function sfutil.tblstr(delim, ...)
+    clear(rslt_pool)
+
+    local opts = {
+        localizeNumbers = false,
+        showFunctions = true,
+        seenText = "<seen>",
+        tableOpen = "{",
+        tableClose = "}",
+        keyValueDelim = "-",
+    }
+
+    local args = sfutil.NilPack(...)
+    for i = 1, args.n do
+        formatValue(args[i], opts, rslt_pool, {})
+    end
+
+    return table.concat(rslt_pool, delim)
 end
 
 
