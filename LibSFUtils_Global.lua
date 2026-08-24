@@ -3,7 +3,7 @@
 
 LibSFUtils = {
     name = "LibSFUtils",
-    LibVersion = 76,    -- change this with every release!
+    LibVersion = 77,    -- change this with every release!
     author = "Shadowfen",
 }
 --[[
@@ -27,6 +27,7 @@ setmetatable(printLibDebug,  { __call = function(self, name)
 if LibDebugLogger then
   LibSFUtils.logger = LibDebugLogger:Create("SFUtils")
   LibSFUtils.logger:SetEnabled(true)
+
 else
   LibSFUtils.logger = printLibDebug("SFUtils")
 end

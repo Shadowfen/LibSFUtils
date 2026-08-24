@@ -1,3 +1,21 @@
+[COLOR="DeepSkyBlue"]77[/COLOR]:
+[LIST]
+[*] Created a new logging convenience function that will create specialized logging functions for your addon: [COLOR="MediumSeaGreen"]sfutil.InitSafeLogger(namespace, loggervar, addonname)[/COLOR] which will return three functions:
+        loggerFn       - returns the addon's logger, creating it if necessary (so loggerFn():Warn("whatever"))
+        logDebug       - logs a DEBUG-level message if specific debug logging is enabled
+        logWouldDebug  - returns true if DEBUG-level logging is currently enabled
+[*] Refactored the print-based logger implementation into separate active, disabled/no-op, and state-management implementations.
+[*] Added centralized debug-method state management so [COLOR="MediumSeaGreen"]Debug()[/COLOR] is automatically switched between the active and no-op implementations based on both logger enabled state and debug state.
+[*] Added a shared [COLOR="MediumSeaGreen"]SetDebug()[/COLOR] implementation for both the LibDebugLogger and print-based logger backends.
+[*] Preserved the original LibDebugLogger:Debug() implementation when LibDebugLogger is available, while using the print implementation as the fallback.
+[*] Updated [COLOR="MediumSeaGreen"]SetEnabled()[/COLOR] so enabling/disabling a print logger switches [COLOR="MediumSeaGreen"]Error(), Warn(), Info()[/COLOR], and [COLOR="MediumSeaGreen"]Debug()[/COLOR] implementations without changing the logger object.
+[*] Ensured debug logging remains disabled unless both the logger and debug logging are enabled.
+[*] Updated [COLOR="MediumSeaGreen"]SafeLogger()[/COLOR] to correctly return an existing logger instead of overwriting it with nil when called repeatedly.
+[*] Added/expanded logger initialization so newly created loggers consistently start enabled with debug logging disabled when created through [COLOR="MediumSeaGreen"]SafeLogger()[/COLOR]/[COLOR="MediumSeaGreen"]SafeLoggerFunction()[/COLOR].
+[*] Added/expanded support for [COLOR="MediumSeaGreen"]CreateNilLogger()[/COLOR] as a no-op logger with the same public logging API.
+[*] Reduced duplication between the LibDebugLogger and print-based logger paths by sharing debug-state management.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]76[/COLOR]:
 [LIST]
 [*] Revised the string functions [COLOR="MediumSeaGreen"]str()[/color], [COLOR="MediumSeaGreen"]dstr()[/color], [COLOR="MediumSeaGreen"]lstr()[/color] to consolidate commonly used string formating code.
