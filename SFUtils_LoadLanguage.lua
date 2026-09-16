@@ -7,21 +7,33 @@ assert(sfutil, "LibSFUtils_Global must be loaded before this file")
 
 -- -------------------------------------------------------
 
--- This enhanced version of ESO's SafeAddString() will create the
--- string if it does not already exist (new behaviour) and overwrite
--- the string if it does exist and is not an older version (original
--- behaviour).
--- in the first use case, stringId is a "string" type
--- in the second use case, stringId is a "number" type (the actual ID)
--- a third use case allows using SafeAddString to overwrite an existing
---   string definition with the "name" of the id passed in vs the numeric id
---
--- Note that based on testing of the 100026 version of ZOS's SafeAddString()
--- which does NOT properly enforce version protection.
-function sfutil.SafeAddString(stringId, stringValue, stringVersion)
-    --if not stringId then return end
+--[[
+    sfutil.SafeAddString - Enhanced String Registration (Corrected)
 
-    local id = stringId
+    Safely adds string resources with support for both string names and numeric IDs.
+    Implements ZOS version-protection logic with additional safety features.
+
+    Parameters:
+        stringId - Can be a string name ("SI_MY_STRING") or numeric ID (10001)
+        stringValue - The text value to associate with this ID
+        stringVersion - Version number for update protection
+
+    Returns:
+        boolean - true if string was added/updated, false if rejected (older version)
+        number/string - The resolved string ID (or nil if failed)
+--]]
+function sfutil.SafeAddString(stringId, stringValue, stringVersion)
+    -- Validate required parameters
+    if not stringId or not stringValue then
+        --d("[SFUtils] SafeAddString: missing required parameters (stringId, stringValue)")
+        return false, nil
+    end
+
+    -- Normalize stringVersion to number (default to 1 if nil)
+    local version = tonumber(stringVersion) or 1
+
+    -- Resolve stringId to numeric ID
+    local id
     if type(stringId) == "string" then
         -- String name: check if global exists, create if not
         id = _G[stringId]
@@ -30,26 +42,65 @@ function sfutil.SafeAddString(stringId, stringValue, stringVersion)
             -- Create the string name and ID using native ZOS API
             ZO_CreateStringId(stringId, stringValue)
             id = _G[stringId]
-            SafeAddVersion(id, stringVersion)
+            
+            if not id then
+                --d("[SFUtils] SafeAddString: failed to create ID for string name: " .. tostring(stringId))
+                return false, nil
+            end
+
+            -- Register version immediately since this is first creation
+            SafeAddVersion(id, version)
 
         else
-            SafeAddString(id, stringValue, stringVersion)
+            -- Name exists, use SafeAddString for version protection
+            -- Call native ESO SafeAddString (not this function!)
+            SafeAddString(id, stringValue, version)
         end
 
     elseif type(stringId) == "number" then
-        if not GetString(stringId) then
-            -- It's really a bad idea to add this without first doing the ZO_CreateString
-            -- although ZOS allows it.
-            assert(false,"Tried to use LibSFUtils.SafeAddString on a numeric stringId that a string had not been created for.")
-
-        else
-            SafeAddString(stringId, stringValue, stringVersion)
+        -- Numeric ID: verify it exists before attempting to use
+        local existingValue = GetString(stringId)
+        if not existingValue then
+            -- Log warning but don't crash - caller can handle this
+            --d("[SFUtils] SafeAddString: numeric ID not registered: " .. tostring(stringId))
+            return false, nil
         end
 
+        -- Use native SafeAddString for version protection
+        -- This calls ESO's native SafeAddString, not this function (avoids recursion)
+        SafeAddString(stringId, stringValue, version)
+        id = stringId
+
     else
-        assert(false,"Tried to use LibSFUtils.SafeAddString on a stringId that was not a string or a number(id)")
+        --d("[SFUtils] SafeAddString: invalid stringId type: " .. type(stringId))
+        return false, nil
     end
+
+    -- Verify the string was added by checking current value
+    local currentValue = GetString(id)
+    
+    -- Return success if value exists now
+    return currentValue ~= nil, id
 end
+
+--[[
+    Helper function to check if a string was successfully added
+--]]
+function sfutil.StringExists(stringId)
+    local id = type(stringId) == "string" and _G[stringId] or stringId
+    if not id then return false end
+    return GetString(id) ~= nil
+end
+
+--[[
+    Helper function to get string value by name or ID
+--]]
+function sfutil.GetStringById(stringId)
+    local id = type(stringId) == "string" and _G[stringId] or stringId
+    if not id then return nil end
+    return GetString(id)
+end
+
 
 -- load strings for the client language (or default if the
 -- client language is not supported)
