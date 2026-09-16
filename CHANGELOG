@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]78[/COLOR]:
+[LIST]
+[*] Updated SafeAddString to account for the newer ZOS versions that still don't quite fix their version problem. Tested.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]77[/COLOR]:
 [LIST]
 [*] Created a new logging convenience function that will create specialized logging functions for your addon: [COLOR="MediumSeaGreen"]sfutil.InitSafeLogger(namespace, loggervar, addonname)[/COLOR] which will return three functions:
