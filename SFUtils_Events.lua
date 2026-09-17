@@ -101,8 +101,7 @@ end
 
 
 -- -----------------------------------------------------------------------
---[[
-    EvtMgr:New(addonName)
+--[[ EvtMgr:New(addonName)
 
     Creates a new Event Manager instance.
 
@@ -122,8 +121,7 @@ function sfutil.EvtMgr:New(addonName)
 	return o
 end
 
---[[
-    manager:registerEvt(event, callback)
+--[[ manager:registerEvt(event, callback)
 
     Registers a standard game event for this addon.
 
@@ -140,8 +138,7 @@ function sfutil.EvtMgr:registerEvt(event, ...)
 	EVENT_MANAGER:RegisterForEvent(self.name, event, ...)
 end
 
---[[
-    manager:filterEvt(event, callback)
+--[[ manager:filterEvt(event, callback)
 
     Adds a filter to an already registered event.
 
@@ -157,8 +154,7 @@ function sfutil.EvtMgr:filterEvt(event, ...)
 	EVENT_MANAGER:AddFilterForEvent(self.name, event, ...)
 end
 
---[[
-    manager:registerUpdateEvt(name, interval, callback)
+--[[ manager:registerUpdateEvt(name, interval, callback)
 
     Registers a periodic update timer.
 
@@ -179,8 +175,7 @@ function sfutil.EvtMgr:registerUpdateEvt(name, interval, callback, ...)
 	EVENT_MANAGER:RegisterForUpdate(name, interval, callback, ...)
 end
 
---[[
-    manager:unregEvt(event)
+--[[ manager:unregEvt(event)
 
     Unregisters (removes) a specific registered event for this addon.
 
@@ -203,8 +198,7 @@ function sfutil.EvtMgr:unregEvt(event)
 	end
 end
 
---[[
-manager:unregUpdateEvt(name)
+--[[ manager:unregUpdateEvt(name)
 
 Unregisters a specific update timer.
 
@@ -224,8 +218,7 @@ function sfutil.EvtMgr:unregUpdateEvt(name)
 	end
 end
 
---[[
-manager:unregAllEvt()
+--[[ manager:unregAllEvt()
 
 Crucial: Unregisters all standard events tracked by this instance.
 
@@ -240,8 +233,7 @@ function sfutil.EvtMgr:unregAllEvt()
 	end
 end
 
---[[
-    manager:unregAllUpdateEvt()
+--[[ manager:unregAllUpdateEvt()
 
     Unregisters all update timers tracked by this instance.
 
