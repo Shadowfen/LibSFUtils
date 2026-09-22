@@ -51,8 +51,7 @@ local HookManager = {}
 HookManager.__index = HookManager
 SF.HookManager = HookManager
 
---[[
-    HookManager:New(basenm)
+--[[ HookManager:New(basenm)
 
     Creates a new HookManager instance.
 
@@ -73,8 +72,7 @@ end
 -- ---------------------------------------------------------------------
 -- PUBLIC API
 -- ---------------------------------------------------------------------
---[[
-    Hook Creation Methods
+--[[ Hook Creation Methods
 
     These methods register hooks immediately upon creation. 
     They return a hook table (an object representing the hook) which contains metadata and state.
@@ -83,8 +81,7 @@ end
         after registration.
 --]]
 
---[[
-    manager:PreHook(target, method, fn)
+--[[ manager:PreHook(target, method, fn)
 
     Registers a Pre-Hook. The callback runs before the original function. 
         Returning true from the callback cancels the original function execution.
@@ -106,8 +103,7 @@ function HookManager:PreHook(target, method, fn)
     return hook
 end
 
---[[
-    manager:PostHook(target, method, fn)
+--[[ manager:PostHook(target, method, fn)
 
     Registers a Post-Hook. The callback runs after the original function. 
         The return value of the callback is ignored (cannot cancel the original).
@@ -124,10 +120,10 @@ function HookManager:PostHook(target, method, fn)
     return hook
 end
 
---[[
-    manager:SecurePostHook(target, method, fn)
+--[[ manager:SecurePostHook(target, method, fn)
 
-    Registers a Secure Post-Hook. Used for secure functions (often related to combat or UI security). Errors in the callback are swallowed via SF_safeCall10 to prevent script errors.
+    Registers a Secure Post-Hook. Used for secure functions (often related to combat or UI security). 
+    Errors in the callback are swallowed via SF_safeCall10 to prevent script errors.
 
     Parameters: Same as PreHook.
     Returns: A hooktable object with kind ("secure").
@@ -145,8 +141,7 @@ function HookManager:SecurePostHook(target, method, fn)
     return hook
 end
 
---[[
-    Hook Table Properties
+--[[ Hook Table Properties
 
     The object returned by the creation methods contains:
 
@@ -158,8 +153,7 @@ end
         enabled: Boolean indicating if the hook is currently active.
 --]]
 
---[[
-    manager:get(id)
+--[[ manager:get(id)
 
     Retrieves the hook table for a specific ID.
 
@@ -170,8 +164,7 @@ function HookManager:get(id)
     return self.hooks[id] or nil
 end
 
---[[
-    manager:enable(id)
+--[[ manager:enable(id)
 
     Activates a specific hook by hook id.
 
@@ -182,8 +175,7 @@ function HookManager:enable(id)
     if h then h.enabled = true end
 end
 
---[[
-    manager:disable(id)
+--[[ manager:disable(id)
 
     Deactivates a specific hook by hook id.
 
@@ -194,8 +186,7 @@ function HookManager:disable(id)
     if h then h.enabled = false end
 end
 
---[[
-    manager:toggle(id)
+--[[ manager:toggle(id)
 
     Switches the state of a specific hook by id.
 
@@ -206,8 +197,7 @@ function HookManager:toggle(id)
     if h then h.enabled = not h.enabled end
 end
 
---[[
-    manager:remove(id)
+--[[ manager:remove(id)
 
     Completely removes a hook from the registry.
 
@@ -220,8 +210,7 @@ function HookManager:remove(id)
     self.hooks[id] = nil
 end
 
---[[
-    manager:enableAll()
+--[[ manager:enableAll()
 
     Activates all registered hooks in the manager.
 --]]
@@ -232,8 +221,7 @@ function HookManager:enableAll()
 end
 
 
---[[
-    manager:disableAll()
+--[[ manager:disableAll()
 
     Deactivates all registered hooks. 
     Useful for temporarily pausing all addon hook logic without unregistering hooks.
@@ -244,8 +232,7 @@ function HookManager:disableAll()
     end
 end
 
---[[
-    manager:toggleAll()
+--[[ manager:toggleAll()
 
     Flips the state of all registered hooks (active ↔ inactive).
 --]]
@@ -255,8 +242,7 @@ function HookManager:toggleAll()
     end
 end
 
---[[
-    manager:describeAll()
+--[[ manager:describeAll()
 
     Prints a debug log for every registered hook.
 

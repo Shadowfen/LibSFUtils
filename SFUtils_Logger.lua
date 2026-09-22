@@ -228,8 +228,8 @@ end
     
     Returns three functions:
         loggerFn       - returns the addon's logger, creating it if necessary
-        logDebug       - logs a DEBUG-level message if debug logging is enabled
-        logWouldDebug  - returns true if DEBUG-level logging is currently enabled
+        logDebug       - function that logs a DEBUG-level message if debug logging is enabled
+        logWouldDebug  - function that returns true if DEBUG-level logging is currently enabled
     
     The returned functions do not require the logger to already exist. The
     logger is created on the first call to any of the returned functions.
