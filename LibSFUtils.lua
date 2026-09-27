@@ -23,7 +23,9 @@ sfutil.colors = {
     lime = SF_Color:New("00E600"), -- {hex ="00E600", rgb = {0, 230/255, 0}, },
     green = SF_Color:New("2dc50e"), -- {hex ="2dc50e", rgb = {45/255, 197/255, 14/255}, },
     goldenrod = SF_Color:New("EECA00"), -- {hex ="EECA00", rgb = {238/255, 202/255, 0}, },
+    yellow = SF_Color:New("FFFF00"),
     blue = SF_Color:New("0000FF"), -- {hex ="0000FF", rgb = {0, 0, 1}, },
+    cyan = SF_Color:New("00FFFF"), 
     purple = SF_Color:New("b000ff"), -- {hex ="b000ff", rgb = {176/255, 0, 1}, },
     bronze = SF_Color:New("ff9900"), -- {hex ="ff9900", rgb = {1, 153/255, 0}, },
     ltskyblue = SF_Color:New("87cefa"), -- {hex ="87cefa", rgb = {135/255, 206/255, 250/255}, },
@@ -51,7 +53,9 @@ sfutil.hex = {
     teal = sfutil.colors.teal.hex,
     lime = sfutil.colors.lime.hex,
     goldenrod = sfutil.colors.goldenrod.hex,
+    yellow = sfutil.colors.yellow.hex,
     blue = sfutil.colors.blue.hex,
+    cyan = sfutil.colors.cyan.hex,
     purple = sfutil.colors.purple.hex,
     bronze = sfutil.colors.bronze.hex,
     ltskyblue = sfutil.colors.ltskyblue.hex,
@@ -75,7 +79,9 @@ sfutil.rgb = {
     teal = sfutil.colors.teal.rgb,
     lime = sfutil.colors.lime.rgb,
     goldenrod = sfutil.colors.goldenrod.rgb,
+    yellow = sfutil.colors.yellow.rgb,
     blue = sfutil.colors.blue.rgb,
+    cyan = sfutil.colors.cyan.rgb,
     purple = sfutil.colors.purple.rgb,
     bronze = sfutil.colors.bronze.rgb,
     ltskyblue = sfutil.colors.ltskyblue.rgb,
@@ -101,9 +107,63 @@ local function ZOS_addSystemMsg(msg)
     CHAT_ROUTER:AddSystemMessage(msg)
 end
 
--- create a varargs iterator function
--- without using the 5.2 table.pack()
--- returns index, value, total with each iteration. (total does not change until ... does)
+--[[ Extended type inspection utility with custom type metadata support.
+    
+    Returns the Lua type of an object, but for tables and userdata with a
+    metatable containing `__type` string, returns that custom type instead.
+    Useful for polymorphic dispatch, serialization, and debug logging where
+    custom class-like types need to be distinguished from generic tables.
+    
+    Parameters
+        obj     any     The object to inspect for its type.
+
+    Returns
+        string The type name (custom `__type` if present, otherwise native Lua type).
+    
+    Note
+        - Only tables and userdata have metatables in Lua. Primitives (number,
+         string, boolean, nil, function, thread) always return their standard
+         Lua type. The __type field must be a string; other types are ignored.
+
+    Usage
+        local widget = MyWidget:new()
+        print(sfutil.typeof(widget))  -- "Widget" (custom type)
+        print(sfutil.typeof(42))      -- "number" (native type)
+--]]
+function sfutil.typeof(obj)
+    -- Check if the object is a table or userdata (the only types with metatables)
+    if type(obj) == "table" or type(obj) == "userdata" then
+        local mt = getmetatable(obj)
+        -- If a custom __type string exists in the metatable, return it
+        if mt and type(mt.__type) == "string" then
+            return mt.__type
+        end
+    end
+    -- Fall back to the original behavior for native types
+    return type(obj)
+end
+
+--[[ Varargs iterator function for iterating over function arguments.
+    
+    Provides indexed iteration over variable arguments (...), returning the
+    current index, value, and total count on each iteration. Designed for
+    environments where Lua 5.2+ table.pack() is unavailable or deprecated.
+    
+    Captures the arguments at call time in a closure, so the total count
+    remains constant even if the varargs source changes during iteration.
+    
+    Parameters
+        ...     any     Variable number of arguments to iterate over.
+    Returns
+        function A closure that returns (index, value, total) on each call.
+                     Returns (nil, nil, total) when iteration completes.
+    
+    Note   
+        The total count is captured at iteration start and does not update
+        dynamically. Arguments are stored in a temporary table for access.
+        For large argument lists, this incurs memory overhead proportional
+        to the argument count.
+--]]
 function sfutil.iter_args(...)
     local args = {...}
     local n = select("#", ...)
@@ -626,8 +686,7 @@ function sfutil.getAllColorDelim(str)
     return t1
 end
 
---[[
-Regularizes an ESO color delimiter table against a string.
+--[[ Regularizes an ESO color delimiter table against a string.
 
 Examines the supplied markers table and identifies delimiter corrections
 needed to make the color sequence valid and balanced.
@@ -794,6 +853,26 @@ function sfutil.regularizeColors(markers, str)
     return result
 end
 
+--[[ Applies a color hex code to a string, respecting existing embedded color markers.
+    
+    Wraps portions of the input string with ESO-style color markup (|cHEXCOLOR|r),
+    detecting and preserving any existing |c...|r embedded color sequences. Parses
+    the string into segments, regularizes existing colors, then applies the new
+    color hex to uncolored segments.
+    
+    Parameters
+        str             string      The input string to colorize.
+        colorhex        string      Hex color code without '#' (e.g., "FFA500" for orange).
+    Returns
+                string|nil          The colorized string wrapped with |c...|r markers,
+                                    or nil if input string is nil/missing.
+    
+    Note   
+        Uses ESO chat color format: |cHEXCOLOR|r. The hex code should be 6 characters
+        (RRGGBB). Existing embedded colors (|c...|r) are preserved via sfutil.
+        regularizeColors() and sfutil.getAllColorDelim(). If colorhex is nil/empty,
+        the original string is returned unchanged.
+--]]
 function sfutil.applyColor(str, colorhex)
     if not str then
         return nil
@@ -892,16 +971,32 @@ function sfutil.stripColors(markertable, str)
     return table.concat(t2)
 end
 
--- Splits the string into sections corresponding the color markers themselves
--- and the text around the markers. Doing a table.concat() will join the contents
--- of the returned table into a properly color-marked string.
--- Returns the table of sections
+--[[ Splits a string into sections at color markers, separating markers from text.
+    
+    Takes a table of marker positions (from sfutil.getAllColorDelim) and splits
+    the input string accordingly. Returns a table whose elements can be joined
+    via table.concat() to reconstruct the properly color-marked string.
+    
+    Parameters
+        markertable   table     Array of marker info tables with `code`, `action`, `start`.
+        str           string    The string to split at color markers.
+    Returns 
+                table           Table of string fragments (text + color markers).
+                                Returns `{}` if str is nil/empty.
+    
+    Note   
+        Uses 1-indexed string positions (Lua convention). Marker positions should
+        correspond to actual positions in str or -1 for skipped markers.
+        Malformed markers may be skipped with debug logging.
+--]]
 function sfutil.colorsplit(markertable, str)
-    if not str then
+    -- Guard: nil/empty string returns empty result
+    if not str or #str == 0 then
         return {}
     end
+
+    -- Guard: no markers means whole string is one segment
     if not markertable or #markertable == 0 then
-        -- no delimiters in string
         return {str}
     end
 

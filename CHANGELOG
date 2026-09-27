@@ -1,6 +1,8 @@
 [COLOR="DeepSkyBlue"]78[/COLOR]:
 [LIST]
+[*] Added default color definitions for yellow, and cyan.
 [*] Updated SafeAddString to account for the newer ZOS versions that still don't quite fix their version problem. Tested.
+[*] Created new function [COLOR="MediumSeaGreen"]typeof()[/COLOR] which will return the metatable __type value if it exists for a table or userdata and otherwise returns the standard type() lua function value.
 [/LIST]
 
 [COLOR="DeepSkyBlue"]77[/COLOR]:
