@@ -23,18 +23,24 @@ require "SFUtils_TimedQueue"
 -- immediately on loading and instead wait until called from here.
 Suite=true
 
+require "test.addonChatterTest"
+require "test.ApplyColorTest"
 require "test.CallLaterTest"
 require "test.ClosureTest"
+require "test.ColorSplitTest"
 require "test.ColorTest"
 require "test.ColorDelimTest"
-require "test.TablesTest"
+require "test.Gsplit_Test"
 require "test.gsplitTest"
 require "test.HookManagerTest"
 require "test.IterTest"
 require "test.LoadLanguageTest"
 require "test.LoggerTest"
-require "test.StringsTest"
 require "test.QueueTest"
+require "test.RegularizeColorsTest"
+require "test.StringsTest"
+require "test.StripColorsTest"
+require "test.TablesTest"
 require "test.TimedQueueTest"
 require "test.VersionCheckerTest"
 
@@ -42,18 +48,24 @@ TK.printSuite("LibSFUtil", "LibSFUtil Tests")
 
 TK.init()
 
+addonChatter_runTests()
+ApplyColor_runAll()
 Test_CallLater_All()
 Closure_runTests()
 test_runAllColor()
 test_runAllColorDelim()
+test_runAllColorSplit()
 testGsplit_runAll()
+testGsplit1_runAll()
 Test_HookManager_All()
 Iter_runTests()
 LoadLanguages_runTests()
 Logger_runTests()
+testRegularizeColors_runAll()
 Strings_runTests()
 Tables_runTests()
 Test_Queue_All()
+StripColors_runAll()
 Test_TimedQueue_All()
 VCTest_runAll()
 
