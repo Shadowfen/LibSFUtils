@@ -229,12 +229,14 @@ end
     Parameters: Same as New.
 --]]
 function SF_Color:Initialize(pr, pg, pb, pa)
-    self.rgb = {r=1, g=1, b=1, a=1}
-	self:SetColor(pr, pg, pb, pa)
+    self.rgb.r = 1
+    self.rgb.g = 1
+    self.rgb.b = 1
+    self.rgb.a = 1	
+    self:SetColor(pr, pg, pb, pa)
 end
 
---[[
-	color:UnpackRGB()
+--[[ color:UnpackRGB()
 
     Returns: r, g, b (0–1).
 --]]
