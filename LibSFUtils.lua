@@ -593,38 +593,29 @@ function sfutil.gsplit(str, pat)
     end
 
     if not pat or pat == "" then
-        -- special case - no delimiter
-        return {str}
+        return { str }
     end
 
+    local result = {}
     local fpat = "(.-)" .. pat
     local last_end = 1
-    local s1, e1, cap = str:find(fpat, 1)
-    local tbl_insert = table.insert
-    if not s1 then
-        -- special case - string does not contain delimiter
-        tbl_insert(t1, str)
-        return t1
+
+    while true do
+        local s, e, cap = str:find(fpat, last_end)
+
+        if not s then
+            break
+        end
+
+        table.insert(result, cap)
+        last_end = e + 1
     end
 
-    while s1 do
-        if not cap then
-            -- delimiter was the beginning of the string
-            -- so first capture is empty string
-            cap = ""
-        end
-        -- save the front captured piece of the string
-        tbl_insert(t1, cap)
-        last_end = e1 + 1
-        s1, e1, cap = str:find(fpat, last_end)
-    end
-    -- we have run out of delimiters to find
-    if last_end - 1 <= #str then
-        -- still have the last piece of string without delimiters
-        cap = str:sub(last_end)
-        tbl_insert(t1, cap)
-    end
-    return t1
+    -- Always add the remainder. This also correctly adds ""
+    -- when the delimiter ends the string.
+    table.insert(result, str:sub(last_end))
+
+    return result
 end
 
 -- -----------------------------------------------------------------------
@@ -881,33 +872,103 @@ function sfutil.applyColor(str, colorhex)
         return str
     end
 
-    local parsetbl = sfutil.getAllColorDelim(str)
-    sfutil.regularizeColors(parsetbl, str)
-    local newtbl = {}
-    local incolor = false
-    for _, v in ipairs(parsetbl) do
-        if string.find(str, "|+[Cc]", v) then
-            -- starting embedded color
-            if incolor == true then
-                newtbl[#newtbl] = "|r"
-                incolor = false
+    local markers = sfutil.getAllColorDelim(str)
+
+    if #markers == 0 then
+        return "|c" .. colorhex .. str .. "|r"
+    end
+
+    markers = sfutil.regularizeColors(markers, str)
+
+    local result = {}
+    local append = function(value)
+        result[#result + 1] = value
+    end
+
+    local pos = 1
+    local embedded = false
+
+    for _, marker in ipairs(markers) do
+
+        -- Synthetic markers have no source characters.
+        if marker.action == "+" then
+
+            -- First process any source text before the synthetic marker.
+            if marker.start > pos then
+                if not embedded then
+                    append("|c" .. colorhex)
+                end
+
+                append(str:sub(pos, marker.start - 1))
+
+                if not embedded then
+                    append("|r")
+                end
+
+                pos = marker.start
             end
-            newtbl[#newtbl] = v
-        elseif string.find(str, "|+[Rr]", v) then
-            -- exitting embedded color
-            newtbl[#newtbl] = v
-            newtbl[#newtbl] = string.format("|c%s", colorhex)
-            incolor = true
+
+            if marker.code == "r" then
+                append("|r")
+                embedded = false
+            elseif marker.code == "c" then
+                append("|c" .. colorhex)
+                embedded = true
+            end
+
         else
-            if incolor == false then
-                newtbl[#newtbl] = string.format("|c%s", colorhex)
-                incolor = true
+            -- Original source marker.
+            if marker.start > pos then
+                if not embedded then
+                    append("|c" .. colorhex)
+                end
+
+                append(str:sub(pos, marker.start - 1))
+
+                if not embedded then
+                    append("|r")
+                end
             end
-            newtbl[#newtbl] = v
+
+            if marker.action ~= "-" then
+                append(str:sub(marker.start, marker.estr))
+
+                if marker.code == "c" then
+                    embedded = true
+                elseif marker.code == "r" then
+                    embedded = false
+                end
+            end
+
+            -- Removed or retained source markers both consume
+            -- their original source characters.
+            pos = marker.estr + 1
         end
     end
-    return table.concat(newtbl)
+
+    -- Remaining source text.
+    if pos <= #str then
+        if not embedded then
+            append("|c" .. colorhex)
+            append(str:sub(pos))
+            append("|r")
+        else
+            append(str:sub(pos))
+            append("|r")
+        end
+
+    elseif #result == 0 then
+        -- All source content consisted of removable color delimiters.
+        -- Treat the normalized result as an empty string.
+        append("|c" .. colorhex)
+        append("|r")
+    end
+
+    return table.concat(result)
 end
+
+
+
 
 -- Strip all of the color markers out of the string.
 -- Uses the source string and a marker table as produced by
@@ -1002,73 +1063,69 @@ function sfutil.colorsplit(markertable, str)
         return {}
     end
 
-    -- Guard: no markers means whole string is one segment
     if not markertable or #markertable == 0 then
         return {str}
     end
 
-    -- break string into sections with color markers separated out
-    local t2 = {}
-    local lastv = 0
-    local ss, es, cs
-    local tbl_insert = table.insert
-    for _, v in ipairs(markertable) do
-        if v then
-            local code = v.code
-            local action = v.action
-            if not action then
-                -- it's a section we're keeping
-                if v.start > lastv + 1 then
-                    tbl_insert(t2, str:sub(lastv + 1, v.start - 1))
+    local result = {}
+    local insert = table.insert
+    local last = 0
+
+    for _, marker in ipairs(markertable) do
+        if marker then
+            local start = marker.start
+            local action = marker.action
+            local code = marker.code
+
+            if action == "+" then
+                -- Synthetic reset. Does not consume source characters.
+                if start > last + 1 then
+                    insert(result, str:sub(last + 1, start - 1))
                 end
-                -- string fragment
-                if code == "c" then
-                    -- expect color
-                    ss, es, cs = string.find(str, "|+[Cc](%x%x%x%x%x%x)", v.start)
-                    if ss == nil or es == nil then
-                        break
+
+                insert(result, "|r")
+                last = start - 1
+
+            elseif action == "-" then
+                -- Removed marker. Consume it without emitting it.
+                if start ~= -1 then
+                    if start > last + 1 then
+                        insert(result, str:sub(last + 1, start - 1))
                     end
-                    tbl_insert(t2, string.format("|c%s", cs))
-                    lastv = es
+
+                    last = marker.estr
+                end
+
+            else
+                -- Normal marker. Emit preceding text first.
+                if start > last + 1 then
+                    insert(result, str:sub(last + 1, start - 1))
+                end
+
+                if code == "c" then
+                    -- Canonicalize the color marker to |cRRGGBB.
+                    -- estr is the end of the complete marker, regardless
+                    -- of how many leading pipes were present.
+                    insert(result, "|c" .. str:sub(marker.estr - 5, marker.estr))
+                    last = marker.estr
+
                 elseif code == "r" then
-                    -- end color
-                    ss, es = string.find(str, "|+[Rr]", v.start)
-                    if ss == nil or es == nil then
-                        break
-                    end
-                    tbl_insert(t2, "|r")
-                    lastv = es
-                end
-            elseif action == "+" then
-                -- new string fragment (|r)
-                if v.start > lastv + 1 then
-                    tbl_insert(t2, str:sub(lastv + 1, v.start - 1))
-                end
-                tbl_insert(t2, "|r")
-                lastv = v.start + 1
-            else -- action == "-"
-                if code == "c" then
-                    ss, es = string.find(str, "|+[Cc]%x%x%x%x%x%x", v.start)
-                    if ss == nil or es == nil then
-                        break
-                    end
-                    lastv = es
-                elseif code == "r" and v.start ~= -1 then
-                    ss, es = string.find(str, "|+[Rr]", v.start)
-                    if ss == nil or es == nil then
-                        break
-                    end
-                    lastv = es
+                    -- Canonicalize reset to |r.
+                    insert(result, "|r")
+                    last = marker.estr
                 end
             end
         end
     end
-    if lastv <= #str then
-        lastv = lastv + 1
-        tbl_insert(t2, str:sub(lastv))
+
+    if last < #str then
+        insert(result, str:sub(last + 1))
     end
-    return t2
+
+    return result
 end
+
+
 
 -- -----------------------------------------------------------------------
 -- temporary hacks
