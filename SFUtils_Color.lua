@@ -30,25 +30,30 @@ assert(sfutil, "LibSFUtils_Global must be loaded before this file")
 
 local zo_floor = zo_floor
 ---------------------
---[[
-	sfutil.colorRGBToHex(r, g, b)
+--[[ sfutil.colorRGBToHex(r, g, b)
 
-	Converts RGB float values (0–1) to a 6-character hex string (RRGGBB).
+    Converts RGB float values (0–1) to a 6-character hexadecimal
+    RGB string (RRGGBB).
 
     Parameters:
-        r, g, b (number): Float values between 0 and 1.
-        Note: If any value is nil, it defaults to 1 (White).
-    Returns: String (e.g., "FF0000").
-    Returns nil if all three inputs are explicitly nil (though the default logic usually prevents this).
-]]
+        r, g, b (number|string): RGB components in the range 0–1.
+            Numeric strings are accepted and converted with tonumber().
+
+    Returns:
+        string - A 6-character lowercase hexadecimal RGB string.
+        nil    - If any RGB argument is nil or false.
+
+    Notes:
+        If an argument is present but cannot be converted to a number,
+        that component defaults to 1 (white).
+--]]
 function sfutil.colorRGBToHex(r, g, b)
 	if not r or not g or not b then return nil end
   return string.format("%.2x%.2x%.2x", zo_floor((tonumber(r) or 1) * 255),
                 zo_floor((tonumber(g) or 1) * 255), zo_floor((tonumber(b) or 1) * 255))
 end
 
---[[
-	sfutil.colorHexToRGBA(colourString)
+--[[ sfutil.colorHexToRGBA(colourString)
 
 	Converts a 6-character hex string (rrggbb) to RGB float values.
 
@@ -85,8 +90,7 @@ function sfutil.ConvertRGBToHex(r, g, b)
     return string.format("|c%.2x%.2x%.2x", zo_floor(r * 255), zo_floor(g * 255), zo_floor(b * 255))
 end
 
---[[
-	sfutil.ConvertHexToRGBA(colourString)
+--[[ sfutil.ConvertHexToRGBA(colourString)
 
 	Converts various hex string formats to RGB float values with alpha support.
 
@@ -132,8 +136,7 @@ function sfutil.ConvertHexToRGBA(colourString)
     return r/255, g/255, b/255, a/255
 end
 
---[[
-	sfutil.ConvertHexToRGBAPacked(colourString)
+--[[ sfutil.ConvertHexToRGBAPacked(colourString)
 
 	Convenience wrapper that returns the result of ConvertHexToRGBA as a table.
 
@@ -146,16 +149,14 @@ end
 
 
 -- ------------------------------------------
---[[
-	SF_Color Class
+--[[ SF_Color Class
 
 	A lightweight object for storing and manipulating color data. It caches the hex 
 	representation to optimize text rendering.
 --]]
 SF_Color = {}
 SF_Color.__index = SF_Color
---[[
-	color:__call(text)
+--[[ color:__call(text)
 
 	Allows the object to be called like a function.
 
@@ -165,8 +166,7 @@ SF_Color.__call = function(self, text)
         return self:Colorize(text)
     end
 
---[[
-	Don't want to make this public because it can leave
+--[[ Don't want to make this public because it can leave
 	SF_Color in an inconsistant state - hex is not set
 	from these values. We just assume that has been or
 	will be taken care of.
@@ -215,8 +215,7 @@ function SF_Color:New(pr, pg, pb, pa)
     return c
 end
 
---[[
-	SF_Color:Initialize(pr, pg, pb, pa)
+--[[ SF_Color:Initialize(pr, pg, pb, pa)
 
 	Resets an existing SF_Color object to a new color.
 
@@ -240,8 +239,7 @@ function SF_Color:UnpackRGB()
     return self.rgb.r, self.rgb.g, self.rgb.b
 end
 
---[[
-	color:UnpackRGBA()
+--[[ color:UnpackRGBA()
 
 	Returns RGBA float values.
 
@@ -259,8 +257,7 @@ function SF_Color:UnpackRGBA()
     return 1, 1, 1, 1
 end
 
---[[
-	color:SetAlpha(a)
+--[[ color:SetAlpha(a)
 
 	Updates only the alpha channel.
 
@@ -304,32 +301,29 @@ function SF_Color:SetColor(r, g, b, a)
 
     elseif type(r) == "table" then
 		if r.r ~= nil then
-			-- r is ZO_ColorDef
+			-- ZO_ColorDef
 			setRGB(self, r:UnpackRGBA())
 			self.hex = sfutil.colorRGBToHex(r:UnpackRGB())
 
-		else
-			-- r is SF_Color we are copying
+		elseif r.rgb ~= nil then
+			-- SF_Color
 			setRGB(self, r:UnpackRGBA())
 			self.hex = r.hex
-		end
 
-	elseif type(r) == "number" then
-		-- Determine scale based on the FIRST argument only to avoid mixed input ambiguity
-		if r > 1 then
-			-- Assume all are 0-255
-			setRGB(self, r/255, g/255, b/255, a/255)
 		else
-			-- Assume all are 0-1
-			setRGB(self, r, g, b, a)
+			-- Invalid/empty color table; leave unchanged.
 		end
-		self.hex = sfutil.colorRGBToHex(self:UnpackRGB())
-	end
-	return self
+		
+    elseif type(r) == "number" then
+        -- setRGB handles either normalized (0-1) or integer (0-255) values.
+        setRGB(self, r, g, b, a)
+        self.hex = sfutil.colorRGBToHex(self:UnpackRGB())
+    end
+
+    return self
 end
 
---[[ ---------------------
-	Create a new ZO_ColorDef object with the same color values
+--[[ Create a new ZO_ColorDef object with the same color values
 	as are in the SF_Color object.
 
 	color:ToZO_ColorDef()
@@ -340,8 +334,7 @@ function SF_Color:ToZO_ColorDef()
 	return ZO_ColorDef:New(self:UnpackRGBA())
 end
 
---[[ ---------------------
-	wraps the ESO colorizing markup on a string of text for display
+--[[ wraps the ESO colorizing markup on a string of text for display
 
 	color:Colorize(text)
 
@@ -407,8 +400,7 @@ function SF_Color:Clone()
 	return SF_Color:New(self:UnpackRGBA())
 end
 
---[[
-	color:ToHex()
+--[[ color:ToHex()
 
 	Returns the cached hex string.
 

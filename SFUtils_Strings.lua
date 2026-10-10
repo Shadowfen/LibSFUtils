@@ -467,16 +467,18 @@ function sfutil.ColorText(prompt, promptcolor)
     local strprompt
 
     -- get the prompt text
-    if (prompt == nil) then
+    if prompt == nil then
         strprompt = ""
-    elseif (type(prompt) == "string") then
+
+    elseif type(prompt) == "string" then
         strprompt = prompt
+
     else
         strprompt = GetString(prompt)
     end
 
     -- color the prompt text if required
-    if (promptcolor ~= nil) then
+    if promptcolor ~= nil then
         strprompt = zo_strformat("|c<<1>> <<2>>|r", promptcolor, strprompt)
     end
 
