@@ -63,25 +63,32 @@ end
     Note: This function does not support alpha in the input string. Prefer sfutil.ConvertHexToRGBA for flexibility.
 --]]
 function sfutil.colorHexToRGBA(colourString)
-	if not colourString then
-		return 1,1,1,1
-	end
-	local r=tonumber(string.sub(colourString, 1, 2), 16) or 255
-	local g=tonumber(string.sub(colourString, 3, 4), 16) or 255
-	local b=tonumber(string.sub(colourString, 5, 6), 16) or 255
-	return r/255, g/255, b/255, 1
+    if type(colourString) ~= "string" then
+        return 1, 1, 1, 1
+    end
+
+    local r = tonumber(string.sub(colourString, 1, 2), 16) or 255
+    local g = tonumber(string.sub(colourString, 3, 4), 16) or 255
+    local b = tonumber(string.sub(colourString, 5, 6), 16) or 255
+
+    return r / 255, g / 255, b / 255, 1
 end
 
---[[
-	sfutil.ConvertRGBToHex(r, g, b)
+--[[ sfutil.ConvertRGBToHex(r, g, b)
 
-	Converts RGB floats to an ESO color tag string (|cRRGGBB). We could use
-		ZO_ColorDef to build this, but we use so many colors, we won't do it.
+    Converts RGB float values to an ESO color markup tag.
 
-    Parameters: r, g, b (number).
-    Safety: If any input is nil, it defaults to 1 (White).
-    Returns: String (e.g., "|cFF0000").
-	Note: This is NOT the same as the LibSFUtils.colorRGBToHex() function!
+    Parameters:
+        r, g, b (number): RGB components in the range 0–1.
+            Missing components default to 1 (white).
+
+    Returns:
+        string - ESO color tag in the form "|cRRGGBB".
+
+    Note:
+        This function expects numeric RGB values in the 0–1 range.
+        It does not accept 0–255 RGB values or numeric strings.
+        Values outside the 0–1 range are not clamped.
 --]]
 function sfutil.ConvertRGBToHex(r, g, b)
     r = r or 1
@@ -108,30 +115,30 @@ function sfutil.ConvertHexToRGBA(colourString)
 	end
 
     local r, g, b, a
-    if string.sub(colourString,1,1) == "|" then
+    if string.sub(colourString, 1, 2):lower() == "|c" then
         -- format "|crrggbb"
         r=tonumber(string.sub(colourString, 3, 4), 16) or 255
         g=tonumber(string.sub(colourString, 5, 6), 16) or 255
         b=tonumber(string.sub(colourString, 7, 8), 16) or 255
         a = 255
+
     elseif #colourString == 8 then
         -- format "aarrggbb"
         a=tonumber(string.sub(colourString, 1, 2), 16) or 255
         r=tonumber(string.sub(colourString, 3, 4), 16) or 255
         g=tonumber(string.sub(colourString, 5, 6), 16) or 255
         b=tonumber(string.sub(colourString, 7, 8), 16) or 255
+
     elseif #colourString == 6 then
         -- format "rrggbb"
         r=tonumber(string.sub(colourString, 1, 2), 16) or 255
         g=tonumber(string.sub(colourString, 3, 4), 16) or 255
         b=tonumber(string.sub(colourString, 5, 6), 16) or 255
         a = 255
+
     else
         -- unidentified format
-        r = 255
-        g = 255
-        b = 255
-        a = 255
+        return 1, 1, 1, 1
     end
     return r/255, g/255, b/255, a/255
 end
@@ -172,19 +179,18 @@ SF_Color.__call = function(self, text)
 	will be taken care of.
 --]]
 local function setRGB(sfcolor, r, g, b, a)
-	r = r>1 and r/255 or r
-	g = g>1 and g/255 or g
-	b = b>1 and b/255 or b
-	a = a>1 and a/255 or a
-	sfcolor.rgb.r = r or 1
-	sfcolor.rgb.g = g or 1
-	sfcolor.rgb.b = b or 1
-	sfcolor.rgb.a = a or 1
+    r = r and (r > 1 and r / 255 or r) or 1
+    g = g and (g > 1 and g / 255 or g) or 1
+    b = b and (b > 1 and b / 255 or b) or 1
+    a = a and (a > 1 and a / 255 or a) or 1
+
+    sfcolor.rgb.r = r
+    sfcolor.rgb.g = g
+    sfcolor.rgb.b = b
+    sfcolor.rgb.a = a
 end
 
-
---[[ ---------------------
-	Create a color object.
+--[[ Create a color object.
 		This is a storage container for:
 			hex - a 6-character hex representation of the RGB color
 			rgb - a table containing the float values for r, g, b, a  (values btwn 0-1)
@@ -264,16 +270,14 @@ end
     Parameters: a (number 0–1 or 0–255; auto-converted).
 --]]
 function SF_Color:SetAlpha(a)
-	if self.rgb then
-		self.rgb.a = a
-	elseif self.r then
-		self.a = a
-	end
+    if self.rgb then
+        self.rgb.a = a > 1 and a / 255 or a
+    elseif self.r then
+        self.a = a > 1 and a / 255 or a
+    end
 end
 
-
---[[
-	Set a color object to a particular color value.
+--[[ Set a color object to a particular color value.
 
 	color:SetColor(r, g, b, a)
 
@@ -295,9 +299,10 @@ end
 --]]
 function SF_Color:SetColor(r, g, b, a)
     if type(r) == "string" then
-		-- r is hex value
-		self.hex = r
-		self.rgb.r, self.rgb.g, self.rgb.b, self.rgb.a = sfutil.ConvertHexToRGBA(r)
+        -- r is a hex value
+        self.hex = r
+        self.rgb.r, self.rgb.g, self.rgb.b, self.rgb.a =
+            sfutil.ConvertHexToRGBA(r)
 
     elseif type(r) == "table" then
 		if r.r ~= nil then
@@ -347,26 +352,27 @@ end
 		string - colorized text (e.g., "|cFF0000Hello|r")
 --]]
 function SF_Color:Colorize(text)
-    local strprompt
-    if( text == nil ) then
-        return ""	-- Do NOT colorize an empty string!
-    elseif( type(text) == "string") then
+    local strprompt = ""
+
+    if text == nil then
+        -- Do not colorize an empty string.
+        return ""
+
+    elseif type(text) == "string" then
         strprompt = text
-    elseif( type(text) == "number") then
-        strprompt = GetString(text)
-	else
-		strprompt = tostring(text)
+
+    elseif type(text) == "number" then
+        strprompt = GetString(text) or tostring(text)
+
+    else
+        strprompt = tostring(text)
     end
-	--if self then
-	--	if self.rgb then d("r="..self.rgb.r.."  g="..self.rgb.g.."  b="..self.rgb.b) end
-	--	if self.hex then d("color to colorize = 0x"..self.hex) end
-	--end
-	local combineTable = { "|c", self.hex, strprompt, "|r" }
-	return table.concat(combineTable)
+
+    local combineTable = {"|c", self.hex, strprompt, "|r"}
+    return table.concat(combineTable)
 end
 
---[[ ---------------------
-	Compares two color objects.
+--[[ Compares two color objects.
 
 	color:IsEqual(other)
 	Parameter:
@@ -377,20 +383,22 @@ end
     Returns: true if RGB and Alpha are equal, false otherwise.
 --]]
 function SF_Color:IsEqual(other)
-	if other.r ~= nil then
-		-- ZO_ColorDef
-		return self.rgb.r == other.r
-		   and self.rgb.g == other.g
-		   and self.rgb.b == other.b
-		   and self.rgb.a == other.a
-	end
-	-- SF_Color
-	return self.hex == other.hex
-	   and self.rgb.a == other.rgb.a
+    if other.r ~= nil then
+        -- ZO_ColorDef
+        return self.rgb.r == other.r
+           and self.rgb.g == other.g
+           and self.rgb.b == other.b
+           and self.rgb.a == other.a
+    end
+
+    -- SF_Color
+    return self.rgb.r == other.rgb.r
+       and self.rgb.g == other.rgb.g
+       and self.rgb.b == other.rgb.b
+       and self.rgb.a == other.rgb.a
 end
 
---[[
-	color:Clone()
+--[[ color:Clone()
 
 	Creates a deep copy of the color object.
 
