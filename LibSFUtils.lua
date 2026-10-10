@@ -576,17 +576,18 @@ end
 -- -----------------------------------------------------------------------
 -- Utility for parsing delimited strings
 
--- Split a string into sections using a pattern as a delimiter
--- When delimiter starts or ends the string, an empty string is considered
--- to be before/after the delimiter. When two or more delimiters are together,
--- there is considered to be empty strings between them.
---   str = string
---   pat = delimiter pattern
+-- Split a string into sections using a pattern as a delimiter.
 --
--- Returns table of strings that were separated by delimiters
--- (The delimiters are NOT included in the table.)
+-- When delimiter starts or ends the string, an empty string is
+-- considered to be before/after the delimiter. When two or more
+-- delimiters are together, there are empty strings between them.
+--
+-- str = string
+-- pat = delimiter pattern
+--
+-- Returns a table of strings separated by delimiters.
+-- The delimiters are NOT included in the table.
 function sfutil.gsplit(str, pat)
-    local t1 = {}
     if not str then
         return {}
     end
@@ -856,28 +857,27 @@ end
 --[[ Applies a color hex code to a string, respecting existing embedded color markers.
     
     Wraps portions of the input string with ESO-style color markup (|cHEXCOLOR|r),
-    detecting and preserving any existing |c...|r embedded color sequences. Parses
-    the string into segments, regularizes existing colors, then applies the new
-    color hex to uncolored segments.
-    
+    detecting and preserving any existing |c...|r embedded color sequences.
+
+    Existing color delimiters are regularized before the new color is applied.
+    Delimiters marked with action == "-" are omitted.
+
     Parameters
         str             string      The input string to colorize.
-        colorhex        string      Hex color code without '#' (e.g., "FFA500" for orange).
+        colorhex        string      Hex color code without '#' (e.g., "FFA500").
+
     Returns
-                string|nil          The colorized string wrapped with |c...|r markers,
-                                    or nil if input string is nil/missing.
-    
-    Note   
-        Uses ESO chat color format: |cHEXCOLOR|r. The hex code should be 6 characters
-        (RRGGBB). Existing embedded colors (|c...|r) are preserved via sfutil.
-        regularizeColors() and sfutil.getAllColorDelim(). If colorhex is nil/empty,
-        the original string is returned unchanged.
+        string|nil                  The colorized string, or nil if str is nil.
+
+    Note
+        If colorhex is nil or empty, the original string is returned unchanged.
 --]]
 function sfutil.applyColor(str, colorhex)
     if not str then
         return nil
     end
-    if not colorhex then
+
+    if not colorhex or colorhex == "" then
         return str
     end
 
@@ -971,26 +971,33 @@ function sfutil.stripColors(markertable, str)
     return table.concat(t2)
 end
 
---[[ Splits a string into sections at color markers, separating markers from text.
+--[[ Splits a string into text sections and canonical color markers.
     
-    Takes a table of marker positions (from sfutil.getAllColorDelim) and splits
-    the input string accordingly. Returns a table whose elements can be joined
-    via table.concat() to reconstruct the properly color-marked string.
+    Takes a table of marker positions (from sfutil.getAllColorDelim)
+    and splits the input string at color markers. Color markers are
+    normalized to the canonical ESO forms "|crrggbb" and "|r".
     
     Parameters
-        markertable   table     Array of marker info tables with `code`, `action`, `start`.
-        str           string    The string to split at color markers.
-    Returns 
-                table           Table of string fragments (text + color markers).
-                                Returns `{}` if str is nil/empty.
+        markertable   table     Array of marker info tables with
+                                `code`, `action`, and `start`.
+        str           string    The string to split.
     
-    Note   
-        Uses 1-indexed string positions (Lua convention). Marker positions should
-        correspond to actual positions in str or -1 for skipped markers.
-        Malformed markers may be skipped with debug logging.
+    Returns
+        table                   Table of text fragments and canonical
+                                color markers. The elements can be
+                                joined with table.concat() to reconstruct
+                                the normalized color-marked string.
+                                Returns {} if str is nil or empty.
+    
+    Notes
+        Uses 1-based string positions (Lua convention).
+        Marker positions should correspond to positions in `str`,
+        or -1 for skipped markers.
+        Malformed markers terminate further marker processing; the
+        unprocessed remainder is returned as text.
 --]]
+
 function sfutil.colorsplit(markertable, str)
-    -- Guard: nil/empty string returns empty result
     if not str or #str == 0 then
         return {}
     end
