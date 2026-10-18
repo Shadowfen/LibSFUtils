@@ -1,3 +1,8 @@
+[COLOR="DeepSkyBlue"]79[/COLOR]:
+[LIST]
+[*] Updated the CallLater module to fix some timing issues.
+[/LIST]
+
 [COLOR="DeepSkyBlue"]78[/COLOR]:
 [LIST]
 [*] Added default color definitions for yellow, and cyan.

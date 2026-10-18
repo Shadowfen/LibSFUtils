@@ -90,14 +90,14 @@ local function CallLater_testInstanceCreation()
     local fn = "testInstanceCreation"
     TK.printSuite(mn,fn)
     
-    local timer = SF.CallLater:New(function() d("test") end)
+    local timer = SF.CallLater:New(function() d("   test") end)
     TK.assertNotNil(timer, "timer created")
     TK.assertTrue(type(timer) == "table", "timer is table")
     
-    local timer2 = SF.CallLater:New(function() d("test2") end, 1000)
+    local timer2 = SF.CallLater:New(function() d("   test2") end, 1000)
     TK.assertEqual(timer2.delay, 1000, "delay set to 1000ms")
     
-    local timer3 = SF.CallLater:NewSingle(function() d("test3") end, 500)
+    local timer3 = SF.CallLater:NewSingle(function() d("   test3") end, 500)
     TK.assertEqual(timer3.delay, 500, "NewSingle creates timer with delay")
 end
 
@@ -121,7 +121,7 @@ local function CallLater_testNewTimerPeriodicCreation()
     local fn = "testNewTimerPeriodicCreation"
     TK.printSuite(mn,fn)
     
-    local timer = SF.CallLater:NewTimer(function() d("periodic") end, 100)
+    local timer = SF.CallLater:NewTimer(function() d("   periodic") end, 100)
     
     TK.assertNotNil(timer, "periodic timer created")
     TK.assertEqual(timer.interval, 100, "interval set to 100ms")
@@ -133,7 +133,7 @@ local function CallLater_testIsRunningInitialState()
     local fn = "testIsRunningInitialState"
     TK.printSuite(mn,fn)
     
-    local timer = SF.CallLater:New(function() d("test") end, 1000)
+    local timer = SF.CallLater:New(function() d("   test") end, 1000)
     TK.assertFalse(timer:IsRunning(), "timer not running before Start()")
     
     timer:Start()
@@ -430,8 +430,6 @@ local function CallLater_testRetryExhaustion()
     triggerPendingCallbacks()
     TK.assertEqual(attemptCount, 2, "attempt 2 made")
     TK.assertFalse(timer:IsRunning(), "timer deactivated after exhausting")
-    TK.assertNil(timer.maxTries, "maxTries cleared after exhaustion")
-    TK.assertNil(timer.attemptsMade, "attemptsMade cleared after exhaustion")
 end
 
 local function CallLater_testRetrySuccess()
@@ -465,8 +463,6 @@ local function CallLater_testRetrySuccess()
     triggerPendingCallbacks()
     TK.assertEqual(attemptCount, 2, "attempt 2 made and succeeded")
     TK.assertFalse(timer:IsRunning(), "timer inactive after success")
-    TK.assertNil(timer.maxTries, "maxTries cleared after success")
-    TK.assertNil(timer.attemptsMade, "attemptsMade cleared after success")
 end
 
 local function CallLater_testNonExistentHookOperations()
@@ -557,7 +553,7 @@ local function CallLater_testInvalidMaxTries()
     timer:Start()
     triggerPendingCallbacks()
     -- With maxTries=0, should not retry at all
-    TK.assertNil(timer.attemptsMade, "no retries with maxTries=0")
+    TK.assertTrue(timer.attemptsMade == 0, "no retries with maxTries=0")
     
     -- Test 2: Negative maxTries (gets floor'd to negative)
     local timer2 = SF.CallLater:NewMaxTries(function() d("test") end, 100, -5)
@@ -565,7 +561,9 @@ local function CallLater_testInvalidMaxTries()
     -- Negative maxTries means no retries (attemptsMade < maxTries always false)
     timer2:Start()
     triggerPendingCallbacks()
-    TK.assertNil(timer2.maxTries, "maxTries cleared after first failure with negative value")
+    TK.assertEqual(timer2.maxTries, 0, "negative maxTries normalized to zero")
+    TK.assertEqual(timer2.attemptsMade, 0, "no attempts made")
+    TK.assertFalse(timer2:IsRunning(), "timer remains inactive")
     
     -- Test 3: Nil maxTries
     local timer3 = SF.CallLater:NewMaxTries(function() d("test") end, 100, nil)
@@ -587,16 +585,11 @@ local function CallLater_testInvalidInterval()
     TK.printSuite(mn,fn)
     
     -- Test 1: Negative interval
-    local timer = SF.CallLater:NewTimer(function() d("periodic") end, -100)
-    TK.assertEqual(timer.interval, -100, "negative interval stored")
-    timer:Start()
-    TK.assertTrue(timer:IsRunning(), "timer starts with negative interval")
-    -- Will schedule indefinitely with negative/zero delay
-    triggerPendingCallbacks()
-    TK.assertTrue(timer:IsRunning(), "periodic timer continues (might spam)")
-    
+    local timer = SF.CallLater:NewTimer(function() d("   periodic") end, -100)
+    TK.assertNil(timer, "negative interval not stored")
+        
     -- Test 2: Zero interval
-    local timer2 = SF.CallLater:NewTimer(function() d("spam") end, 0)
+    local timer2 = SF.CallLater:NewTimer(function() d("   spam") end, 0)
     timer2:Start()
     triggerPendingCallbacks()
     TK.assertTrue(timer2:IsRunning(), "zero interval timer runs")

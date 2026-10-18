@@ -70,7 +70,7 @@
     The library uses LibSFUtils.safeCall to wrap all callback executions.
 
     If a callback throws an error:
-        One-shot with retries: The timer waits for the delay and retries until maxTries is reached.
+        One-shot with retries: The timer waits for the delay and retries until maxTries (total executions) is reached.
         Periodic: Logs the error via d("[PeriodicTimer] callback error: ...") and continues the next tick.
         Standard One-shot: The error is logged, and the timer stops without retrying.
 
@@ -90,44 +90,77 @@ CallLater.__index = CallLater
 --------------------------------------------------------------------
 -- Internal helper that runs the user callback and handles retries.
 --------------------------------------------------------------------
+--[[ invokeLater(self)
+
+    Executes a one-shot timer's callback and handles automatic retries.
+
+    Behavior:
+        Clears the current timer handle and marks the timer inactive before
+        invoking the callback.
+        Increments attemptsMade for each callback execution.
+        Passes pendingArgs to the callback, or no arguments if none were set.
+        Executes the callback through SF.safeCall to catch and report errors.
+        If the callback fails and maxTries has not been reached, schedules
+        another attempt after the configured delay.
+
+    Retry handling:
+        maxTries specifies the maximum total number of callback executions,
+        including the initial attempt.
+        Retries preserve pendingArgs and the current attempt count.
+        Successful execution or exhausted retries ends the current run.
+        A callback may schedule another invocation; automatic retry scheduling
+        must not replace an invocation already scheduled by the callback.
+
+    State:
+        Does not clear pendingArgs after execution, allowing Start() to reuse
+        the last arguments.
+        Does not reset attemptsMade after execution; Start() resets it when
+        beginning a new run.
+
+    Parameters:
+        self (CallLater): The timer instance.
+
+    Returns:
+        Nothing.
+--]]
 local function invokeLater(self)
-    -- Timer fired – clear handle and mark inactive.
+    -- This scheduled invocation has begun.
     self.timerId = nil
-    self.active  = false
+    self.active = false
 
+    if self.destroyed or not self.callback then return end
+
+    self.attemptsMade = (self.attemptsMade or 0) + 1
+
+    -- Capture the callback and arguments for this invocation.
+    local callback = self.callback
     local args = self.pendingArgs or {}
-    self.pendingArgs = nil
-    self.attemptsMade = self.attemptsMade or 0
 
-    if not self.callback then return end
-
-    local ok, err = SF_safeCall(self.callback, unpack(args))
+    local ok, err = SF_safeCall(callback, unpack(args))
 
     if not ok then
-        -- Increment attempts FIRST, THEN check if we can retry
-        self.attemptsMade = self.attemptsMade + 1
-        if self.maxTries and self.attemptsMade < self.maxTries then
-            -- Still have retries left, schedule next attempt
-            self.timerId = zo_callLater(function() invokeLater(self) end,
-                                         self.delay)
-            self.active = true
-        else
-            -- Exhausted all retries, clear retry tracking
-            self.maxTries     = nil
-            self.attemptsMade = nil
+        d("[CallLater] callback error: " .. tostring(err))
+
+        -- Retry only when explicitly configured to do so.
+        -- Do not duplicate a timer already scheduled by the callback.
+        if not self.destroyed
+            and not self.active
+            and self.maxTries ~= nil
+            and self.attemptsMade < self.maxTries
+        then
+            self:_scheduleOneShot(self.delay)
         end
-    else
-        -- Success, clear retry tracking
-        self.maxTries     = nil
-        self.attemptsMade = nil
     end
+
+    -- Do not clear pendingArgs: Start() reuses the last arguments.
+    -- Do not reset attemptsMade here: a new Start() owns that reset.
 end
+
 
 --------------------------------------------------------------------
 -- Constructors
 --------------------------------------------------------------------
---[[
-    CallLater:New(callback, delayMs)
+--[[ CallLater:New(callback, delayMs)
     or 
     CallLater:NewSingle(callback, delayMs)
 
@@ -145,13 +178,13 @@ function CallLater:New(callback, delayMs)
         delay         = delayMs or 0,
         timerId       = nil,
         active        = false,
+        destroyed    = false,
     }, self)
 end
 
 CallLater.NewSingle = CallLater.New
 
---[[
-    CallLater:NewMaxTries(callback, delayMs, maxTries)
+--[[ CallLater:NewMaxTries(callback, delayMs, maxTries)
 
     Creates a one-shot timer with automatic retry logic if the callback fails.
 
@@ -163,6 +196,11 @@ CallLater.NewSingle = CallLater.New
 --]]
 function CallLater:NewMaxTries(callback, delayMs, maxTries)
     if type(maxTries) ~= "number" or maxTries < 0 then maxTries = 0 end
+    if type(maxTries) ~= "number" or maxTries ~= maxTries or maxTries < 0
+        or maxTries == math.huge or maxTries == -math.huge  
+    then
+        maxTries = 0
+    end
     return setmetatable({
         callback      = callback,
         delay         = delayMs or 0,
@@ -171,11 +209,11 @@ function CallLater:NewMaxTries(callback, delayMs, maxTries)
         maxTries      = math.floor(maxTries),
         attemptsMade  = 0,
         pendingArgs   = nil,
+        destroyed    = false,
     }, self)
 end
 
---[[
-    CallLater:NewTimer(callback, intervalMs)
+--[[ CallLater:NewTimer(callback, intervalMs)
 
     Creates a periodic timer that executes repeatedly.
 
@@ -185,30 +223,160 @@ end
     Returns: A new CallLater instance configured as a periodic timer.
 --]]
 function CallLater:NewTimer(callback, intervalMs)
+    if type(intervalMs) ~= "number" or intervalMs ~= intervalMs or intervalMs < 0
+    then
+        d("[CallLater] NewTimer requires a positive, finite interval")
+        return nil
+    end
     return setmetatable({
         periodicCallback = callback,   -- distinct from one‑shot `callback`
         interval         = intervalMs,
         timerId          = nil,
         active           = false,
+        destroyed    = false,
     }, self)
 end
 
+--[[ CallLater:ScheduleNext(delayMs)
+
+    Schedules another one-shot callback within the current run without
+    resetting the attempt counter.
+
+    Behavior:
+        Returns without scheduling if the timer has been destroyed or is a
+        periodic timer.
+        Returns without scheduling if the callback is missing.
+        Enforces maxTries by refusing to schedule another invocation when
+        the maximum total number of callback executions has been reached.
+        Removes any previously scheduled invocation before scheduling the
+        next one.
+        Uses delayMs when provided; otherwise, uses the timer's configured
+        default delay.
+
+    Notes:
+        Unlike Start(), this method does not reset attemptsMade.
+        Scheduled invocations count toward maxTries when they execute.
+        Intended for callback-driven rescheduling, such as readiness polling.
+
+    Parameters:
+        delayMs (number, optional): Delay in milliseconds before the next
+            callback execution. Defaults to the timer's configured delay.
+
+    Returns:
+        The timer instance (self) for method chaining.
+--]]
+function CallLater:ScheduleNext(delayMs)
+    if self.destroyed or self.interval ~= nil then
+        return self
+    end
+
+    if not self.callback then return self end
+
+    -- Respect the total execution limit.
+    if self.maxTries ~= nil
+        and (self.attemptsMade or 0) >= self.maxTries
+    then
+        self.active = false
+        return self
+    end
+
+    -- Replace any already scheduled invocation.
+    if self.timerId then
+        zo_removeCallLater(self.timerId)
+        self.timerId = nil
+    end
+
+    return self:_scheduleOneShot(delayMs)
+end
 --------------------------------------------------------------------
 -- Internal periodic‑timer scheduler (private)
 --------------------------------------------------------------------
-function CallLater:_scheduleNext()
-    if not self.active then return end
+--[[ CallLater:_scheduleNext()
 
-    self._tickWrapper = function()
-        if not self.periodicCallback then return end
-        local ok, err = SF_safeCall(self.periodicCallback)
+    Schedules the next execution of a periodic timer's callback.
+
+    Behavior:
+        Returns immediately if the timer has been destroyed or is not active.
+        Stops the timer if its periodic callback is missing.
+        Schedules the callback using zo_callLater with the configured interval.
+        Executes the callback through SF.safeCall and logs any errors.
+        Automatically schedules the next tick after execution, unless the
+        callback cancelled or restarted the timer, or the timer was destroyed.
+
+    Reentrancy:
+        The callback may call Cancel() or Start() while executing.
+        Before scheduling another tick, this method checks the timer's state
+        and verifies that no other tick has already been scheduled.
+
+    Returns:
+        Nothing.
+--]]
+function CallLater:_scheduleNext()
+    if self.destroyed or not self.active then return end
+    if not self.periodicCallback then
+        self.active = false
+        self.timerId = nil
+        return
+    end
+
+    self.timerId = zo_callLater(function()
+        self.timerId = nil
+
+        if self.destroyed or not self.active then return end
+
+        local callback = self.periodicCallback
+        if not callback then
+            self.active = false
+            return
+        end
+
+        local ok, err = SF_safeCall(callback)
         if not ok then
             d("[PeriodicTimer] callback error: " .. tostring(err))
         end
-        self:_scheduleNext()
+
+        -- The callback may have cancelled or restarted the timer.
+        -- Schedule another tick only if one wasn't already scheduled.
+        if self.active and not self.destroyed and not self.timerId then
+            self:_scheduleNext()
+        end
+    end, self.interval)
+end
+
+--[[ CallLater:_scheduleOneShot(delayMs)
+
+    Schedules a one-shot timer callback for execution after the specified
+    delay.
+
+    Behavior:
+        Returns without scheduling if the timer has been destroyed or its
+        callback is missing, marking the timer inactive.
+        Otherwise, marks the timer active and schedules invokeLater(self)
+        using zo_callLater.
+        Uses delayMs when provided; otherwise, uses the timer's configured
+        default delay.
+        Does not reset attemptsMade, allowing retries and callback-driven
+        scheduling to continue the current run's attempt count.
+
+    Parameters:
+        delayMs (number, optional): Delay in milliseconds before execution.
+            Defaults to the timer's configured delay.
+
+    Returns:
+        The timer instance (self) for method chaining.
+--]]
+function CallLater:_scheduleOneShot(delayMs)
+    if self.destroyed or not self.callback then
+        self.active = false
+        return self
     end
 
-    self.timerId = zo_callLater(self._tickWrapper, self.interval)
+    self.active = true
+    self.timerId = zo_callLater(function()
+        invokeLater(self)
+    end, delayMs or self.delay)
+
+    return self
 end
 
 --------------------------------------------------------------------
@@ -227,26 +395,43 @@ end
     Returns: The timer instance (self) for chaining.
 --]]
 function CallLater:Start(delayMs)
-    if self.active then self:Cancel() end
+    if self.destroyed then return self end
 
-    -- Periodic timer path
-    if self.interval then
+    -- Cancel any currently scheduled invocation.
+    if self.timerId then
+        zo_removeCallLater(self.timerId)
+        self.timerId = nil
+    end
+
+    self.active = false
+
+    -- Periodic timer path.
+    if self.interval ~= nil then
+        if not self.periodicCallback then return self end
+
         self.active = true
         self:_scheduleNext()
         return self
     end
 
-    -- One‑shot timer path
-    if not self.callback then return end
-    local ms = delayMs or self.delay
-    self.active = true
-    self.timerId = zo_callLater(function() invokeLater(self) end, ms)
-    return self
+    -- One-shot timer path.
+    if not self.callback then return self end
+
+    -- Every Start() begins a new run.
+    self.attemptsMade = 0
+
+    -- Zero means no callback executions.
+    if self.maxTries ~= nil and self.maxTries == 0 then
+        return self
+    end
+
+    return self:_scheduleOneShot(delayMs)
 end
+
 
 --[[ timer:StartWithArgs(...)
 
-    Starts a one-shot timer with specific arguments passed to the callback.
+    Starts a timer with specific arguments passed to the callback.
 
     Behavior: Stores the arguments and passes them to the callback upon execution.
     Restriction: Not supported for periodic timers (logs a warning if used).
@@ -255,6 +440,8 @@ end
     Returns: The timer instance.
 --]]
 function CallLater:StartWithArgs(...)
+    if self.destroyed then return self end
+
     if self.interval then
         d("[CallLater] StartWithArgs is not supported for periodic timers")
         self.pendingArgs = nil
@@ -276,22 +463,17 @@ end
     Returns: true if the timer was active and cancelled; false otherwise.
 --]]
 function CallLater:Cancel()
-    local rval = true
-    if self.active == false then
-        rval = false
-    else
-        self.active = false
-    end
+    local wasActive = self.active == true
+    self.active = false
 
     if self.timerId then
         zo_removeCallLater(self.timerId)
+        self.timerId = nil
     end
 
-    self.timerId      = nil
-    self.pendingArgs  = nil
     self.attemptsMade = 0
 
-    return rval
+    return wasActive
 end
 
 --[[ timer:Destroy()
@@ -300,8 +482,10 @@ end
 function CallLater:Destroy()
     if self.timerId then zo_removeCallLater(self.timerId) end
 
+    --  Can no longer start by design.
     self.timerId          = nil
     self.active           = false
+    self.destroyed        = true
     self.maxTries         = nil
     self.attemptsMade     = nil
     self.pendingArgs      = nil
@@ -316,8 +500,7 @@ end
 --------------------------------------------------------------------
 -- Introspection & convenience
 --------------------------------------------------------------------
---[[
-    timer:IsRunning()
+--[[ timer:IsRunning()
 
     Checks if the timer is currently active.
 
@@ -327,8 +510,7 @@ function CallLater:IsRunning()
     return self.active
 end
 
---[[
-    timer:SetCallback(newCallback)
+--[[ timer:SetCallback(newCallback)
 
     Replaces the callback function for future executions.
 
@@ -340,8 +522,7 @@ function CallLater:SetCallback(newCallback)
     return self
 end
 
---[[
-    timer:SetDelay(newDelayMs)
+--[[ timer:SetDelay(newDelayMs)
 
     Updates the default delay for one-shot timers.
 
