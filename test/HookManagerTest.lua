@@ -306,7 +306,7 @@ end
 --------------------------------------------------------------------------------
 -- RUN ALL TESTS
 --------------------------------------------------------------------------------
--- Run all LSV_Data test suites
+-- Run all HookManager test suites
 function Test_HookManager_All()
     HookManager_testInstanceCreation()
     HookManager_testPreHookCreation()

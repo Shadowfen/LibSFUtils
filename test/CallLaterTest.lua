@@ -635,7 +635,7 @@ end
 --------------------------------------------------------------------------------
 -- RUN ALL TESTS
 --------------------------------------------------------------------------------
--- Run all LSV_Data test suites
+-- Run all CallLater test suites
 function Test_CallLater_All()
     CallLater_testInstanceCreation()
     CallLater_testNewMaxTriesCreation()
